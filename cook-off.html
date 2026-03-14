@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+    <!-- SEO + Social Sharing -->
+  <meta name="description" content="Vote in live food battles. Who has the best Dahibara, Biryani or Gupchup in Bhubaneswar? Community decides."/>
+  <meta property="og:title" content="Food Battles — FoodieRadar Khordha"/>
+  <meta property="og:description" content="Vote in live food battles. Who has the best Dahibara, Biryani or Gupchup in Bhubaneswar? Community decides."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://foodieradar.vercel.app/cook-off.html"/>
+  <meta property="og:image" content="https://foodieradar.vercel.app/og-image.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Food Battles — FoodieRadar Khordha"/>
+  <meta name="twitter:description" content="Vote in live food battles. Who has the best Dahibara, Biryani or Gupchup in Bhubaneswar? Community decides."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#E8670A"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cook-Off Battles — FoodieRadar Khordha</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Central config — db client already initialised here -->
+  <script src="config.js"></script>
+  <script src="smart-mode.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --saffron:#E8670A;--turmeric:#F5A623;--clay:#C04A1B;
+      --soil:#1C0F06;--cream:#FDF6EC;--mist:#FAF0E2;
+      --leaf:#2E7D32;--border:#E8D5BF;--subtext:#6B4C35;
+      --card:#FFFFFF;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--soil);min-height:100vh}
+
+    
+    
+    
+    
+    
+
+    /* HERO */
+    .hero{
+      background:linear-gradient(135deg,#1C0F06 0%,#4A1505 100%);
+      padding:48px 5% 40px;position:relative;overflow:hidden;
+    }
+    .hero::before{content:'🏆';position:absolute;right:5%;top:50%;
+      transform:translateY(-50%);font-size:7rem;opacity:.07}
+    .hero-eyebrow{font-size:.72rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.1em;color:var(--turmeric);margin-bottom:10px}
+    .hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3rem);
+      font-weight:900;color:#fff;margin-bottom:8px;line-height:1.1}
+    .hero h1 em{color:var(--turmeric);font-style:italic}
+    .hero p{color:rgba(255,255,255,.55);font-size:.9rem;max-width:420px;line-height:1.7}
+
+    .main{max-width:900px;margin:0 auto;padding:32px 5% 60px}
+
+    /* ACTIVE BATTLE */
+    .battle-section-title{
+      font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;
+      color:var(--soil);margin-bottom:4px;
+    }
+    .battle-section-sub{font-size:.82rem;color:var(--subtext);margin-bottom:20px}
+
+    .active-battle{
+      background:var(--card);border-radius:20px;border:1px solid var(--border);
+      padding:28px;margin-bottom:32px;box-shadow:0 4px 20px rgba(28,15,6,.1);
+    }
+    .battle-title{
+      font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;
+      color:var(--soil);margin-bottom:6px;
+    }
+    .battle-meta{
+      display:flex;gap:14px;font-size:.78rem;color:var(--subtext);
+      margin-bottom:20px;flex-wrap:wrap;
+    }
+    .battle-closes{color:var(--saffron);font-weight:600}
+
+    /* CONTESTANTS */
+    .contestants{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+    .contestant{
+      border:2px solid var(--border);border-radius:14px;padding:18px;
+      text-align:center;cursor:pointer;transition:all .22s;
+      position:relative;overflow:hidden;
+    }
+    .contestant:hover:not(.voted-for){
+      border-color:var(--saffron);transform:translateY(-2px);
+      box-shadow:0 6px 20px rgba(232,103,10,.2);
+    }
+    .contestant.voted-for{
+      border-color:var(--saffron);background:linear-gradient(135deg,rgba(232,103,10,.06),rgba(245,166,35,.06));
+    }
+    .contestant.voted-for::after{
+      content:'✓ Your Vote';position:absolute;top:10px;right:10px;
+      background:var(--saffron);color:#fff;font-size:.65rem;font-weight:700;
+      padding:2px 8px;border-radius:20px;
+    }
+    .contestant-rank{
+      position:absolute;top:10px;left:10px;
+      background:var(--soil);color:#fff;
+      width:24px;height:24px;border-radius:50%;
+      font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+    }
+    .contestant-rank.rank-1{background:var(--turmeric);color:var(--soil)}
+    .contestant-emoji{font-size:2.5rem;margin-bottom:8px;display:block}
+    .contestant-name{font-weight:700;font-size:.95rem;color:var(--soil);margin-bottom:3px}
+    .contestant-area{font-size:.75rem;color:var(--subtext);margin-bottom:10px}
+    .contestant-spec{font-size:.78rem;color:var(--saffron);font-weight:600;margin-bottom:12px}
+
+    /* VOTE BAR */
+    .vote-bar-wrap{text-align:left}
+    .vote-bar-label{
+      display:flex;justify-content:space-between;
+      font-size:.72rem;color:var(--subtext);margin-bottom:4px;
+    }
+    .vote-bar-track{height:8px;background:rgba(232,103,10,.1);border-radius:4px;overflow:hidden}
+    .vote-bar-fill{height:100%;border-radius:4px;transition:width .8s ease;
+      background:linear-gradient(to right,var(--saffron),var(--turmeric))}
+
+    /* VOTE BUTTON */
+    .btn-vote{
+      width:100%;padding:11px;margin-top:14px;
+      background:var(--saffron);color:#fff;border:none;
+      border-radius:10px;font-family:'DM Sans',sans-serif;
+      font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;
+    }
+    .btn-vote:hover:not(:disabled){background:var(--clay);transform:translateY(-1px)}
+    .btn-vote:disabled{background:#ccc;cursor:not-allowed;transform:none}
+    .btn-vote.voted{background:var(--leaf)}
+
+    .total-votes{
+      text-align:center;font-size:.82rem;color:var(--subtext);
+      padding:12px;background:var(--mist);border-radius:10px;margin-top:8px;
+    }
+    .total-votes strong{color:var(--soil)}
+
+    /* PAST BATTLES */
+    .past-battles{display:flex;flex-direction:column;gap:12px}
+    .past-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:14px;padding:18px 20px;
+      display:flex;align-items:center;justify-content:space-between;
+      gap:16px;flex-wrap:wrap;
+    }
+    .past-name{font-weight:600;font-size:.92rem}
+    .past-winner{font-size:.78rem;color:var(--leaf);margin-top:3px}
+    .past-votes{font-size:.78rem;color:var(--subtext)}
+    .trophy{font-size:1.4rem}
+
+    /* NOMINATE */
+    .nominate-box{
+      background:var(--mist);border:1.5px dashed var(--border);
+      border-radius:16px;padding:24px;text-align:center;margin-top:28px;
+    }
+    .nominate-box p{color:var(--subtext);font-size:.88rem;margin-bottom:14px;line-height:1.6}
+    .btn-nominate{
+      padding:10px 24px;border:1.5px solid var(--saffron);color:var(--saffron);
+      background:transparent;border-radius:50px;font-family:'DM Sans',sans-serif;
+      font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;
+    }
+    .btn-nominate:hover{background:var(--saffron);color:#fff}
+
+    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;
+      background:var(--soil);color:#fff;padding:12px 20px;border-radius:10px;
+      font-size:.88rem;font-weight:500;border-left:3px solid var(--saffron);
+      box-shadow:0 8px 24px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;
+      transition:all .3s;pointer-events:none}
+    .toast.show{transform:translateY(0);opacity:1}
+
+    @media(max-width:600px){.contestants{grid-template-columns:1fr}}
+  
+    /* ── NAV ─────────────────────────────────────────────────────────────────── */
+    nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.96);
+      -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);padding:0 5%;
+      display:flex;align-items:center;justify-content:space-between;
+      height:68px;transition:height .25s,box-shadow .25s}
+    nav.scrolled{height:56px;box-shadow:0 4px 24px rgba(28,15,6,.10)}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--saffron),var(--clay));
+      border-radius:12px;display:flex;align-items:center;justify-content:center;
+      font-size:19px;box-shadow:0 3px 10px rgba(232,103,10,.4);transition:transform .2s}
+    .nav-logo:hover .nav-logo-icon{transform:rotate(-8deg) scale(1.08)}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.22rem;font-weight:900;
+      color:var(--soil);letter-spacing:-0.02em;line-height:1}
+    .nav-logo-sub{display:block;font-family:'DM Sans',sans-serif;font-size:.6rem;font-weight:600;
+      color:var(--subtext);letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
+    .nav-links{display:flex;align-items:center;gap:2px;list-style:none;
+      background:rgba(28,15,6,.04);border:1px solid var(--border);
+      border-radius:50px;padding:4px 6px}
+    .nav-links li a{text-decoration:none;color:var(--subtext);font-size:.82rem;font-weight:500;
+      padding:6px 13px;border-radius:50px;transition:all .18s;
+      display:flex;align-items:center;gap:5px;white-space:nowrap}
+    .nav-links li a:hover{color:var(--saffron);background:rgba(232,103,10,.08)}
+    .nav-links li a.active{color:var(--saffron);background:rgba(232,103,10,.12);font-weight:600}
+    .nav-actions{display:flex;align-items:center;gap:10px}
+    .nav-back{display:flex;align-items:center;gap:6px;padding:7px 14px;
+      border:1.5px solid var(--border);border-radius:50px;font-size:.82rem;
+      font-weight:600;color:var(--subtext);text-decoration:none;transition:all .18s;white-space:nowrap}
+    .nav-back:hover{border-color:var(--saffron);color:var(--saffron);background:rgba(232,103,10,.06)}
+    .nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;
+      padding:6px;border:none;background:transparent}
+    .nav-hamburger span{display:block;width:22px;height:2px;background:var(--soil);
+      border-radius:2px;transition:all .25s}
+    .nav-hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+    .nav-hamburger.open span:nth-child(2){opacity:0}
+    .nav-hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+    .nav-drawer{display:none;position:fixed;inset:0;top:56px;
+      background:rgba(253,246,236,.98);-webkit-backdrop-filter:blur(20px);
+      backdrop-filter:blur(20px);z-index:998;flex-direction:column;
+      padding:24px 6%;border-top:1px solid var(--border)}
+    .nav-drawer.open{display:flex}
+    .nav-drawer a{text-decoration:none;color:var(--soil);font-size:1.1rem;font-weight:600;
+      padding:14px 0;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:12px}
+    .nav-drawer a:last-child{border-bottom:none}
+    @media(max-width:860px){.nav-links{display:none}.nav-hamburger{display:flex}}
+  </style>
+</head>
+<body>
+
+<nav id="mainNav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">🍛</div>
+    <div>
+      <span class="nav-logo-text">Foodie<span class="accent">Radar</span></span>
+      <span class="nav-logo-sub">Khordha District</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">🗺️ Explore</a></li>
+    <li><a href="index.html#map-section">📍 Map</a></li>
+    <li><a href="events.html" class="active">🎪 Events</a></li>
+    <li><a href="food-trails.html">🥾 Trails</a></li>
+    <li><a href="food-dictionary.html">📖 Dictionary</a></li>
+    <li><a href="passport.html">🏅 Passport</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="index.html" class="nav-back">← Radar</a>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="index.html" onclick="closeDrawer()">🗺️ Explore Spots</a>
+  <a href="events.html">🎪 Food Events</a>
+  <a href="food-trails.html">🥾 Food Trails</a>
+  <a href="food-dictionary.html">📖 Food Dictionary</a>
+  <a href="passport.html">🏅 My Passport</a>
+  <a href="haat-festival.html">🛒 Haat Tracker</a>
+  <a href="tiffin.html">🍱 Home Tiffin</a>
+  <a href="cook-off.html">🥊 Cook-Off Battles</a>
+</div>
+
+<div class="hero">
+  <div class="hero-eyebrow">👨‍🍳 Community Battles</div>
+  <h1>Khordha<br><em>Cook-Off</em></h1>
+  <p>Vote for your favourite local food spot. New battles every month. No login needed — just vote.</p>
+</div>
+
+<div class="main">
+
+  <!-- ACTIVE BATTLE -->
+  <div class="battle-section-title">⚔️ Active Battle</div>
+  <div class="battle-section-sub">One vote per device. Results update live.</div>
+
+  <div class="active-battle" id="activeBattle">
+    <!-- Rendered by JS -->
+  </div>
+
+  <!-- PAST BATTLES -->
+  <div style="margin-top:36px">
+    <div class="battle-section-title">🏆 Past Winners</div>
+    <div class="battle-section-sub" style="margin-bottom:16px">Previous cook-off champions</div>
+    <div class="past-battles" id="pastBattles"></div>
+  </div>
+
+  <!-- NOMINATE -->
+  <div class="nominate-box">
+    <p>Know a local cook or food spot that deserves to be in a Cook-Off?<br>Nominate them for next month's battle.</p>
+    <button class="btn-nominate" onclick="openNominate()">Nominate a Spot</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+  // ── ACTIVE BATTLE DATA ──────────────────────────────────────────────────
+  // In Tier 4 this will come from Supabase — hardcoded here as seed
+  const activeBattle = {
+    id:       'battle_march_2025',
+    title:    'Best Dalma in Khordha',
+    subtitle: 'March 2025 · Closes March 31',
+    category: 'Odia Dish',
+    contestants: [
+      { id:'c1', name:'Raghunath Odia Thali', area:'Old Town, BBSR', specialty:'Traditional Dalma with 7 vegetables', emoji:'🍲' },
+      { id:'c2', name:'Maa Tarini Dhaba',     area:'Khordha Town',   specialty:'Dalma with fresh drumstick & raw banana', emoji:'🥘' },
+      { id:'c3', name:'Hotel Mayfair Kitchen', area:'Nayapalli, BBSR',specialty:'Dalma cooked in clay pot, served with ghee', emoji:'🫕' },
+      { id:'c4', name:'Nayapalli Thali House', area:'Nayapalli, BBSR',specialty:'Grandma-style Dalma, cooked since 1982', emoji:'🍛' },
+    ]
+  };
+
+  const pastBattles = [
+    { title:'Best Pakhala in BBSR',     winner:'Raghunath Odia Thali',   month:'Feb 2025', totalVotes:847  },
+    { title:'Best Street Chaat',         winner:'Saheed Nagar Chaat Wala', month:'Jan 2025', totalVotes:632  },
+    { title:'Best Chhena Poda',          winner:'Lakshmi Sweet House',     month:'Dec 2024', totalVotes:1203 },
+    { title:'Best Budget Thali (₹100)',  winner:'Mahesh Tiffin Centre',    month:'Nov 2024', totalVotes:519  },
+  ];
+
+  // ── VOTE STATE (localStorage — no login needed) ─────────────────────────
+  function getVotes() {
+    return LS.get('fr_votes') || {};
+  }
+  function saveVote(battleId, contestantId) {
+    const v = getVotes();
+    v[battleId] = contestantId;
+    try { LS.set('fr_votes', v); } catch(e) {}
+  }
+  function hasVoted(battleId) {
+    return !!getVotes()[battleId];
+  }
+  function getMyVote(battleId) {
+    return getVotes()[battleId] || null;
+  }
+
+  // ── VOTE COUNTS (live from Supabase) ─────────────────────────────────────
+  let voteCounts = { c1:234, c2:187, c3:156, c4:98 }; // Seed — replaced on load
+
+  async function loadLiveVoteCounts() {
+    try {
+      const { data } = await db
+        .from('cookoff_votes')
+        .select('contestant_id')
+        .eq('battle_id', activeBattle.id);
+      if (data && data.length) {
+        const counts = {};
+        data.forEach(row => {
+          counts[row.contestant_id] = (counts[row.contestant_id] || 0) + 1;
+        });
+        voteCounts = { ...voteCounts, ...counts };
+        renderActiveBattle();
+      }
+    } catch (e) { /* offline — show seed counts */ }
+  }
+
+  async function castVote(battleId, contestantId) {
+    if (hasVoted(battleId)) { showToast('You already voted! ✓'); return; }
+
+    // Optimistic update
+    voteCounts[contestantId] = (voteCounts[contestantId] || 0) + 1;
+    saveVote(battleId, contestantId);
+
+    // Try to save to Supabase (non-blocking)
+    try {
+      await db.from('cookoff_votes').insert([{
+        battle_id:     battleId,
+        contestant_id: contestantId,
+        voted_at:      new Date().toISOString(),
+      }]);
+    } catch (e) {
+      // Supabase unavailable — local vote still saved
+    }
+
+    renderActiveBattle();
+    showToast('🗳️ Vote cast! Thanks for participating.');
+  }
+
+  // ── RENDER ───────────────────────────────────────────────────────────────
+  function renderActiveBattle() {
+    const b        = activeBattle;
+    const myVote   = getMyVote(b.id);
+    const voted    = hasVoted(b.id);
+    const total    = Object.values(voteCounts).reduce((a,v) => a+v, 0);
+
+    // Sort contestants by votes descending for ranking
+    const ranked = [...b.contestants].sort((a,z) =>
+      (voteCounts[z.id]||0) - (voteCounts[a.id]||0)
+    );
+
+    const container = document.getElementById('activeBattle');
+    container.innerHTML = `
+      <div class="battle-title">${b.title}</div>
+      <div class="battle-meta">
+        <span>${b.category}</span>
+        <span class="battle-closes">⏰ ${b.subtitle.split('·')[1]?.trim()}</span>
+        ${voted ? '<span style="color:var(--leaf);font-weight:600">✓ Voted</span>' : ''}
+      </div>
+      <div class="contestants">
+        ${ranked.map((c, idx) => {
+          const votes  = voteCounts[c.id] || 0;
+          const pct    = total > 0 ? Math.round((votes/total)*100) : 0;
+          const isMyVote = myVote === c.id;
+          const rank   = idx + 1;
+          return `
+            <div class="contestant ${isMyVote ? 'voted-for' : ''}"
+              onclick="${!voted ? `castVote('${b.id}','${c.id}')` : ''}">
+              <div class="contestant-rank rank-${rank}">${rank}</div>
+              <span class="contestant-emoji">${c.emoji}</span>
+              <div class="contestant-name">${c.name}</div>
+              <div class="contestant-area">📍 ${c.area}</div>
+              <div class="contestant-spec">"${c.specialty}"</div>
+              ${voted ? `
+                <div class="vote-bar-wrap">
+                  <div class="vote-bar-label">
+                    <span>${votes} votes</span><span>${pct}%</span>
+                  </div>
+                  <div class="vote-bar-track">
+                    <div class="vote-bar-fill" style="width:${pct}%"></div>
+                  </div>
+                </div>` : ''}
+              ${!voted ? `<button class="btn-vote" onclick="event.stopPropagation();castVote('${b.id}','${c.id}')">Vote</button>` : ''}
+              ${isMyVote ? `<button class="btn-vote voted" disabled>✓ Your Vote</button>` : ''}
+            </div>`;
+        }).join('')}
+      </div>
+      <div class="total-votes">
+        <strong>${total.toLocaleString()}</strong> total votes cast this month
+      </div>`;
+  }
+
+  function renderPastBattles() {
+    document.getElementById('pastBattles').innerHTML = pastBattles.map((b,i) => `
+      <div class="past-card">
+        <div>
+          <div class="past-name">${b.title}</div>
+          <div class="past-winner">🏆 Winner: ${b.winner}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="past-votes">${b.totalVotes.toLocaleString()} votes</div>
+          <div style="font-size:.72rem;color:#bbb;margin-top:2px">${b.month}</div>
+        </div>
+      </div>`
+    ).join('');
+  }
+
+  function openNominate() {
+    const name = prompt('Who do you want to nominate for next month\'s Cook-Off?\n(Enter the name of the spot or cook):');
+    if (!name) return;
+    showToast('✅ Nomination received for "' + name.trim() + '"! We\'ll review it.');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  // ── INIT ─────────────────────────────────────────────────────────────────
+  renderActiveBattle();
+  renderPastBattles();
+  loadLiveVoteCounts(); // async — replaces seed counts with real Supabase data
+</script>
+</body>
+</html>

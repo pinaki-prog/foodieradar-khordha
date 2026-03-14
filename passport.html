@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+    <!-- SEO + Social Sharing -->
+  <meta name="description" content="Track your food adventures across Khordha. Earn XP, collect badges and become a Street Food Legend."/>
+  <meta property="og:title" content="FoodiePassport — FoodieRadar Khordha"/>
+  <meta property="og:description" content="Track your food adventures across Khordha. Earn XP, collect badges and become a Street Food Legend."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://foodieradar.vercel.app/passport.html"/>
+  <meta property="og:image" content="https://foodieradar.vercel.app/og-image.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="FoodiePassport — FoodieRadar Khordha"/>
+  <meta name="twitter:description" content="Track your food adventures across Khordha. Earn XP, collect badges and become a Street Food Legend."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#E8670A"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FoodiePassport — FoodieRadar Khordha</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="smart-mode.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --saffron:#E8670A; --turmeric:#F5A623; --clay:#C04A1B;
+      --soil:#1C0F06; --cream:#FDF6EC; --mist:#FAF0E2;
+      --leaf:#2E7D32; --border:#E8D5BF; --subtext:#6B4C35;
+      --card:#FFFFFF; --r:14px;
+      --shadow-sm:0 2px 8px rgba(28,15,6,.07);
+      --shadow-md:0 6px 24px rgba(28,15,6,.12);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--soil);min-height:100vh}
+
+    /* NAV */
+    
+    
+    
+    
+    
+
+    /* SETUP SCREEN */
+    .setup-screen{
+      max-width:480px;margin:60px auto;padding:24px;
+    }
+    .setup-card{
+      background:var(--card);border-radius:20px;padding:40px;
+      border:1px solid var(--border);box-shadow:var(--shadow-md);
+      text-align:center;
+    }
+    .setup-icon{font-size:3.5rem;margin-bottom:16px}
+    .setup-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;margin-bottom:8px}
+    .setup-desc{color:var(--subtext);font-size:.9rem;line-height:1.6;margin-bottom:28px}
+    .setup-input{
+      width:100%;padding:14px 18px;
+      border:1.5px solid var(--border);border-radius:12px;
+      font-family:'DM Sans',sans-serif;font-size:1rem;
+      outline:none;text-align:center;letter-spacing:.02em;
+      transition:border-color .2s;margin-bottom:12px;
+      background:var(--mist);
+    }
+    .setup-input:focus{border-color:var(--saffron)}
+    .setup-note{font-size:.78rem;color:var(--subtext);margin-bottom:20px;line-height:1.5}
+    .btn-start{
+      width:100%;padding:14px;background:var(--saffron);color:#fff;
+      border:none;border-radius:12px;font-family:'DM Sans',sans-serif;
+      font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;
+    }
+    .btn-start:hover{background:var(--clay);transform:translateY(-1px)}
+
+    /* PASSPORT MAIN */
+    .passport-main{max-width:900px;margin:0 auto;padding:32px 24px}
+
+    /* PASSPORT CARD */
+    .passport-card{
+      background:linear-gradient(135deg,var(--soil) 0%,#3D1F0D 100%);
+      border-radius:20px;padding:32px;margin-bottom:28px;
+      position:relative;overflow:hidden;
+      box-shadow:0 12px 40px rgba(28,15,6,.3);
+    }
+    .passport-card::before{
+      content:'🍛';position:absolute;right:-20px;bottom:-20px;
+      font-size:8rem;opacity:.06;
+    }
+    .passport-header{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:24px;flex-wrap:wrap;gap:12px;
+    }
+    .passport-title{
+      color:rgba(255,255,255,.5);font-size:.72rem;font-weight:700;
+      text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;
+    }
+    .passport-name{
+      font-family:'Playfair Display',serif;font-size:1.8rem;
+      font-weight:900;color:#fff;
+    }
+    .passport-id{font-size:.75rem;color:rgba(255,255,255,.35);margin-top:2px}
+
+    .passport-level{
+      background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+      border-radius:12px;padding:14px 20px;text-align:center;
+    }
+    .level-icon{font-size:1.8rem;margin-bottom:4px}
+    .level-name{color:var(--turmeric);font-weight:700;font-size:.88rem}
+    .level-sub{color:rgba(255,255,255,.4);font-size:.72rem;margin-top:2px}
+
+    .passport-stats{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+    }
+    .p-stat{
+      background:rgba(255,255,255,.07);border-radius:12px;padding:14px;
+      text-align:center;border:1px solid rgba(255,255,255,.08);
+    }
+    .p-stat-num{
+      font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;
+      color:var(--turmeric);line-height:1;
+    }
+    .p-stat-label{color:rgba(255,255,255,.45);font-size:.72rem;margin-top:4px}
+
+    /* XP BAR */
+    .xp-section{margin-top:20px}
+    .xp-label{display:flex;justify-content:space-between;
+      color:rgba(255,255,255,.5);font-size:.75rem;margin-bottom:6px}
+    .xp-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+    .xp-fill{height:100%;background:linear-gradient(to right,var(--saffron),var(--turmeric));
+      border-radius:3px;transition:width .8s ease}
+
+    /* BADGES */
+    .section-title{
+      font-family:'Playfair Display',serif;font-size:1.3rem;
+      font-weight:700;margin-bottom:16px;color:var(--soil);
+    }
+    .badges-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+      gap:12px;margin-bottom:28px;
+    }
+    .badge-card{
+      background:var(--card);border:1.5px solid var(--border);
+      border-radius:14px;padding:16px 12px;text-align:center;
+      transition:all .22s;position:relative;
+    }
+    .badge-card.earned{border-color:rgba(232,103,10,.4);background:var(--mist)}
+    .badge-card.locked{opacity:.45;filter:grayscale(0.6)}
+    .badge-icon{font-size:2rem;margin-bottom:8px;display:block}
+    .badge-name{font-size:.78rem;font-weight:700;color:var(--soil);margin-bottom:2px}
+    .badge-desc{font-size:.68rem;color:var(--subtext);line-height:1.4}
+    .badge-earned-check{
+      position:absolute;top:8px;right:8px;
+      background:var(--saffron);color:#fff;
+      width:18px;height:18px;border-radius:50%;
+      font-size:.6rem;display:flex;align-items:center;justify-content:center;
+      font-weight:700;
+    }
+
+    /* VISITED SPOTS */
+    .visited-list{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+    .visited-item{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:14px 18px;
+      display:flex;align-items:center;justify-content:space-between;
+      gap:12px;flex-wrap:wrap;
+    }
+    .visited-name{font-weight:600;font-size:.92rem;color:var(--soil)}
+    .visited-meta{font-size:.76rem;color:var(--subtext);margin-top:2px}
+    .visited-date{font-size:.72rem;color:#bbb;white-space:nowrap}
+
+    /* MARK VISITED BTN */
+    .btn-mark{
+      padding:7px 16px;border-radius:8px;
+      border:1.5px solid var(--border);background:transparent;
+      font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;
+      cursor:pointer;transition:all .18s;color:var(--subtext);
+    }
+    .btn-mark.done{background:var(--leaf);border-color:var(--leaf);color:#fff}
+    .btn-mark:hover:not(.done){border-color:var(--saffron);color:var(--saffron)}
+
+    /* RESET */
+    .reset-link{
+      font-size:.78rem;color:var(--subtext);text-align:center;
+      margin-top:24px;cursor:pointer;text-decoration:underline;opacity:.6;
+    }
+    .reset-link:hover{opacity:1;color:var(--clay)}
+
+    /* EMPTY */
+    .empty-visited{
+      background:var(--mist);border:1.5px dashed var(--border);
+      border-radius:14px;padding:32px;text-align:center;
+      color:var(--subtext);font-size:.88rem;
+    }
+    .empty-visited a{color:var(--saffron);font-weight:600;text-decoration:none}
+
+    @media(max-width:600px){
+      .passport-stats{grid-template-columns:repeat(3,1fr)}
+      .passport-header{flex-direction:column;align-items:flex-start}
+    }
+  
+    /* ── NAV ─────────────────────────────────────────────────────────────────── */
+    nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.96);
+      -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);padding:0 5%;
+      display:flex;align-items:center;justify-content:space-between;
+      height:68px;transition:height .25s,box-shadow .25s}
+    nav.scrolled{height:56px;box-shadow:0 4px 24px rgba(28,15,6,.10)}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--saffron),var(--clay));
+      border-radius:12px;display:flex;align-items:center;justify-content:center;
+      font-size:19px;box-shadow:0 3px 10px rgba(232,103,10,.4);transition:transform .2s}
+    .nav-logo:hover .nav-logo-icon{transform:rotate(-8deg) scale(1.08)}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.22rem;font-weight:900;
+      color:var(--soil);letter-spacing:-0.02em;line-height:1}
+    .nav-logo-sub{display:block;font-family:'DM Sans',sans-serif;font-size:.6rem;font-weight:600;
+      color:var(--subtext);letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
+    .nav-links{display:flex;align-items:center;gap:2px;list-style:none;
+      background:rgba(28,15,6,.04);border:1px solid var(--border);
+      border-radius:50px;padding:4px 6px}
+    .nav-links li a{text-decoration:none;color:var(--subtext);font-size:.82rem;font-weight:500;
+      padding:6px 13px;border-radius:50px;transition:all .18s;
+      display:flex;align-items:center;gap:5px;white-space:nowrap}
+    .nav-links li a:hover{color:var(--saffron);background:rgba(232,103,10,.08)}
+    .nav-links li a.active{color:var(--saffron);background:rgba(232,103,10,.12);font-weight:600}
+    .nav-actions{display:flex;align-items:center;gap:10px}
+    .nav-back{display:flex;align-items:center;gap:6px;padding:7px 14px;
+      border:1.5px solid var(--border);border-radius:50px;font-size:.82rem;
+      font-weight:600;color:var(--subtext);text-decoration:none;transition:all .18s;white-space:nowrap}
+    .nav-back:hover{border-color:var(--saffron);color:var(--saffron);background:rgba(232,103,10,.06)}
+    .nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;
+      padding:6px;border:none;background:transparent}
+    .nav-hamburger span{display:block;width:22px;height:2px;background:var(--soil);
+      border-radius:2px;transition:all .25s}
+    .nav-hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+    .nav-hamburger.open span:nth-child(2){opacity:0}
+    .nav-hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+    .nav-drawer{display:none;position:fixed;inset:0;top:56px;
+      background:rgba(253,246,236,.98);-webkit-backdrop-filter:blur(20px);
+      backdrop-filter:blur(20px);z-index:998;flex-direction:column;
+      padding:24px 6%;border-top:1px solid var(--border)}
+    .nav-drawer.open{display:flex}
+    .nav-drawer a{text-decoration:none;color:var(--soil);font-size:1.1rem;font-weight:600;
+      padding:14px 0;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:12px}
+    .nav-drawer a:last-child{border-bottom:none}
+    @media(max-width:860px){.nav-links{display:none}.nav-hamburger{display:flex}}
+  </style>
+</head>
+<body>
+<nav id="mainNav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">🍛</div>
+    <div>
+      <span class="nav-logo-text">Foodie<span class="accent">Radar</span></span>
+      <span class="nav-logo-sub">Khordha District</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">🗺️ Explore</a></li>
+    <li><a href="index.html#map-section">📍 Map</a></li>
+    <li><a href="events.html">🎪 Events</a></li>
+    <li><a href="food-trails.html">🥾 Trails</a></li>
+    <li><a href="food-dictionary.html">📖 Dictionary</a></li>
+    <li><a href="passport.html" class="active">🏅 Passport</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="index.html" class="nav-back">← Radar</a>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="index.html" onclick="closeDrawer()">🗺️ Explore Spots</a>
+  <a href="events.html">🎪 Food Events</a>
+  <a href="food-trails.html">🥾 Food Trails</a>
+  <a href="food-dictionary.html">📖 Food Dictionary</a>
+  <a href="passport.html">🏅 My Passport</a>
+  <a href="haat-festival.html">🛒 Haat Tracker</a>
+  <a href="tiffin.html">🍱 Home Tiffin</a>
+  <a href="cook-off.html">🥊 Cook-Off Battles</a>
+</div>
+
+<!-- SETUP SCREEN (shown if no nickname yet) -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-card">
+    <div class="setup-icon">🛂</div>
+    <div class="setup-title">Your FoodiePassport</div>
+    <p class="setup-desc">Track every spot you visit across Khordha. Earn badges. No account needed — just pick a name.</p>
+    <input class="setup-input" id="nicknameInput" maxlength="30"
+      placeholder="Enter your foodie name..." />
+    <p class="setup-note">This stays on your device only. No email, no password, no sign-up.</p>
+    <button class="btn-start" onclick="createPassport()">Create My Passport 🚀</button>
+  </div>
+</div>
+
+<!-- PASSPORT MAIN (shown after setup) -->
+<div class="passport-main" id="passportMain" style="display:none">
+
+  <!-- Passport Card -->
+  <div class="passport-card">
+    <div class="passport-header">
+      <div>
+        <div class="passport-title">FoodieRadar Khordha</div>
+        <div class="passport-name" id="passportName">–</div>
+        <div class="passport-id" id="passportId">Foodie ID: –</div>
+      </div>
+      <div class="passport-level">
+        <div class="level-icon" id="levelIcon">🌱</div>
+        <div class="level-name" id="levelName">Newcomer</div>
+        <div class="level-sub" id="levelSub">0 XP</div>
+      </div>
+    </div>
+    <div class="passport-stats">
+      <div class="p-stat">
+        <div class="p-stat-num" id="visitedCount">0</div>
+        <div class="p-stat-label">Spots Visited</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-num" id="badgeCount">0</div>
+        <div class="p-stat-label">Badges Earned</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-num" id="xpCount">0</div>
+        <div class="p-stat-label">Total XP</div>
+      </div>
+    </div>
+    <div class="xp-section">
+      <div class="xp-label">
+        <span id="xpLabel">Progress to next level</span>
+        <span id="xpProgress">0 / 100 XP</span>
+      </div>
+      <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- Badges -->
+  <div class="section-title">🏅 Badges</div>
+  <div class="badges-grid" id="badgesGrid"></div>
+
+  <!-- Visited Spots -->
+  <div class="section-title">📍 Spots Visited</div>
+  <div class="visited-list" id="visitedList"></div>
+
+  <p class="reset-link" onclick="resetPassport()">Reset my passport (clears all data)</p>
+</div>
+
+<script>
+// ── BADGE DEFINITIONS ─────────────────────────────────────────────────────────
+const BADGES = [
+  { id:'first_bite',   icon:'🍽️', name:'First Bite',      desc:'Visit your first spot',              xpNeeded:1,   type:'visits' },
+  { id:'street_king',  icon:'🍢', name:'Street King',     desc:'Visit 5 street food stalls',         xpNeeded:5,   type:'street' },
+  { id:'thali_lover',  icon:'🍛', name:'Thali Lover',     desc:'Try 3 Odia Thali restaurants',       xpNeeded:3,   type:'thali'  },
+  { id:'sweet_tooth',  icon:'🍮', name:'Sweet Tooth',     desc:'Visit 2 sweet shops',                xpNeeded:2,   type:'sweet'  },
+  { id:'explorer',     icon:'🗺️', name:'Explorer',        desc:'Visit spots in 3 different areas',   xpNeeded:3,   type:'areas'  },
+  { id:'gem_hunter',   icon:'✨', name:'Gem Hunter',      desc:'Find 2 hidden gems',                 xpNeeded:2,   type:'gems'   },
+  { id:'regular',      icon:'🔁', name:'Regular',         desc:'Visit 10 spots total',               xpNeeded:10,  type:'visits' },
+  { id:'foodie_pro',   icon:'👨‍🍳', name:'Foodie Pro',    desc:'Visit 25 spots',                     xpNeeded:25,  type:'visits' },
+  { id:'khordha_born', icon:'🏠', name:'Khordha Local',   desc:'Visit spots in 5 different areas',   xpNeeded:5,   type:'areas'  },
+  { id:'budget_king',  icon:'💰', name:'Budget King',     desc:'Visit 5 budget (₹) spots',           xpNeeded:5,   type:'budget' },
+];
+
+// ── LEVELS ────────────────────────────────────────────────────────────────────
+const LEVELS = [
+  { min:0,   max:50,  icon:'🌱', name:'Food Newcomer' },
+  { min:50,  max:150, icon:'🍴', name:'Street Wanderer' },
+  { min:150, max:300, icon:'🍛', name:'Thali Seeker' },
+  { min:300, max:500, icon:'🌶️', name:'Flavour Chaser' },
+  { min:500, max:800, icon:'👨‍🍳', name:'Local Connoisseur' },
+  { min:800, max:Infinity, icon:'🏆', name:'Khordha Food Legend' },
+];
+
+// ── PASSPORT STATE ─────────────────────────────────────────────────────────────
+function loadPassport() {
+  try {
+    const raw = LS.get('fr_passport');
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function savePassport(p) {
+  try { LS.set('fr_passport', p); } catch(e) {}
+}
+
+function createPassport() {
+  const name = document.getElementById('nicknameInput').value.trim();
+  if (!name) { alert('Please enter a name!'); return; }
+
+  const passport = {
+    name,
+    id: 'FR' + Math.random().toString(36).substr(2,6).toUpperCase(),
+    created: new Date().toISOString(),
+    visited: [],    // array of { spotId, spotName, category, area, isGem, priceRange, date }
+    badges:  [],    // array of badge ids earned
+    xp:      0,
+  };
+
+  savePassport(passport);
+  showPassport(passport);
+}
+
+// ── RENDER PASSPORT ────────────────────────────────────────────────────────────
+function showPassport(p) {
+  document.getElementById('setupScreen').style.display  = 'none';
+  document.getElementById('passportMain').style.display = 'block';
+
+  document.getElementById('passportName').textContent = p.name;
+  document.getElementById('passportId').textContent   = 'Foodie ID: ' + p.id;
+  document.getElementById('visitedCount').textContent = p.visited.length;
+  document.getElementById('xpCount').textContent      = p.xp;
+
+  // Level
+  const level = LEVELS.find(l => p.xp >= l.min && p.xp < l.max) || LEVELS[LEVELS.length-1];
+  const nextLevel = LEVELS[LEVELS.indexOf(level)+1];
+  document.getElementById('levelIcon').textContent = level.icon;
+  document.getElementById('levelName').textContent = level.name;
+  document.getElementById('levelSub').textContent  = p.xp + ' XP';
+
+  if (nextLevel) {
+    const pct = Math.round(((p.xp - level.min) / (nextLevel.min - level.min)) * 100);
+    document.getElementById('xpFill').style.width     = pct + '%';
+    document.getElementById('xpProgress').textContent = p.xp + ' / ' + nextLevel.min + ' XP';
+    document.getElementById('xpLabel').textContent    = 'Progress to ' + nextLevel.name;
+  } else {
+    document.getElementById('xpFill').style.width     = '100%';
+    document.getElementById('xpProgress').textContent = 'MAX LEVEL';
+  }
+
+  // Badges
+  const earnedCount = checkAndAwardBadges(p);
+  document.getElementById('badgeCount').textContent = earnedCount;
+  renderBadges(p);
+  renderVisited(p);
+}
+
+// ── BADGES ─────────────────────────────────────────────────────────────────────
+function checkAndAwardBadges(p) {
+  const v = p.visited;
+  const streetVisits = v.filter(s => s.category === 'Street Food').length;
+  const thaliVisits  = v.filter(s => s.category === 'Odia Thali').length;
+  const sweetVisits  = v.filter(s => s.category === 'Sweet Shop').length;
+  const uniqueAreas  = new Set(v.map(s => s.area)).size;
+  const gemVisits    = v.filter(s => s.isGem).length;
+  const budgetVisits = v.filter(s => s.priceRange === '₹').length;
+
+  const condMap = {
+    'first_bite':   v.length >= 1,
+    'street_king':  streetVisits >= 5,
+    'thali_lover':  thaliVisits  >= 3,
+    'sweet_tooth':  sweetVisits  >= 2,
+    'explorer':     uniqueAreas  >= 3,
+    'gem_hunter':   gemVisits    >= 2,
+    'regular':      v.length     >= 10,
+    'foodie_pro':   v.length     >= 25,
+    'khordha_born': uniqueAreas  >= 5,
+    'budget_king':  budgetVisits >= 5,
+  };
+
+  let newBadge = false;
+  BADGES.forEach(b => {
+    if (condMap[b.id] && !p.badges.includes(b.id)) {
+      p.badges.push(b.id);
+      newBadge = true;
+    }
+  });
+  if (newBadge) savePassport(p);
+  return p.badges.length;
+}
+
+function renderBadges(p) {
+  document.getElementById('badgesGrid').innerHTML = BADGES.map(b => {
+    const earned = p.badges.includes(b.id);
+    return `
+      <div class="badge-card ${earned ? 'earned' : 'locked'}">
+        ${earned ? '<div class="badge-earned-check">✓</div>' : ''}
+        <span class="badge-icon">${b.icon}</span>
+        <div class="badge-name">${b.name}</div>
+        <div class="badge-desc">${b.desc}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── VISITED SPOTS ──────────────────────────────────────────────────────────────
+function renderVisited(p) {
+  const el = document.getElementById('visitedList');
+  if (p.visited.length === 0) {
+    el.innerHTML = `
+      <div class="empty-visited">
+        📍 No spots visited yet.<br>
+        <a href="index.html">Explore spots →</a> and tap "Mark Visited" to start tracking.
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = p.visited.slice().reverse().map(v => {
+    const d = new Date(v.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    return `
+      <div class="visited-item">
+        <div>
+          <div class="visited-name">${v.spotName} ${v.isGem ? '✨' : ''}</div>
+          <div class="visited-meta">${v.category} · 📍 ${v.area} · ${v.priceRange || ''}</div>
+        </div>
+        <div class="visited-date">${d}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── MARK VISITED (called from index.html spot cards) ──────────────────────────
+function markVisited(spotId, spotName, category, area, isGem, priceRange) {
+  const p = loadPassport();
+  if (!p) { window.location.href = 'passport.html'; return; }
+
+  if (p.visited.find(v => v.spotId === spotId)) {
+    showToast('Already visited! ✓');
+    return;
+  }
+
+  p.visited.push({ spotId, spotName, category, area, isGem, priceRange, date: new Date().toISOString() });
+  p.xp += isGem ? 20 : 10; // Hidden gems worth more XP
+  savePassport(p);
+  showPassport(p);
+  showToast('📍 Marked visited! +' + (isGem ? '20' : '10') + ' XP');
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────────────
+function resetPassport() {
+  if (!confirm('This will delete all your passport data. Are you sure?')) return;
+  try { LS.remove('fr_passport'); } catch(e) {}
+  location.reload();
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  let t = document.getElementById('passportToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'passportToast';
+    t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;
+      background:var(--soil);color:#fff;padding:12px 20px;border-radius:10px;
+      font-size:.88rem;font-weight:500;border-left:3px solid var(--saffron);
+      box-shadow:0 8px 24px rgba(0,0,0,.25);transition:all .3s;
+      opacity:0;transform:translateY(20px);pointer-events:none;`;
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1'; t.style.transform = 'translateY(0)';
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px)'; }, 3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+const passport = loadPassport();
+if (passport) showPassport(passport);
+</script>
+</body>
+</html>

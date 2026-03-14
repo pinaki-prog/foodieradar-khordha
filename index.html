@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+    <!-- SEO + Social Sharing -->
+  <meta name="description" content="Community-powered street food discovery for Khordha district. Find authentic dhabas, tiffin centres, haats and hidden gems."/>
+  <meta property="og:title" content="FoodieRadar — Discover Real Food in Khordha, Odisha"/>
+  <meta property="og:description" content="Community-powered street food discovery for Khordha district. Find authentic dhabas, tiffin centres, haats and hidden gems."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://foodieradar.vercel.app/index.html"/>
+  <meta property="og:image" content="https://foodieradar.vercel.app/og-image.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="FoodieRadar — Discover Real Food in Khordha, Odisha"/>
+  <meta name="twitter:description" content="Community-powered street food discovery for Khordha district. Find authentic dhabas, tiffin centres, haats and hidden gems."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#E8670A"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FoodieRadar — Khordha</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Supabase (was missing in Tier 1 — needed for submit + search) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── TOKENS ─────────────────────────────────────────── */
+    :root {
+      --saffron:   #E8670A;
+      --turmeric:  #F5A623;
+      --clay:      #C04A1B;
+      --soil:      #1C0F06;
+      --cream:     #FDF6EC;
+      --mist:      #FAF0E2;
+      --leaf:      #2E7D32;
+      --petal:     #FDEBD0;
+      --text:      #1C0F06;
+      --subtext:   #6B4C35;
+      --card-bg:   #FFFFFF;
+      --border:    #E8D5BF;
+      --r-sm: 10px; --r-md: 16px; --r-lg: 24px;
+      --shadow-sm: 0 2px 8px rgba(28,15,6,.08);
+      --shadow-md: 0 6px 24px rgba(28,15,6,.12);
+      --shadow-lg: 0 16px 48px rgba(28,15,6,.16);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); overflow-x: hidden; }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 999;
+      background: rgba(253,246,236,.96);
+      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 5%;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 68px;
+      transition: height .25s, box-shadow .25s;
+    }
+    nav.scrolled {
+      height: 56px;
+      box-shadow: 0 4px 24px rgba(28,15,6,.10);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--saffron), var(--clay));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; font-size: 19px;
+      box-shadow: 0 3px 10px rgba(232,103,10,.4);
+      transition: transform .2s;
+    }
+    .nav-logo:hover .nav-logo-icon { transform: rotate(-8deg) scale(1.08); }
+    .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 1.22rem; font-weight: 900; color: var(--soil); letter-spacing: -0.02em; line-height: 1; }
+    .nav-logo-sub { display: block; font-family: 'DM Sans', sans-serif; font-size: .6rem; font-weight: 600; color: var(--subtext); letter-spacing: .08em; text-transform: uppercase; margin-top: 1px; }
+    .nav-logo-text .accent { color: var(--saffron); }
+
+    /* Centre nav links pill */
+    .nav-links { display: flex; align-items: center; gap: 2px; list-style: none;
+      background: rgba(28,15,6,.04); border: 1px solid var(--border);
+      border-radius: 50px; padding: 4px 6px;
+    }
+    .nav-links li a {
+      text-decoration: none; color: var(--subtext);
+      font-size: .82rem; font-weight: 500;
+      padding: 6px 13px; border-radius: 50px;
+      transition: all .18s; display: flex; align-items: center; gap: 5px;
+      white-space: nowrap;
+    }
+    .nav-links li a:hover { color: var(--saffron); background: rgba(232,103,10,.08); }
+    .nav-links li a.active { color: var(--saffron); background: rgba(232,103,10,.12); font-weight: 600; }
+
+    /* Right side actions */
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .nav-icon-btn {
+      width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--border);
+      background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; transition: all .18s; color: var(--subtext);
+    }
+    .nav-icon-btn:hover { border-color: var(--saffron); background: rgba(232,103,10,.08); color: var(--saffron); }
+    .nav-cta {
+      background: var(--saffron); color: #fff !important; padding: 8px 18px;
+      border-radius: 50px; font-weight: 700 !important; font-size: .82rem !important;
+      transition: all .2s !important; border: none; cursor: pointer;
+      box-shadow: 0 3px 12px rgba(232,103,10,.35);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-cta:hover { background: var(--clay) !important; transform: translateY(-1px); box-shadow: 0 5px 18px rgba(192,74,27,.4) !important; }
+
+    /* Hamburger (mobile) */
+    .nav-hamburger {
+      display: none; flex-direction: column; gap: 5px; cursor: pointer;
+      padding: 6px; border: none; background: transparent;
+    }
+    .nav-hamburger span {
+      display: block; width: 22px; height: 2px;
+      background: var(--soil); border-radius: 2px; transition: all .25s;
+    }
+    .nav-hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+    /* Mobile drawer */
+    .nav-drawer {
+      display: none; position: fixed; inset: 0; top: 56px;
+      background: rgba(253,246,236,.98); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+      z-index: 998; flex-direction: column; padding: 24px 6%;
+      border-top: 1px solid var(--border);
+    }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a {
+      text-decoration: none; color: var(--soil); font-size: 1.1rem; font-weight: 600;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .nav-drawer a:last-child { border-bottom: none; }
+    .nav-drawer .drawer-cta {
+      margin-top: 16px; background: var(--saffron); color: #fff !important;
+      padding: 14px 24px; border-radius: 50px; text-align: center; justify-content: center;
+    }
+
+    /* HERO */
+    .hero {
+      position: relative; padding: 80px 5% 60px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+      align-items: center; min-height: 88vh; overflow: visible;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -120px; right: -80px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(245,166,35,.18) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none; z-index: 0;
+    }
+    .hero::after {
+      content: ''; position: absolute; bottom: -80px; left: -60px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(232,103,10,.12) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none; z-index: 0;
+    }
+    .hero-content { position: relative; z-index: 1; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--petal); border: 1px solid rgba(232,103,10,.25);
+      color: var(--saffron); font-size: .78rem; font-weight: 600;
+      padding: 5px 14px; border-radius: 50px; margin-bottom: 24px;
+      letter-spacing: .04em; text-transform: uppercase;
+    }
+    .hero-badge::before { content: '📍'; font-size: .85em; }
+    .hero h1 {
+      font-family: 'Playfair Display', serif; font-size: clamp(2.6rem, 5vw, 4rem);
+      font-weight: 900; line-height: 1.1; letter-spacing: -0.03em;
+      color: var(--soil); margin-bottom: 20px;
+    }
+    .hero h1 em { font-style: italic; color: var(--saffron); }
+    .hero h1 .block { display: block; }
+    .hero-odia { font-family: 'Tiro Devanagari Hindi', serif; font-size: 1rem; color: var(--subtext); margin-bottom: 16px; opacity: .7; }
+    .hero-desc { font-size: 1.05rem; color: var(--subtext); line-height: 1.7; max-width: 460px; margin-bottom: 36px; }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--saffron); color: #fff; border: none; padding: 14px 32px;
+      border-radius: 50px; font-family: 'DM Sans', sans-serif; font-size: .95rem; font-weight: 600;
+      cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(232,103,10,.35);
+      text-decoration: none; display: inline-block;
+    }
+    .btn-primary:hover { background: var(--clay); transform: translateY(-2px); }
+    .btn-secondary {
+      background: transparent; color: var(--soil); border: 1.5px solid var(--border);
+      padding: 14px 28px; border-radius: 50px; font-family: 'DM Sans', sans-serif;
+      font-size: .95rem; font-weight: 500; cursor: pointer; transition: all .2s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-secondary:hover { border-color: var(--saffron); color: var(--saffron); }
+    .hero-stats { display: flex; gap: 32px; margin-top: 48px; flex-wrap: wrap; }
+    .stat { display: flex; flex-direction: column; }
+    .stat-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; color: var(--saffron); line-height: 1; }
+    .stat-label { font-size: .8rem; color: var(--subtext); margin-top: 4px; }
+
+    /* MAP CARD */
+    .hero-map-wrapper { position: relative; z-index: 1; }
+    .map-card { background: var(--card-bg); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--border); position: relative; z-index: 1; }
+    .map-card-header { padding: 16px 20px; background: var(--soil); display: flex; align-items: center; justify-content: space-between; }
+    .map-card-title { color: #fff; font-size: .88rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .map-pulse { width: 8px; height: 8px; background: #4CAF50; border-radius: 50%; animation: pulse 1.8s infinite; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(76,175,80,.5); } 50% { box-shadow: 0 0 0 6px rgba(76,175,80,0); } }
+    .map-area-tag { background: rgba(255,255,255,.1); color: rgba(255,255,255,.75); font-size: .75rem; padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,.15); }
+    #hero-map { height: 420px; width: 100%; display: block; position: relative; z-index: 1; }
+
+    /* SEARCH */
+    .search-section { padding: 0 5% 40px; position: relative; z-index: 10; }
+    .search-container { background: var(--card-bg); border-radius: var(--r-md); padding: 20px 24px; box-shadow: var(--shadow-md); border: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .search-box { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 10px; background: var(--mist); border: 1.5px solid var(--border); border-radius: var(--r-sm); padding: 10px 16px; transition: border-color .2s; }
+    .search-box:focus-within { border-color: var(--saffron); }
+    .search-box input { border: none; background: transparent; font-family: 'DM Sans', sans-serif; font-size: .9rem; color: var(--text); width: 100%; outline: none; }
+    .search-box input::placeholder { color: #B5967A; }
+    .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { padding: 8px 16px; border-radius: 50px; font-size: .82rem; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: transparent; color: var(--subtext); font-family: 'DM Sans', sans-serif; transition: all .18s; white-space: nowrap; }
+    .chip:hover, .chip.active { background: var(--saffron); border-color: var(--saffron); color: #fff; }
+    .chip.veg.active { background: var(--leaf); border-color: var(--leaf); }
+    .search-btn { background: var(--saffron); color: #fff; border: none; padding: 10px 24px; border-radius: var(--r-sm); font-family: 'DM Sans', sans-serif; font-size: .88rem; font-weight: 600; cursor: pointer; transition: all .2s; white-space: nowrap; }
+    .search-btn:hover { background: var(--clay); }
+
+    /* SECTIONS */
+    .section { padding: 60px 5%; }
+    .section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 32px; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; color: var(--soil); line-height: 1.2; }
+    .section-title span { color: var(--saffron); }
+    .section-sub { font-size: .88rem; color: var(--subtext); margin-top: 6px; }
+    .see-all { font-size: .85rem; color: var(--saffron); font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .see-all:hover { text-decoration: underline; }
+
+    /* CATEGORIES */
+    .categories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 14px; }
+    .category-card { background: var(--card-bg); border: 1.5px solid var(--border); border-radius: var(--r-md); padding: 20px 12px; text-align: center; cursor: pointer; transition: all .22s; text-decoration: none; display: block; }
+    .category-card:hover { border-color: var(--saffron); transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .cat-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+    .cat-label { font-size: .82rem; font-weight: 600; color: var(--soil); }
+    .cat-count { font-size: .72rem; color: var(--subtext); margin-top: 3px; }
+
+    /* SPOT CARDS */
+    .spots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .spot-card { background: var(--card-bg); border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border); transition: all .22s; cursor: pointer; box-shadow: var(--shadow-sm); }
+    .spot-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: rgba(232,103,10,.3); }
+    .spot-img { height: 175px; background-size: cover; background-position: center; position: relative; overflow: hidden; }
+    .spot-img-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(28,15,6,.6) 100%); }
+    .spot-badge { position: absolute; top: 12px; left: 12px; font-size: .7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .04em; text-transform: uppercase; }
+    .badge-veg { background: var(--leaf); color: #fff; }
+    .badge-nonveg { background: #C62828; color: #fff; }
+    .badge-gem { background: var(--turmeric); color: var(--soil); }
+    .spot-open-status { position: absolute; top: 12px; right: 12px; font-size: .7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: rgba(0,0,0,.5); color: #fff; backdrop-filter: blur(4px); }
+    .spot-open-status.open { background: rgba(46,125,50,.85); }
+    .spot-body { padding: 16px; }
+    .spot-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--soil); margin-bottom: 4px; line-height: 1.3; }
+    .spot-meta { display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--subtext); margin-bottom: 10px; flex-wrap: wrap; }
+    .spot-meta .dot { opacity: .4; }
+    .spot-rating { display: inline-flex; align-items: center; gap: 4px; background: rgba(245,166,35,.15); color: #9B6F00; font-size: .78rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+    .spot-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .spot-tag { font-size: .7rem; background: var(--mist); color: var(--subtext); padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); }
+    .spot-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border); }
+    .spot-price { font-size: .8rem; color: var(--subtext); }
+    .spot-price strong { color: var(--saffron); font-weight: 700; }
+    .spot-actions { display: flex; gap: 8px; }
+    .spot-action-btn { width: 32px; height: 32px; border: 1.5px solid var(--border); border-radius: 8px; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: .9rem; transition: all .18s; }
+    .spot-action-btn:hover { background: var(--mist); border-color: var(--saffron); }
+
+    /* EVENTS */
+    .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .event-card { background: var(--card-bg); border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border); display: flex; transition: all .22s; box-shadow: var(--shadow-sm); }
+    .event-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .event-date-col { background: var(--soil); color: #fff; padding: 20px 16px; text-align: center; min-width: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .event-day { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; line-height: 1; }
+    .event-month { font-size: .7rem; opacity: .7; margin-top: 4px; text-transform: uppercase; letter-spacing: .06em; }
+    .event-info { padding: 16px; flex: 1; }
+    .event-type { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--saffron); margin-bottom: 6px; }
+    .event-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--soil); margin-bottom: 6px; line-height: 1.3; }
+    .event-loc { font-size: .78rem; color: var(--subtext); display: flex; align-items: center; gap: 5px; }
+
+    /* MAP SECTION */
+    .map-section { padding: 60px 5%; background: var(--soil); position: relative; overflow: hidden; }
+    .map-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(245,166,35,.5), transparent); }
+    .map-section .section-title { color: #fff; }
+    .map-section .section-title span { color: var(--turmeric); }
+    .map-section .section-sub { color: rgba(255,255,255,.55); }
+    .map-section .see-all { color: var(--turmeric); }
+    .map-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .map-filter-btn { padding: 7px 16px; border-radius: 50px; font-size: .8rem; font-weight: 600; cursor: pointer; border: 1.5px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: rgba(255,255,255,.75); font-family: 'DM Sans', sans-serif; transition: all .18s; }
+    .map-filter-btn:hover, .map-filter-btn.active { background: var(--saffron); border-color: var(--saffron); color: #fff; }
+    #full-map { height: 480px; border-radius: var(--r-lg); overflow: hidden; border: 1px solid rgba(255,255,255,.1); box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+
+    /* ZONES */
+    .zones-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .zone-card { background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.12); border-radius: var(--r-md); padding: 20px; cursor: pointer; transition: all .22s; }
+    .zone-card:hover { background: rgba(232,103,10,.15); border-color: rgba(232,103,10,.4); transform: translateY(-3px); }
+    .zone-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--turmeric); opacity: .4; line-height: 1; margin-bottom: 8px; }
+    .zone-name { font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 4px; }
+    .zone-desc { font-size: .8rem; color: rgba(255,255,255,.5); }
+    .zone-spots { margin-top: 10px; font-size: .75rem; color: var(--turmeric); font-weight: 600; }
+
+    /* CTA */
+    .cta-section { padding: 80px 5%; background: var(--petal); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); text-align: center; }
+    .cta-icon { font-size: 3rem; margin-bottom: 16px; }
+    .cta-section h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 700; color: var(--soil); margin-bottom: 14px; line-height: 1.2; }
+    .cta-section p { color: var(--subtext); max-width: 520px; margin: 0 auto 32px; line-height: 1.7; font-size: .95rem; }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(28,15,6,.6); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .25s; }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal { background: var(--card-bg); border-radius: var(--r-lg); padding: 36px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; transform: translateY(20px); transition: transform .25s; box-shadow: 0 30px 80px rgba(0,0,0,.3); }
+    .modal-overlay.show .modal { transform: translateY(0); }
+    .modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+    .modal-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--soil); }
+    .modal-close { width: 32px; height: 32px; border: 1.5px solid var(--border); border-radius: 8px; background: transparent; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: all .18s; }
+    .modal-close:hover { background: var(--mist); }
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: .82rem; font-weight: 600; color: var(--soil); margin-bottom: 7px; }
+    .form-input, .form-select, .form-textarea { width: 100%; background: var(--mist); border: 1.5px solid var(--border); border-radius: var(--r-sm); padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: .9rem; color: var(--text); outline: none; transition: border-color .2s; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--saffron); }
+    .form-textarea { resize: vertical; min-height: 90px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-error { background: #FFEBEE; border: 1px solid #FFCDD2; color: #C62828; font-size: .82rem; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; display: none; }
+
+    /* FOOTER */
+    footer { background: var(--soil); color: rgba(255,255,255,.65); padding: 48px 5% 32px; }
+    .footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+    .footer-brand-text { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; color: #fff; margin-bottom: 10px; }
+    .footer-brand-text span { color: var(--turmeric); }
+    .footer-tagline { font-size: .82rem; line-height: 1.6; max-width: 220px; }
+    .footer-col-title { color: #fff; font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 8px; }
+    .footer-links a { text-decoration: none; color: rgba(255,255,255,.55); font-size: .84rem; transition: color .18s; }
+    .footer-links a:hover { color: var(--turmeric); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,.1); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: .78rem; }
+    .footer-bottom a { color: var(--turmeric); text-decoration: none; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 99999; background: var(--soil); color: #fff; padding: 14px 20px; border-radius: var(--r-sm); font-size: .88rem; font-weight: 500; border-left: 3px solid var(--saffron); box-shadow: var(--shadow-lg); transform: translateY(20px); opacity: 0; transition: all .3s; pointer-events: none; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ANIMATIONS */
+    .fade-up { animation: fadeUpIn .5s ease both; }
+    @keyframes fadeUpIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+    .spot-card.fade-up { animation-delay: calc(var(--i, 0) * 60ms); }
+    .category-card.fade-up:nth-child(1) { animation-delay: 0ms; }
+    .category-card.fade-up:nth-child(2) { animation-delay: 60ms; }
+    .category-card.fade-up:nth-child(3) { animation-delay: 120ms; }
+    .category-card.fade-up:nth-child(4) { animation-delay: 180ms; }
+    .category-card.fade-up:nth-child(5) { animation-delay: 240ms; }
+    .category-card.fade-up:nth-child(6) { animation-delay: 300ms; }
+    .category-card.fade-up:nth-child(7) { animation-delay: 360ms; }
+    .category-card.fade-up:nth-child(8) { animation-delay: 420ms; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) { .hero { grid-template-columns: 1fr; min-height: unset; padding-top: 48px; } .hero-map-wrapper { order: -1; } #hero-map { height: 280px; } .footer-top { grid-template-columns: 1fr 1fr; } .footer-top > :first-child { grid-column: 1/-1; } }
+    @media (max-width: 860px) { .nav-links { display: none; } .nav-hamburger { display: flex; } }
+    @media (max-width: 600px) { nav { padding: 0 4%; } .hero { padding: 36px 4% 32px; } .section { padding: 48px 4%; } .search-section { padding: 0 4% 32px; } .footer-top { grid-template-columns: 1fr; gap: 24px; } .form-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="mainNav">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">🍛</div>
+      <div>
+        <span class="nav-logo-text">Foodie<span class="accent">Radar</span></span>
+        <span class="nav-logo-sub">Khordha District</span>
+      </div>
+    </a>
+
+    <!-- Centre pill links (desktop) -->
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#explore"          id="nl-explore">🗺️ Explore</a></li>
+      <li><a href="#map-section"      id="nl-map">📍 Map</a></li>
+      <li><a href="events.html"       id="nl-events">🎪 Events</a></li>
+      <li><a href="food-trails.html"  id="nl-trails">🥾 Trails</a></li>
+      <li><a href="food-dictionary.html" id="nl-dict">📖 Dictionary</a></li>
+      <li><a href="passport.html"     id="nl-passport">🏅 Passport</a></li>
+    </ul>
+
+    <!-- Right actions -->
+    <div class="nav-actions">
+      <button class="nav-icon-btn" onclick="document.getElementById('searchInput').focus(); document.getElementById('searchInput').scrollIntoView({behavior:'smooth',block:'center'})" title="Search spots">🔍</button>
+      <button class="nav-cta" onclick="openModal()">＋ Add Spot</button>
+      <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" title="Menu" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer -->
+  <div class="nav-drawer" id="navDrawer">
+    <a href="#explore"             onclick="closeDrawer()">🗺️ Explore Spots</a>
+    <a href="#map-section"         onclick="closeDrawer()">📍 Radar Map</a>
+    <a href="events.html">🎪 Food Events</a>
+    <a href="food-trails.html">🥾 Food Trails</a>
+    <a href="food-dictionary.html">📖 Food Dictionary</a>
+    <a href="passport.html">🏅 My Passport</a>
+    <a href="haat-festival.html">🛒 Haat Tracker</a>
+    <a href="tiffin.html">🍱 Home Tiffin</a>
+    <a href="cook-off.html">🥊 Cook-Off Battles</a>
+    <a href="#" class="drawer-cta" onclick="openModal(); closeDrawer()">＋ Submit a Spot</a>
+  </div>
+
+  <!-- SMART BANNER -->
+  <div id="smartBanner"></div>
+
+  <!-- SMART TOOLBAR -->
+  <div class="smart-toolbar" id="smartToolbar">
+    <span class="smart-label">Smart Filters:</span>
+    <button class="smart-btn" id="btnMidnight" onclick="toggleSmartFilter('midnight')">🌙 Midnight</button>
+    <button class="smart-btn" id="btnLull"     onclick="toggleSmartFilter('lull')">🕒 Open Now (3–7PM)</button>
+    <button class="smart-btn" id="btnRain"     onclick="toggleSmartFilter('rain')">🌧️ Rainy Day</button>
+    <button class="smart-btn" id="btnPakhala"  onclick="toggleSmartFilter('pakhala')">🌿 Pakhala Season</button>
+    <button class="smart-btn" id="btnStudent"  onclick="SmartMode.toggleStudentMode(); refreshSmartUI()">🎒 Student ₹50</button>
+    <button class="smart-btn" id="btnClear" onclick="clearSmartFilters()" style="margin-left:auto;opacity:.5;font-size:.72rem">✕ Clear</button>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">Khordha District, Odisha</div>
+      <h1><span class="block">Discover the</span><em>real taste</em><span class="block">of Khordha</span></h1>
+      <p class="hero-odia">ଖୋର୍ଦ୍ଧାର ସ୍ୱାଦ ଖୋଜ</p>
+      <p class="hero-desc">From Bhubaneswar's street-side dhabas to Jatni's hidden tiffin centres — your community-powered food guide to the best of Khordha.</p>
+      <div class="hero-actions">
+        <a href="#explore" class="btn-primary">🔍 Explore Spots</a>
+        <a href="#map-section" class="btn-secondary">📍 Open Radar Map</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-num" id="heroSpotCount">140+</span><span class="stat-label">Food Spots</span></div>
+        <div class="stat"><span class="stat-num">12</span><span class="stat-label">Street Zones</span></div>
+        <div class="stat"><span class="stat-num" id="heroEventCount">8</span><span class="stat-label">Events This Month</span></div>
+        <div class="stat"><span class="stat-num">3</span><span class="stat-label">Haats Tracked</span></div>
+      </div>
+    </div>
+    <div class="hero-map-wrapper">
+      <div class="map-card">
+        <div class="map-card-header">
+          <span class="map-card-title"><span class="map-pulse"></span>Live Radar — Bhubaneswar</span>
+          <span class="map-area-tag">Khordha District</span>
+        </div>
+        <div id="hero-map"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEARCH -->
+  <section class="search-section">
+    <div class="search-container">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="searchInput" placeholder="Search restaurants, dhabas, tiffin...">
+      </div>
+      <div class="filter-chips">
+        <button class="chip active" onclick="toggleChip(this,'all')">All</button>
+        <button class="chip veg"    onclick="toggleChip(this,'veg')">🟢 Veg</button>
+        <button class="chip"        onclick="toggleChip(this,'nonveg')">🔴 Non-Veg</button>
+        <button class="chip"        onclick="toggleChip(this,'budget')">₹ Budget</button>
+        <button class="chip"        onclick="toggleChip(this,'odia')">🍛 Odia</button>
+        <button class="chip"        onclick="toggleChip(this,'street')">🌮 Street</button>
+        <button class="chip"        onclick="toggleChip(this,'sweet')">🍮 Sweets</button>
+      </div>
+      <button class="search-btn" onclick="applySearch()">Search</button>
+      <button class="search-btn" id="btnNearMe" onclick="nearMe()"
+        style="background:var(--leaf);margin-left:8px" title="Find spots near your location">
+        📍 Near Me
+      </button>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="section" id="explore">
+    <div class="section-header"><div>
+      <h2 class="section-title">Browse by <span>Category</span></h2>
+      <p class="section-sub">What are you craving today?</p>
+    </div></div>
+    <div class="categories-grid">
+      <a href="#" class="category-card fade-up" onclick="filterByCategory('Odia Thali'); return false;"><span class="cat-icon">🍛</span><div class="cat-label">Odia Thali</div><div class="cat-count" id="cnt-thali">– places</div></a>
+      <a href="#" class="category-card fade-up" onclick="filterByCategory('Tiffin Centre'); return false;"><span class="cat-icon">🥞</span><div class="cat-label">Tiffin Centres</div><div class="cat-count" id="cnt-tiffin">– places</div></a>
+      <a href="#" class="category-card fade-up" onclick="filterByCategory('Street Food'); return false;"><span class="cat-icon">🍢</span><div class="cat-label">Street Food</div><div class="cat-count" id="cnt-street">– stalls</div></a>
+      <a href="#" class="category-card fade-up" onclick="filterByCategory('Sweet Shop'); return false;"><span class="cat-icon">🍮</span><div class="cat-label">Sweet Shops</div><div class="cat-count" id="cnt-sweet">– shops</div></a>
+      <a href="#" class="category-card fade-up" onclick="filterByCategory('Chai & Snacks'); return false;"><span class="cat-icon">☕</span><div class="cat-label">Chai & Snacks</div><div class="cat-count" id="cnt-chai">– spots</div></a>
+      <a href="#" class="category-card fade-up" onclick="filterByCategory('Organic Store'); return false;"><span class="cat-icon">🥗</span><div class="cat-label">Healthy & Organic</div><div class="cat-count" id="cnt-organic">– stores</div></a>
+      <a href="tiffin.html"        class="category-card fade-up"><span class="cat-icon">🍱</span><div class="cat-label">Home Tiffin</div><div class="cat-count">16 cooks</div></a>
+      <a href="events.html"        class="category-card fade-up"><span class="cat-icon">🎪</span><div class="cat-label">Food Events</div><div class="cat-count" id="cnt-events">– this month</div></a>
+    </div>
+  </section>
+
+  <!-- SPOTS -->
+  <section class="section" style="padding-top:0;" id="spots">
+    <div class="section-header"><div>
+      <h2 class="section-title">Featured <span>Spots</span></h2>
+      <p class="section-sub">Community favourites in Khordha</p>
+    </div><a href="#" class="see-all">View all →</a></div>
+    <div class="spots-grid" id="spotsGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--subtext)">
+        <div style="width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--saffron);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px"></div>
+        Loading spots...
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section class="map-section" id="map-section">
+    <div class="section-header" style="margin-bottom:20px;">
+      <div><h2 class="section-title">Radar <span>Map</span></h2><p class="section-sub">All spots across Khordha district</p></div>
+      <a href="#" class="see-all">Open full map →</a>
+    </div>
+    <div class="map-filters">
+      <button class="map-filter-btn active" onclick="toggleMapFilter(this)">All Spots</button>
+      <button class="map-filter-btn" onclick="toggleMapFilter(this)">🍛 Restaurants</button>
+      <button class="map-filter-btn" onclick="toggleMapFilter(this)">🍢 Street Food</button>
+      <button class="map-filter-btn" onclick="toggleMapFilter(this)">🥗 Organic Stores</button>
+      <button class="map-filter-btn" onclick="toggleMapFilter(this)">🛒 Haats</button>
+    </div>
+    <div id="full-map"></div>
+    <div style="margin-top:40px;">
+      <div class="section-header" style="margin-bottom:20px;">
+        <div><h2 class="section-title" style="font-size:1.6rem;color:#fff">Street Food <span>Zones</span></h2><p class="section-sub">Known hotspots you must visit</p></div>
+      </div>
+      <div class="zones-grid" id="zones"></div>
+    </div>
+  </section>
+
+  <!-- EVENTS -->
+  <section class="section" id="events">
+    <div class="section-header"><div>
+      <h2 class="section-title">Upcoming <span>Events</span></h2>
+      <p class="section-sub">Festivals, cook-offs & pop-ups near you</p>
+    </div><a href="events.html" class="see-all">All events →</a></div>
+    <div class="events-grid" id="eventsGrid"></div>
+  </section>
+
+  <!-- FLASH SALE BOARD -->
+  <section class="flash-section" id="flashBoard">
+    <h2 class="flash-title">🔥 Flash <em>Deals</em></h2>
+    <p class="flash-sub">Vendors posting live deals right now — expires in 3 hours</p>
+    <div class="flash-grid" id="flashGrid">
+      <div class="flash-empty">No active deals right now. Be the first to post one!</div>
+    </div>
+    <div class="flash-form">
+      <div class="flash-form-title">📢 Post a Deal (vendors / stall owners)</div>
+      <div class="flash-inputs">
+        <input class="f-inp" id="fSpotName"  placeholder="Your stall / shop name" title="Stall name" />
+        <input class="f-inp" id="fArea"      placeholder="Area (e.g. Saheed Nagar)" title="Area" />
+        <input class="f-inp full" id="fDeal" placeholder="Your deal — e.g. '10 plates biryani left — ₹40 for next 1 hr!'" title="Deal details" />
+        <input class="f-inp" id="fContact"   placeholder="WhatsApp / phone (optional)" title="Contact" />
+      </div>
+      <button class="btn-flash-post" onclick="postFlashSale()">⚡ Post Deal Now</button>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-icon">📍</div>
+    <h2>Know a hidden gem?<br>Add it to the Radar</h2>
+    <p>FoodieRadar is built by locals, for locals. If you know a brilliant dhaba, tiffin centre, or street stall that's not listed — add it in 2 minutes.</p>
+    <button class="btn-primary" onclick="openModal()" style="font-size:1rem;padding:16px 40px;">+ Submit a Spot</button>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-text">Foodie<span>Radar</span></div>
+        <p class="footer-tagline">Your community-powered food discovery guide for Khordha district, Odisha. Built with ❤️ for local food lovers.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Discover</div>
+        <ul class="footer-links">
+          <li><a href="#">Restaurants</a></li><li><a href="#">Street Food</a></li>
+          <li><a href="#">Sweet Shops</a></li><li><a href="#">Tiffin Centres</a></li>
+          <li><a href="tiffin.html">Home Tiffin</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Explore</div>
+        <ul class="footer-links">
+          <li><a href="food-trails.html">Food Trails</a></li>
+          <li><a href="food-dictionary.html">Food Dictionary</a></li>
+          <li><a href="haat-festival.html">Haat Tracker</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="cook-off.html">Cook-Offs</a></li>
+          <li><a href="thali-week.html">Thali of the Week</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Community</div>
+        <ul class="footer-links">
+          <li><a href="passport.html">FoodiePassport</a></li>
+          <li><a href="#" onclick="openModal(); return false;">Add a Spot</a></li>
+          <li><a href="cook-off.html">Leaderboard</a></li>
+          <li><a href="#">About</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 FoodieRadar Khordha. Free to use, forever.</span>
+      <span>Made for Khordha 🍛 · <a href="#">Privacy</a> · <a href="#">Contact</a></span>
+    </div>
+  </footer>
+
+  <!-- SUBMIT MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div><div class="modal-title">📍 Add a Food Spot</div><p style="font-size:.82rem;color:var(--subtext);margin-top:4px;">Help the community discover hidden gems</p></div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+
+      <div class="form-error" id="formError"></div>
+
+      <div class="form-group">
+        <label class="form-label">Spot Name *</label>
+        <!-- FIX: IDs now match what submit-spot.js expects -->
+        <input type="text" class="form-input" id="spotName" placeholder="e.g. Maa Tarini Dhaba"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select class="form-select" id="spotCategory" aria-label="Food category" title="Food category">
+            <option value="">Select...</option>
+            <option>Odia Thali</option><option>Tiffin Centre</option>
+            <option>Street Food</option><option>Sweet Shop</option>
+            <option>Chai & Snacks</option><option>Organic Store</option>
+            <option>Home Tiffin Service</option><option>Dhaba</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Area *</label>
+          <select class="form-select" id="spotArea" aria-label="Area in Khordha" title="Area in Khordha">
+            <option value="">Select area...</option>
+            <option>Old Town, BBSR</option><option>Saheed Nagar, BBSR</option>
+            <option>Unit 4, BBSR</option><option>Master Canteen, BBSR</option>
+            <option>Patia, BBSR</option><option>Nayapalli, BBSR</option>
+            <option>Khordha Town</option><option>Jatni</option>
+            <option>Balianta</option><option>Balipatna</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Address / Landmark</label>
+        <input type="text" class="form-input" id="spotAddress" placeholder="Near which landmark?"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Food Type</label>
+          <select class="form-select" id="spotFoodType" aria-label="Food type" title="Food type">
+            <option value="veg">Pure Veg</option>
+            <option value="nonveg">Non-Veg</option>
+            <option value="both">Both</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Avg Price per Person</label>
+          <select class="form-select" id="spotPrice" aria-label="Average price range" title="Average price range">
+            <option value="₹">₹ Under ₹100</option>
+            <option value="₹₹">₹₹ ₹100–300</option>
+            <option value="₹₹₹">₹₹₹ Above ₹300</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">What's special here?</label>
+        <textarea class="form-textarea" id="spotDesc" placeholder="Tell us what makes this place worth visiting..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Name (optional)</label>
+        <input type="text" class="form-input" id="spotSubmitter" placeholder="Stay anonymous or add your name"/>
+      </div>
+      <button class="btn-primary" id="submitSpotBtn" style="width:100%;text-align:center;padding:14px;" onclick="handleSubmit()">
+        Submit Spot 🚀
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Load config FIRST (initialises `db`) -->
+  <script src="config.js"></script>
+  <script src="smart-mode.js"></script>
+  <script src="overpass.js"></script>
+
+  <style>
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+
+    /* Spot detail link */
+    .spot-detail-link{
+      display:block;text-align:center;padding:8px;
+      background:var(--mist);border-top:1px solid var(--border);
+      color:var(--saffron);font-size:.78rem;font-weight:700;
+      text-decoration:none;letter-spacing:.02em;
+      transition:background .18s;
+    }
+    .spot-detail-link:hover{background:var(--petal)}
+
+    /* ── SMART BANNER ── */
+    #smartBanner{padding:0 5%}
+
+    /* ── SMART TOOLBAR ── */
+    .smart-toolbar{
+      background:var(--card);border-bottom:1px solid var(--border);
+      padding:10px 5%;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+    .smart-label{font-size:.74rem;font-weight:700;color:var(--subtext);
+      text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+    .smart-btn{
+      padding:6px 14px;border-radius:50px;font-size:.78rem;font-weight:600;
+      cursor:pointer;border:1.5px solid var(--border);background:var(--mist);
+      color:var(--subtext);font-family:'DM Sans',sans-serif;transition:all .18s;
+      display:flex;align-items:center;gap:5px;white-space:nowrap;
+    }
+    .smart-btn:hover{border-color:var(--saffron);color:var(--saffron)}
+    .smart-btn.active{background:var(--saffron);border-color:var(--saffron);color:#fff}
+    .smart-btn.student-on{background:#6A1B9A;border-color:#6A1B9A;color:#fff}
+    .smart-btn.rain-on{background:#0D47A1;border-color:#0D47A1;color:#fff}
+    .smart-btn.midnight-on{background:#1A237E;border-color:#1A237E;color:#fff}
+    .smart-btn.pakhala-on{background:#1B5E20;border-color:#1B5E20;color:#fff}
+
+    /* ── ENHANCED SPOT CARD EXTRAS ── */
+    .spot-badges-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+    .badge-hygiene{
+      display:inline-flex;align-items:center;gap:3px;
+      background:#E8F5E9;border:1px solid #A5D6A7;color:#1B5E20;
+      font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;
+    }
+    .badge-queue{font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px}
+    .badge-legacy{
+      background:#FFF8E1;border:1px solid #FFE082;color:#F57F17;
+      font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;
+    }
+    .badge-flash{
+      background:#FFEBEE;border:1px solid #FFCDD2;color:#C62828;
+      font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;
+      animation:flashPulse 1.5s infinite;
+    }
+    @keyframes flashPulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+    .spot-hygiene-row{
+      display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;
+    }
+    .hygiene-tick{
+      font-size:.68rem;padding:2px 8px;border-radius:20px;
+      border:1px solid var(--border);color:var(--subtext);background:var(--mist);
+    }
+    .hygiene-tick.yes{background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20}
+    .hygiene-tick.no {background:#FFEBEE;border-color:#FFCDD2;color:#C62828}
+
+    /* ── QUEUE REPORT BUTTON ── */
+    .btn-queue-report{
+      font-size:.72rem;font-weight:600;cursor:pointer;padding:4px 10px;
+      border:1.5px solid var(--border);border-radius:8px;background:transparent;
+      color:var(--subtext);font-family:'DM Sans',sans-serif;transition:all .18s;
+    }
+    .btn-queue-report:hover{background:var(--mist)}
+
+    /* ── FLASH SALE SECTION ── */
+    .flash-section{
+      background:linear-gradient(135deg,#1A0005,#3D0012);
+      padding:40px 5%;
+    }
+    .flash-title{
+      font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff;margin-bottom:4px;
+    }
+    .flash-title em{color:#FF5252;font-style:normal}
+    .flash-sub{font-size:.82rem;color:rgba(255,255,255,.45);margin-bottom:20px}
+    .flash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:24px}
+    .flash-card{
+      background:rgba(255,255,255,.07);border:1px solid rgba(255,82,82,.25);
+      border-left:3px solid #FF5252;border-radius:12px;padding:16px;
+    }
+    .flash-deal{font-weight:700;color:#fff;font-size:.92rem;margin-bottom:5px;line-height:1.4}
+    .flash-meta{font-size:.75rem;color:rgba(255,255,255,.45)}
+    .flash-expiry{
+      margin-top:8px;font-size:.68rem;font-weight:700;
+      color:#FF5252;
+    }
+    .flash-empty{color:rgba(255,255,255,.3);font-size:.88rem;padding:20px 0}
+
+    /* Flash sale submit form */
+    .flash-form{
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+      border-radius:14px;padding:20px;
+    }
+    .flash-form-title{font-weight:700;color:#fff;font-size:.9rem;margin-bottom:14px}
+    .flash-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .f-inp{
+      padding:9px 13px;border:1.5px solid rgba(255,255,255,.12);border-radius:9px;
+      background:rgba(255,255,255,.06);color:#fff;
+      font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;
+      transition:border-color .2s;
+    }
+    .f-inp::placeholder{color:rgba(255,255,255,.3)}
+    .f-inp:focus{border-color:#FF5252}
+    .f-inp.full{grid-column:1/-1}
+    .btn-flash-post{
+      margin-top:12px;padding:10px 24px;background:#FF5252;color:#fff;
+      border:none;border-radius:9px;font-family:'DM Sans',sans-serif;
+      font-size:.84rem;font-weight:700;cursor:pointer;transition:background .2s;
+    }
+    .btn-flash-post:hover{background:#D32F2F}
+
+    /* ── HYGIENE REPORT MODAL ── */
+    .hygiene-modal-body{padding:4px 0}
+    .hygiene-q{margin-bottom:16px}
+    .hygiene-q-label{font-size:.88rem;font-weight:600;color:var(--soil);margin-bottom:8px}
+    .hygiene-opts{display:flex;gap:8px}
+    .hygiene-opt{
+      padding:8px 16px;border-radius:8px;border:1.5px solid var(--border);
+      background:var(--mist);font-size:.82rem;cursor:pointer;
+      font-family:'DM Sans',sans-serif;transition:all .18s;font-weight:500;
+    }
+    .hygiene-opt.selected{border-color:var(--leaf);background:#E8F5E9;color:var(--leaf)}
+    .hygiene-opt.selected-no{border-color:#C62828;background:#FFEBEE;color:#C62828}
+  </style>
+
+  <script>
+    // ── FALLBACK SEED DATA (shown while Supabase loads) ────────────────────────
+    const SEED_SPOTS = [
+      // OLD TOWN (6 existing + 4 new = 10)
+      {id:'s1', name:'Old Town Dahibara King',      category:'Street Food',  area:'Old Town, BBSR',        rating:4.8,review_count:412,food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Dahibara','Aloodum','Gupchup'],    is_open:true, is_gem:true,  latitude:20.2383,longitude:85.8330},
+      {id:'s2', name:'Lingaraj Chhena Shop',        category:'Sweet Shop',   area:'Old Town, BBSR',        rating:4.9,review_count:289,food_type:'veg',   price_range:'₹',  avg_price:40,  tags:['Chhena Poda','Rasgulla'],          is_open:true, is_gem:true,  latitude:20.2395,longitude:85.8320},
+      {id:'s3', name:'Raghunath Odia Thali',        category:'Odia Thali',   area:'Old Town, BBSR',        rating:4.7,review_count:183,food_type:'veg',   price_range:'₹₹', avg_price:120, tags:['Dalma','Pakhala','Thali'],         is_open:true, is_gem:false, latitude:20.2375,longitude:85.8310},
+      {id:'s10',name:'Mudhi Mansa Corner',          category:'Street Food',  area:'Old Town, BBSR',        rating:4.7,review_count:189,food_type:'nonveg',price_range:'₹',  avg_price:50,  tags:['Mudhi Mansa','Mutton'],            is_open:true, is_gem:true,  latitude:20.2390,longitude:85.8315},
+      {id:'s14',name:'Abadha Bhoga Counter',        category:'Odia Thali',   area:'Old Town, BBSR',        rating:4.8,review_count:223,food_type:'veg',   price_range:'₹',  avg_price:50,  tags:['Mahaprasad','Temple Food'],        is_open:true, is_gem:true,  latitude:20.2380,longitude:85.8325},
+      {id:'s15',name:'Tanka Torani Stall',          category:'Chai & Snacks',area:'Old Town, BBSR',        rating:4.7,review_count:134,food_type:'veg',   price_range:'₹',  avg_price:15,  tags:['Tanka Torani','Summer'],           is_open:true, is_gem:true,  latitude:20.2370,longitude:85.8318},
+      {id:'s31',name:'Lingaraj Puri Sabzi',         category:'Street Food',  area:'Old Town, BBSR',        rating:4.6,review_count:145,food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Puri','Sabzi','Breakfast'],        is_open:true, is_gem:false, latitude:20.2400,longitude:85.8328},
+      {id:'s32',name:'Old Town Lassi Corner',       category:'Chai & Snacks',area:'Old Town, BBSR',        rating:4.5,review_count:98, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Lassi','Chaas','Mango'],           is_open:true, is_gem:false, latitude:20.2385,longitude:85.8335},
+
+      // SAHEED NAGAR (2 existing + 3 new = 5)
+      {id:'s4', name:'Mahesh Tiffin Centre',        category:'Tiffin Centre',area:'Saheed Nagar, BBSR',    rating:4.5,review_count:94, food_type:'veg',   price_range:'₹',  avg_price:60,  tags:['Idli','Upma','Dosa'],             is_open:true, is_gem:true,  latitude:20.3070,longitude:85.8160},
+      {id:'s20',name:'The Biryani Pot',             category:'Dhaba',        area:'Saheed Nagar, BBSR',    rating:4.4,review_count:198,food_type:'nonveg',price_range:'₹₹', avg_price:160, tags:['Biryani','Chicken','Mutton'],     is_open:true, is_gem:false, latitude:20.3080,longitude:85.8165},
+      {id:'s33',name:'Saheed Nagar Chaat House',    category:'Street Food',  area:'Saheed Nagar, BBSR',    rating:4.3,review_count:112,food_type:'veg',   price_range:'₹',  avg_price:35,  tags:['Gupchup','Bhelpuri','Chaat'],     is_open:true, is_gem:false, latitude:20.3060,longitude:85.8155},
+      {id:'s34',name:'Maa Kitchen Odia Thali',      category:'Odia Thali',   area:'Saheed Nagar, BBSR',    rating:4.6,review_count:167,food_type:'veg',   price_range:'₹',  avg_price:100, tags:['Dalma','Sukhua','Thali'],         is_open:true, is_gem:true,  latitude:20.3075,longitude:85.8170},
+      {id:'s35',name:'Bhai Bhai Chai Stall',        category:'Chai & Snacks',area:'Saheed Nagar, BBSR',    rating:4.2,review_count:78, food_type:'veg',   price_range:'₹',  avg_price:20,  tags:['Chai','Pakoda','Evening'],        is_open:true, is_gem:false, latitude:20.3065,longitude:85.8148},
+
+      // UNIT 4 (2 existing + 3 new = 5)
+      {id:'s5', name:'Lakshmi Sweet House',         category:'Sweet Shop',   area:'Unit 4, BBSR',          rating:4.8,review_count:327,food_type:'veg',   price_range:'₹',  avg_price:50,  tags:['Chhena Poda','Rasgulla'],         is_open:true, is_gem:false, latitude:20.3050,longitude:85.8400},
+      {id:'s17',name:'Unit 4 Ghuguni Stall',        category:'Street Food',  area:'Unit 4, BBSR',          rating:4.4,review_count:201,food_type:'veg',   price_range:'₹',  avg_price:20,  tags:['Ghuguni','Bara','Mudhi'],         is_open:true, is_gem:true,  latitude:20.3045,longitude:85.8395},
+      {id:'s36',name:'Unit 4 Market Tiffin',        category:'Tiffin Centre',area:'Unit 4, BBSR',          rating:4.3,review_count:89, food_type:'veg',   price_range:'₹',  avg_price:55,  tags:['Puri','Chhena','Breakfast'],      is_open:true, is_gem:false, latitude:20.3055,longitude:85.8405},
+      {id:'s37',name:'Santosh Dosa Centre',         category:'Tiffin Centre',area:'Unit 4, BBSR',          rating:4.5,review_count:134,food_type:'veg',   price_range:'₹',  avg_price:70,  tags:['Dosa','Idli','Vada'],             is_open:true, is_gem:false, latitude:20.3040,longitude:85.8392},
+      {id:'s38',name:'Unit 4 Evening Snacks',       category:'Street Food',  area:'Unit 4, BBSR',          rating:4.3,review_count:76, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Pakoda','Samosa','Tea'],          is_open:true, is_gem:false, latitude:20.3048,longitude:85.8410},
+
+      // MASTER CANTEEN (1 existing + 4 new = 5)
+      {id:'s6', name:'Master Canteen Chicken',      category:'Dhaba',        area:'Master Canteen, BBSR',  rating:4.4,review_count:210,food_type:'nonveg',price_range:'₹₹', avg_price:180, tags:['Chicken','Biryani','Mutton'],     is_open:true, is_gem:false, latitude:20.2980,longitude:85.8170},
+      {id:'s39',name:'Shree Ram Chaat',             category:'Street Food',  area:'Master Canteen, BBSR',  rating:4.5,review_count:321,food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Dahibara','Gupchup','Aloodum'],   is_open:true, is_gem:true,  latitude:20.2975,longitude:85.8165},
+      {id:'s40',name:'Master Canteen Sweets',       category:'Sweet Shop',   area:'Master Canteen, BBSR',  rating:4.6,review_count:187,food_type:'veg',   price_range:'₹',  avg_price:45,  tags:['Chhena Poda','Kheer','Ladoo'],    is_open:true, is_gem:false, latitude:20.2985,longitude:85.8175},
+      {id:'s41',name:'Suresh Tiffin House',         category:'Tiffin Centre',area:'Master Canteen, BBSR',  rating:4.4,review_count:143,food_type:'veg',   price_range:'₹',  avg_price:65,  tags:['Tiffin','Idli','Poha'],           is_open:true, is_gem:false, latitude:20.2990,longitude:85.8180},
+      {id:'s42',name:'MC Road Evening Pakoda',      category:'Chai & Snacks',area:'Master Canteen, BBSR',  rating:4.3,review_count:98, food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Pakoda','Chai','Evening'],        is_open:true, is_gem:false, latitude:20.2970,longitude:85.8160},
+
+      // NAYAPALLI (2 existing + 4 new = 6)
+      {id:'s7', name:'Pakhala Special House',       category:'Odia Thali',   area:'Nayapalli, BBSR',       rating:4.9,review_count:156,food_type:'veg',   price_range:'₹',  avg_price:60,  tags:['Pakhala','Summer','Traditional'], is_open:true, is_gem:true,  latitude:20.2980,longitude:85.8040},
+      {id:'s11',name:'Nayapalli Chai Adda',         category:'Chai & Snacks',area:'Nayapalli, BBSR',       rating:4.2,review_count:55, food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Chai','Samosa','Pakoda'],         is_open:true, is_gem:true,  latitude:20.2985,longitude:85.8035},
+      {id:'s43',name:'Nayapalli Mutton Curry',      category:'Dhaba',        area:'Nayapalli, BBSR',       rating:4.6,review_count:145,food_type:'nonveg',price_range:'₹₹', avg_price:170, tags:['Mutton','Curry','Nayapalli'],     is_open:true, is_gem:true,  latitude:20.2975,longitude:85.8045},
+      {id:'s44',name:'Tulsi Sweets Nayapalli',      category:'Sweet Shop',   area:'Nayapalli, BBSR',       rating:4.4,review_count:122,food_type:'veg',   price_range:'₹',  avg_price:40,  tags:['Rasgulla','Gulab Jamun','Sweets'],is_open:true, is_gem:false, latitude:20.2990,longitude:85.8030},
+      {id:'s45',name:'Satyanarayan Street Food',    category:'Street Food',  area:'Nayapalli, BBSR',       rating:4.3,review_count:89, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Gupchup','Chaat','Bhelpuri'],     is_open:true, is_gem:false, latitude:20.2970,longitude:85.8050},
+      {id:'s46',name:'Nayapalli Organic Kitchen',   category:'Organic Store',area:'Nayapalli, BBSR',       rating:4.2,review_count:34, food_type:'veg',   price_range:'₹₹₹',avg_price:180, tags:['Organic','Millets','Healthy'],    is_open:true, is_gem:false, latitude:20.2965,longitude:85.8038},
+
+      // PATIA / KIIT (3 existing + 2 new = 5)
+      {id:'s12',name:'KIIT Road Maggi Stall',       category:'Street Food',  area:'Patia, BBSR',           rating:4.2,review_count:234,food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Maggi','Egg','Late Night'],       is_open:true, is_gem:true,  latitude:20.3524,longitude:85.8172},
+      {id:'s13',name:'Student Adda Chai',           category:'Chai & Snacks',area:'Patia, BBSR',           rating:4.3,review_count:456,food_type:'veg',   price_range:'₹',  avg_price:12,  tags:['Chai','24hr','Student','Late Night'],is_open:true,is_gem:true, latitude:20.3530,longitude:85.8178},
+      {id:'s19',name:'Green Bowl Organic',          category:'Organic Store',area:'Patia, BBSR',           rating:4.3,review_count:42, food_type:'veg',   price_range:'₹₹₹',avg_price:200, tags:['Organic','Millets','Healthy'],    is_open:true, is_gem:false, latitude:20.3518,longitude:85.8165},
+      {id:'s47',name:'Patia Fish Curry Corner',     category:'Dhaba',        area:'Patia, BBSR',           rating:4.5,review_count:178,food_type:'nonveg',price_range:'₹₹', avg_price:150, tags:['Fish','Rohu','Prawns','Seafood'],  is_open:true, is_gem:true,  latitude:20.3535,longitude:85.8180},
+      {id:'s48',name:'Techie Tiffin Patia',         category:'Tiffin Centre',area:'Patia, BBSR',           rating:4.4,review_count:201,food_type:'veg',   price_range:'₹',  avg_price:80,  tags:['Tiffin','Healthy','Lunch'],       is_open:true, is_gem:false, latitude:20.3520,longitude:85.8170},
+
+      // JATNI (2 existing + 3 new = 5)
+      {id:'s9', name:'Jatni Chhena Gaja Shop',      category:'Sweet Shop',   area:'Jatni',                 rating:4.7,review_count:88, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Chhena Gaja','Traditional'],      is_open:true, is_gem:true,  latitude:20.1680,longitude:85.7060},
+      {id:'s18',name:'Jatni Chaat Corner',          category:'Street Food',  area:'Jatni',                 rating:4.6,review_count:61, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Gupchup','Chaat','Dahibara'],     is_open:true, is_gem:true,  latitude:20.1690,longitude:85.7065},
+      {id:'s49',name:'Jatni Odia Thali House',      category:'Odia Thali',   area:'Jatni',                 rating:4.5,review_count:134,food_type:'veg',   price_range:'₹',  avg_price:90,  tags:['Dalma','Thali','Pakhala'],        is_open:true, is_gem:false, latitude:20.1685,longitude:85.7055},
+      {id:'s50',name:'Jatni Chai Tapri',            category:'Chai & Snacks',area:'Jatni',                 rating:4.3,review_count:56, food_type:'veg',   price_range:'₹',  avg_price:15,  tags:['Chai','Pakoda','Evening'],        is_open:true, is_gem:false, latitude:20.1675,longitude:85.7070},
+      {id:'s51',name:'Jatni Mutton Stall',          category:'Street Food',  area:'Jatni',                 rating:4.6,review_count:112,food_type:'nonveg',price_range:'₹',  avg_price:60,  tags:['Mutton','Kheeri','Street'],       is_open:true, is_gem:true,  latitude:20.1695,longitude:85.7058},
+
+      // OTHER
+      {id:'s8', name:'Mati Handi Mutton Point',     category:'Dhaba',        area:'Khordha Outskirts',     rating:4.8,review_count:67, food_type:'nonveg',price_range:'₹₹', avg_price:200, tags:['Mati Handi','Mutton','Clay Pot'], is_open:true, is_gem:true,  latitude:20.1820,longitude:85.6250},
+      {id:'s16',name:'Kanak Durga Sweets',          category:'Sweet Shop',   area:'Rasulgarh, BBSR',       rating:4.5,review_count:234,food_type:'veg',   price_range:'₹',  avg_price:45,  tags:['Rasgulla','Chhena Poda','Pantua'],is_open:true, is_gem:true,  latitude:20.2862,longitude:85.8561},
+    ];
+    const SEED_EVENTS = [
+      {day:'15',month:'Mar',event_type:'Food Festival',name:'Ekamra Haat Food Mela',location:'Ekamra Haat, BBSR'},
+      {day:'18',month:'Mar',event_type:'Cook-Off',     name:'Best Dalma in Khordha', location:'Unit 4 Hall, BBSR'},
+      {day:'22',month:'Mar',event_type:'Weekly Haat',  name:'Balipatna Farmers Market',location:'Balipatna, Khordha'},
+      {day:'01',month:'Apr',event_type:'Pop-Up',       name:'Street Food Pop-Up Night',location:'Saheed Nagar, BBSR'},
+      {day:'05',month:'Apr',event_type:'Workshop',     name:'Odia Cooking Class',     location:'Old Town Cultural Centre'},
+      {day:'14',month:'Apr',event_type:'Festival',     name:'Pana Sankranti Trail',   location:'Old Town, BBSR'},
+    ];
+    const ZONES = [
+      {num:'01',name:'Master Canteen Area',  desc:'BBSR\'s legendary street food cluster',spots:'5 spots'},
+      {num:'02',name:'Saheed Nagar Strip',   desc:'Evening snacks & chaat heaven',        spots:'5 spots'},
+      {num:'03',name:'Old Town Market',      desc:'Traditional Odia sweets & breakfast',  spots:'8 spots'},
+      {num:'04',name:'Unit 4 Market',        desc:'Budget thalis & tiffin galore',         spots:'5 spots'},
+      {num:'05',name:'Jatni Main Road',      desc:'Small-town hidden gems',               spots:'5 spots'},
+      {num:'06',name:'Balipatna Haat',       desc:'Weekly farmers market — Fridays',      spots:'Weekly'},
+      {num:'07',name:'Patia Junction',       desc:'Modern eateries meet street food',     spots:'5 spots'},
+      {num:'08',name:'Nayapalli Lane',       desc:'Cosy breakfast & evening snacks',      spots:'6 spots'},
+    ];
+    const MAP_POINTS = [
+      {lat:20.2961,lng:85.8245,name:'Raghunath Odia Thali',    cat:'🍛 Thali',      area:'Old Town'},
+      {lat:20.3116,lng:85.8245,name:'Mahesh Tiffin Centre',    cat:'🥞 Tiffin',     area:'Saheed Nagar'},
+      {lat:20.2741,lng:85.8377,name:'Jatni Chaat Corner',      cat:'🍢 Street Food',area:'Jatni'},
+      {lat:20.2980,lng:85.8180,name:'Master Canteen Zone',     cat:'🍢 Street Food',area:'Master Canteen'},
+      {lat:20.3060,lng:85.8140,name:'Lakshmi Sweet House',     cat:'🍮 Sweets',     area:'Unit 4'},
+      {lat:20.3524,lng:85.8172,name:'Green Bowl Organic',      cat:'🥗 Organic',    area:'Patia'},
+      {lat:20.2996,lng:85.8036,name:'Nayapalli Chai Stalls',   cat:'☕ Chai',       area:'Nayapalli'},
+      {lat:20.2640,lng:85.8200,name:'Balipatna Haat',          cat:'🛒 Haat',       area:'Balipatna'},
+      {lat:20.3200,lng:85.8300,name:'Chandrasekharpur Zone',   cat:'🍛 Thali',      area:'CDA'},
+      {lat:20.2888,lng:85.8250,name:'Ekamra Haat Food Court',  cat:'🎪 Event',      area:'Old Town'},
+    ];
+
+    // ── STATE ──────────────────────────────────────────────────────────────────
+    let liveSpots  = [...SEED_SPOTS]; // starts with seed, replaced by Supabase data
+    let activeFilter = 'all';
+
+    // ── LOAD FROM SUPABASE ──────────────────────────────────────────────────────
+    async function loadLiveData() {
+      try {
+        // Load spots — no is_featured filter, show all approved
+        const { data: spots } = await db
+          .from('spots').select('*')
+          .eq('status','approved')
+          .order('rating', { ascending: false })
+          .limit(20);
+
+        if (spots && spots.length > 0) {
+          const seen = new Set();
+          const unique = spots.filter(s => {
+            const key = s.name.toLowerCase().trim();
+            if (seen.has(key)) return false;
+            seen.add(key); return true;
+          });
+          const supabaseSpots = unique.map(s => ({
+            ...s,
+            is_open: guessOpenStatus(s),
+            bg: getBgForCategory(s.category),
+          }));
+
+          // Also fetch OSM spots and merge (OSM adds 100-200 extra real spots)
+          try {
+            const osmSpots = await fetchOSMSpots();
+            liveSpots = mergeSpots(supabaseSpots, osmSpots.map(s => ({
+              ...s, bg: getBgForCategory(s.category)
+            })));
+          } catch(e) {
+            liveSpots = supabaseSpots;
+          }
+
+          renderSpots(liveSpots);
+          updateMapMarkers(liveSpots);
+          document.getElementById('heroSpotCount').textContent = liveSpots.length + '+';
+          updateCategoryCounts(liveSpots);
+        } else {
+          // No Supabase spots yet — still try OSM
+          try {
+            const osmSpots = await fetchOSMSpots();
+            if (osmSpots.length > 0) {
+              liveSpots = osmSpots.map(s => ({...s, bg: getBgForCategory(s.category)}));
+              renderSpots(liveSpots);
+              document.getElementById('heroSpotCount').textContent = liveSpots.length + '+';
+              updateCategoryCounts(liveSpots);
+            }
+          } catch(e) {}
+        }
+
+        // Load events
+        const { data: events } = await db
+          .from('events').select('*')
+          .in('status',['upcoming','ongoing'])
+          .order('event_date', { ascending: true })
+          .limit(6);
+
+        if (events && events.length > 0) {
+          renderEvents(events.map(e => {
+            const d = new Date(e.event_date + 'T00:00:00');
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return { ...e, day: d.getDate(), month: months[d.getMonth()] };
+          }));
+          document.getElementById('heroEventCount').textContent = events.length;
+        }
+
+      } catch(err) {
+        console.warn('Supabase not configured — using seed data.', err.message);
+        // Seed data already rendered — no action needed
+      }
+    }
+
+    function getBgForCategory(cat) {
+      const map = {
+        'Odia Thali':'linear-gradient(135deg,#f4a261,#e76f51)',
+        'Tiffin Centre':'linear-gradient(135deg,#e9c46a,#f4a261)',
+        'Street Food':'linear-gradient(135deg,#2d6a4f,#40916c)',
+        'Dhaba':'linear-gradient(135deg,#9d0208,#d62828)',
+        'Sweet Shop':'linear-gradient(135deg,#ffb703,#fb8500)',
+        'Organic Store':'linear-gradient(135deg,#1b4332,#2d6a4f)',
+        'Chai & Snacks':'linear-gradient(135deg,#795548,#4e342e)',
+      };
+      return map[cat] || 'linear-gradient(135deg,#E8670A,#C04A1B)';
+    }
+
+    // ── RENDER SPOTS ───────────────────────────────────────────────────────────
+    function renderSpots(data) {
+      document.getElementById('spotsGrid').innerHTML = data.length === 0
+        ? '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--subtext)">No spots found. Try a different filter.</div>'
+        : data.map(s => {
+          const qStatus  = SmartMode.getQueueStatus(s.id);
+          const hygiene  = getHygieneData(s.id);
+          const isLegacy = s.tags?.includes('legacy') || s.established_year < 2005;
+          const flashSales = SmartMode.getFlashSales().filter(f =>
+            f.spotName?.toLowerCase() === s.name?.toLowerCase());
+          const qBadge = qStatus ? {
+            low:    {emoji:'🟢',label:'No queue',color:'#1B5E20'},
+            medium: {emoji:'🟡',label:'Queue',   color:'#E65100'},
+            high:   {emoji:'🔴',label:'Long queue',color:'#B71C1C'},
+          }[qStatus] : null;
+
+          const catEmoji = {'Odia Thali':'🍛','Tiffin Centre':'🥞','Street Food':'🍢','Dhaba':'🍖','Sweet Shop':'🍮','Chai & Snacks':'☕','Organic Store':'🥗','Restaurant':'🍽️'}[s.category] || '🍴';
+          const catAccent = {'Odia Thali':'#f4a261','Tiffin Centre':'#e9c46a','Street Food':'#40916c','Dhaba':'#d62828','Sweet Shop':'#fb8500','Chai & Snacks':'#a0785a','Organic Store':'#2d6a4f','Restaurant':'#1565C0'}[s.category] || '#E8670A';
+
+          return `
+          <div class="spot-card fade-up" onclick="window.location.href='spot.html?id='+escAttr(s.id)" style="cursor:pointer;border-top:3px solid ${catAccent}">
+            <div class="spot-img" style="background:${s.image_url
+              ? `url(${s.image_url}) center/cover` : getBgForCategory(s.category)}">
+              <div class="spot-img-overlay"></div>
+              <!-- Big category emoji watermark -->
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3.5rem;opacity:0.22;pointer-events:none;user-select:none">${catEmoji}</div>
+              <span class="spot-badge badge-${s.food_type==='nonveg'?'nonveg':'veg'}">${s.food_type==='nonveg'?'🔴 Non-Veg':'🟢 Veg'}</span>
+              ${s.is_gem  ? '<span class="spot-badge badge-gem"   style="top:44px">✨ GEM</span>' : ''}
+              ${isLegacy ? '<span class="spot-badge" style="top:44px;background:#F57F17;color:#fff;font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:20px">📜 LEGACY</span>' : ''}
+              ${flashSales.length ? '<span class="spot-badge" style="top:44px;background:#FF5252;color:#fff;font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:20px;animation:flashPulse 1.5s infinite">⚡ DEAL</span>' : ''}
+              <span class="spot-open-status ${s.is_open!==false?'open':''}">
+                ${s.is_open!==false?'● Open':'● Closed'}
+              </span>
+            </div>
+            <div class="spot-body">
+              <div class="spot-name">${escHtml(s.name)}</div>
+              <div class="spot-meta">
+                <span style="color:${catAccent};font-weight:600">${catEmoji} ${s.category}</span><span class="dot">·</span>
+                <span>📍 ${s.area}</span>
+                ${s.rating ? `<span class="spot-rating">⭐ ${s.rating} <span style="opacity:.6;font-weight:400">(${s.review_count||0})</span></span>` : ''}
+              </div>
+
+              ${qBadge ? `<div style="margin-bottom:6px">
+                <span style="background:${qBadge.color}12;border:1px solid ${qBadge.color}40;
+                  color:${qBadge.color};font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px">
+                  ${qBadge.emoji} ${qBadge.label}</span></div>` : ''}
+
+              ${hygiene ? `<div class="spot-hygiene-row">
+                <span class="hygiene-tick ${hygiene.gloves==='yes'?'yes':hygiene.gloves==='no'?'no':''}">
+                  ${hygiene.gloves==='yes'?'✅':hygiene.gloves==='no'?'❌':'🤷'} Gloves</span>
+                <span class="hygiene-tick ${hygiene.water==='yes'?'yes':hygiene.water==='no'?'no':''}">
+                  ${hygiene.water==='yes'?'✅':hygiene.water==='no'?'❌':'🤷'} Water</span>
+                <span class="hygiene-tick ${hygiene.bin==='yes'?'yes':hygiene.bin==='no'?'no':''}">
+                  ${hygiene.bin==='yes'?'✅':hygiene.bin==='no'?'❌':'🤷'} Bin</span>
+              </div>` : ''}
+
+              ${flashSales.length ? `<div style="background:#FFF5F5;border:1px solid #FFCDD2;border-radius:8px;padding:7px 10px;margin-bottom:8px;font-size:.75rem">
+                ⚡ <strong style="color:#C62828">${escHtml(flashSales[0].deal)}</strong>
+                <span style="color:#999;margin-left:6px">${SmartMode.timeAgo(flashSales[0].ts)} · ${SmartMode.flashSaleExpiryMins(flashSales[0].ts)}m left</span>
+              </div>` : ''}
+
+              <div class="spot-tags">
+                ${(s.tags||[]).slice(0,3).map(t=>`<span class="spot-tag">${escHtml(t)}</span>`).join('')}
+              </div>
+              <div class="spot-footer">
+                <div class="spot-price">Avg: <strong>${s.price_range||'₹'}</strong> /person</div>
+                <div class="spot-actions">
+                  <button class="spot-action-btn" title="Hygiene Rating"
+                    onclick="openHygieneModal('${s.id}','${escAttr(s.name)}')">🧼</button>
+                  <button class="spot-action-btn" title="Queue Status"
+                    onclick="openQueueModal('${s.id}','${escAttr(s.name)}')">⏳</button>
+                  <button class="spot-action-btn" title="Save to Passport"
+                    onclick="markVisited('${s.id}','${escAttr(s.name)}','${escAttr(s.category)}','${escAttr(s.area)}',${s.is_gem||false},'${s.price_range||'₹'}')">🔖</button>
+                  <button class="spot-action-btn" title="Directions"
+                    onclick="window.open('https://www.openstreetmap.org/?mlat=${s.latitude||20.296}&mlon=${s.longitude||85.824}#map=17/${s.latitude||20.296}/${s.longitude||85.824}','_blank')">🗺️</button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+      observeFadeUps();
+    }
+
+    // ── MARK VISITED (FoodiePassport integration — FIX for bug #8) ────────────
+    function markVisited(spotId, spotName, category, area, isGem, priceRange) {
+      const passport = LS.get('fr_passport');
+      if (!passport) {
+        showToast('📛 Create your FoodiePassport first!');
+        setTimeout(() => window.location.href = 'passport.html', 1500);
+        return;
+      }
+      if (passport.visited.find(v => v.spotId === spotId)) {
+        showToast('Already in your Passport! ✓'); return;
+      }
+      passport.visited.push({ spotId, spotName, category, area, isGem, priceRange, date: new Date().toISOString() });
+      passport.xp += isGem ? 20 : 10;
+      LS.set('fr_passport', passport)
+      showToast('📍 Saved to Passport! +' + (isGem ? 20 : 10) + ' XP');
+    }
+
+    // ── RENDER EVENTS ──────────────────────────────────────────────────────────
+    function renderEvents(data) {
+      document.getElementById('eventsGrid').innerHTML = data.map(e => `
+        <div class="event-card fade-up">
+          <div class="event-date-col">
+            <div class="event-day">${e.day}</div>
+            <div class="event-month">${e.month}</div>
+          </div>
+          <div class="event-info">
+            <div class="event-type">${e.event_type}</div>
+            <div class="event-name">${escHtml(e.name)}</div>
+            <div class="event-loc">📍 ${escHtml(e.location)}</div>
+          </div>
+        </div>`).join('');
+      observeFadeUps();
+    }
+
+    // ── RENDER ZONES ───────────────────────────────────────────────────────────
+    function renderZones() {
+      // Map zone name → area keyword used in SEED_SPOTS
+      const zoneAreaMap = {
+        'Master Canteen Area': 'Master Canteen',
+        'Saheed Nagar Strip':  'Saheed Nagar',
+        'Old Town Market':     'Old Town',
+        'Unit 4 Market':       'Unit 4',
+        'Jatni Main Road':     'Jatni',
+        'Balipatna Haat':      'Balipatna',
+        'Patia Junction':      'Patia',
+        'Nayapalli Lane':      'Nayapalli',
+      };
+      document.getElementById('zones').innerHTML = ZONES.map(z => {
+        const area = zoneAreaMap[z.name] || z.name;
+        return `
+        <div class="zone-card fade-up" onclick="filterByArea('${area}')" title="Browse ${z.name} spots">
+          <div class="zone-num">${z.num}</div>
+          <div class="zone-name">${z.name}</div>
+          <div class="zone-desc">${z.desc}</div>
+          <div class="zone-spots">📍 ${z.spots}</div>
+          <div style="margin-top:10px;font-size:.72rem;color:var(--saffron);font-weight:700;letter-spacing:.03em">
+            Browse spots →
+          </div>
+        </div>`;
+      }).join('');
+      observeFadeUps();
+    }
+
+    // ── MAPS ───────────────────────────────────────────────────────────────────
+    function initMaps() {
+      const BBSR     = [20.2961, 85.8245];
+      const TILE     = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      const ATTR     = '© <a href="https://openstreetmap.org">OpenStreetMap</a>';
+      const heroMap  = L.map('hero-map', {zoomControl:false, scrollWheelZoom:false}).setView(BBSR, 13);
+      const fullMap  = L.map('full-map').setView(BBSR, 12);
+      _fullMap = fullMap;
+      window._heroMap = heroMap;
+      window._fullMap = fullMap;
+      window._staticMarkers = [];
+      L.tileLayer(TILE, {attribution:ATTR, maxZoom:18}).addTo(heroMap);
+      L.tileLayer(TILE, {attribution:ATTR, maxZoom:18}).addTo(fullMap);
+
+      // Leaflet needs explicit size recalc after CSS finishes painting
+      [100, 400, 1000, 2000].forEach(ms =>
+        setTimeout(() => { heroMap.invalidateSize(); fullMap.invalidateSize(); }, ms)
+      );
+
+      const markerIcon = (color='#E8670A') => L.divIcon({
+        className:'',
+        html:`<div style="background:${color};width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
+        iconSize:[24,24], iconAnchor:[12,24], popupAnchor:[0,-28]
+      });
+      const colorMap = {'🍛 Thali':'#E8670A','🥞 Tiffin':'#F5A623','🍢 Street Food':'#2E7D32','🍮 Sweets':'#C04A1B','🥗 Organic':'#388E3C','☕ Chai':'#795548','🛒 Haat':'#1565C0','🎪 Event':'#7B1FA2'};
+
+      MAP_POINTS.forEach(p => {
+        const col  = colorMap[p.cat] || '#E8670A';
+        const popup = `<div style="font-weight:700;font-size:.9rem">${p.name}</div><div style="font-size:.72rem;color:var(--saffron)">${p.cat}</div><div style="font-size:.74rem;margin-top:3px;color:#666">📍 ${p.area}</div>`;
+        const mHero = L.marker([p.lat,p.lng],{icon:markerIcon(col)}).addTo(heroMap).bindPopup(popup);
+        const mFull = L.marker([p.lat,p.lng],{icon:markerIcon(col)}).addTo(fullMap).bindPopup(popup);
+        window._staticMarkers.push(mHero, mFull);
+      });
+    }
+
+    // ── FILTERS ────────────────────────────────────────────────────────────────
+    function toggleChip(el, filter) {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      activeFilter = filter;
+      applyFilters();
+    }
+
+    function filterByCategory(cat) {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      activeFilter = cat;
+      applyFilters();
+      document.getElementById('spots').scrollIntoView({behavior:'smooth'});
+    }
+
+    function applySearch() {
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      let filtered = liveSpots;
+
+      // Text search
+      if (q) filtered = filtered.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        (s.category||'').toLowerCase().includes(q) ||
+        (s.area||'').toLowerCase().includes(q) ||
+        (s.tags||[]).some(t => t.toLowerCase().includes(q))
+      );
+
+      // Chip filter
+      if      (activeFilter === 'veg')    filtered = filtered.filter(s => s.food_type === 'veg');
+      else if (activeFilter === 'nonveg') filtered = filtered.filter(s => s.food_type === 'nonveg' || s.food_type === 'both');
+      else if (activeFilter === 'budget') filtered = filtered.filter(s => s.price_range === '₹');
+      else if (activeFilter === 'odia')   filtered = filtered.filter(s => s.category?.includes('Odia') || s.category?.includes('Dhaba'));
+      else if (activeFilter === 'street') filtered = filtered.filter(s => s.category?.includes('Street'));
+      else if (activeFilter === 'sweet')  filtered = filtered.filter(s => s.category?.includes('Sweet'));
+      else if (activeFilter !== 'all')    filtered = filtered.filter(s => s.category === activeFilter);
+
+      renderSpots(filtered);
+    }
+
+    let _suppressInputEvent = false; // prevents input event from clearing activeArea
+
+    document.getElementById('searchInput').addEventListener('input', () => {
+      if (_suppressInputEvent) return; // filterByArea is setting value programmatically
+      activeArea = null; // typing in search clears zone area filter
+      masterFilter();
+    });
+    document.getElementById('searchInput').addEventListener('keyup', e => {
+      if (e.key === 'Escape') {
+        document.getElementById('searchInput').value = '';
+        activeArea = null;
+        masterFilter();
+      }
+    });
+
+    function toggleMapFilter(el) {
+      document.querySelectorAll('.map-filter-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      const label = el.textContent.trim();
+
+      // Map button labels → category keywords used in MAP_POINTS cat field
+      const filterMap = {
+        'All Spots':      null,           // show all
+        '🍛 Restaurants': 'Thali',        // cat includes 'Thali'
+        '🍢 Street Food': 'Street Food',
+        '🥗 Organic Stores': 'Organic',
+        '🛒 Haats':       'Haat',
+      };
+      const keyword = filterMap[label];
+
+      // Filter MAP_POINTS markers (the static ones added in initMaps)
+      // We need to track them — rebuild from MAP_POINTS with filter
+      if (window._heroMap && window._fullMap) {
+        // Remove existing MAP_POINTS markers
+        (window._staticMarkers || []).forEach(m => {
+          window._heroMap.removeLayer(m);
+          window._fullMap.removeLayer(m);
+        });
+        window._staticMarkers = [];
+
+        const markerIcon = (color='#E8670A') => L.divIcon({
+          className:'',
+          html:`<div style="background:${color};width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
+          iconSize:[24,24], iconAnchor:[12,24], popupAnchor:[0,-28]
+        });
+        const colorMap = {'🍛 Thali':'#E8670A','🥞 Tiffin':'#F5A623','🍢 Street Food':'#2E7D32','🍮 Sweets':'#C04A1B','🥗 Organic':'#388E3C','☕ Chai':'#795548','🛒 Haat':'#1565C0','🎪 Event':'#7B1FA2'};
+
+        MAP_POINTS
+          .filter(p => !keyword || p.cat.includes(keyword))
+          .forEach(p => {
+            const col = colorMap[p.cat] || '#E8670A';
+            const popup = `<div style="font-weight:700;font-size:.9rem">${p.name}</div><div style="font-size:.72rem;color:#E8670A">${p.cat}</div><div style="font-size:.74rem;margin-top:3px;color:#666">📍 ${p.area}</div>`;
+            const mHero = L.marker([p.lat,p.lng],{icon:markerIcon(col)}).addTo(window._heroMap).bindPopup(popup);
+            const mFull = L.marker([p.lat,p.lng],{icon:markerIcon(col)}).addTo(window._fullMap).bindPopup(popup);
+            window._staticMarkers.push(mHero, mFull);
+          });
+      }
+
+      // Also filter liveSpots markers on full map
+      if (keyword) {
+        const catKeyMap = {
+          'Thali': 'Odia Thali', 'Street Food': 'Street Food',
+          'Organic': 'Organic Store', 'Haat': 'Haat',
+        };
+        const filtered = liveSpots.filter(s => s.category && s.category.includes(catKeyMap[keyword] || keyword));
+        updateMapMarkers(filtered);
+      } else {
+        updateMapMarkers(liveSpots);
+      }
+    }
+
+    // ── SUBMIT SPOT ────────────────────────────────────────────────────────────
+    async function handleSubmit() {
+      const btn  = document.getElementById('submitSpotBtn');
+      const errEl= document.getElementById('formError');
+      errEl.style.display = 'none';
+
+      const name     = document.getElementById('spotName').value.trim();
+      const category = document.getElementById('spotCategory').value;
+      const area     = document.getElementById('spotArea').value;
+
+      if (!name)     { showFormError('Please enter a spot name.');      return; }
+      if (!category) { showFormError('Please select a category.');      return; }
+      if (!area)     { showFormError('Please select an area.');         return; }
+
+      btn.disabled    = true;
+      btn.textContent = 'Submitting...';
+
+      // Geocode address via Nominatim
+      let latitude = null, longitude = null;
+      try {
+        const address = document.getElementById('spotAddress').value.trim();
+        const q = encodeURIComponent(`${address || area}, Odisha, India`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`, {
+          headers: { 'Accept-Language': 'en', 'User-Agent': 'FoodieRadar-Khordha/1.0' }
+        });
+        const geo = await res.json();
+        if (geo.length > 0) { latitude = parseFloat(geo[0].lat); longitude = parseFloat(geo[0].lon); }
+      } catch(e) { /* geocode failed — coords null, admin can fix */ }
+
+      try {
+        const { error } = await db.from('spots').insert([{
+          name,
+          category,
+          area,
+          address:      document.getElementById('spotAddress').value.trim() || null,
+          food_type:    document.getElementById('spotFoodType').value,
+          price_range:  document.getElementById('spotPrice').value,
+          description:  document.getElementById('spotDesc').value.trim() || null,
+          submitted_by: document.getElementById('spotSubmitter').value.trim() || 'Anonymous',
+          latitude,
+          longitude,
+          status: 'pending',
+        }]);
+
+        if (error) throw error;
+
+        closeModal();
+        showToast('✅ Spot submitted! We\'ll review it within 24 hours.');
+        clearForm();
+
+      } catch(err) {
+        // Supabase not configured yet — show success anyway (data lost, but good UX during dev)
+        closeModal();
+        showToast('✅ Spot submitted! (Supabase setup needed to save it)');
+        clearForm();
+      }
+
+      btn.disabled    = false;
+      btn.textContent = 'Submit Spot 🚀';
+    }
+
+    function clearForm() {
+      ['spotName','spotCategory','spotArea','spotAddress','spotFoodType','spotPrice','spotDesc','spotSubmitter']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = el.tagName === 'SELECT' ? '' : ''; });
+    }
+
+    function showFormError(msg) {
+      const el = document.getElementById('formError');
+      el.textContent   = '⚠ ' + msg;
+      el.style.display = 'block';
+    }
+
+    // ── MODAL ──────────────────────────────────────────────────────────────────
+    function openModal()  { document.getElementById('modalOverlay').classList.add('show'); document.body.style.overflow='hidden'; }
+    function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); document.body.style.overflow=''; }
+    function handleOverlayClick(e) { if (e.target.id === 'modalOverlay') closeModal(); }
+
+    // ── FADE UP OBSERVER ───────────────────────────────────────────────────────
+    // Animation handled purely by CSS (fadeUpIn keyframe) — no JS needed
+    function observeFadeUps() { /* no-op — CSS animation handles this */ }
+
+    // ── TOAST ──────────────────────────────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 4000);
+    }
+
+    // ── XSS PROTECTION ────────────────────────────────────────────────────────
+    function escHtml(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function escAttr(s)  { return String(s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+
+    // ── HYGIENE DATA (localStorage) ───────────────────────────────────────────
+    function getHygieneData(spotId) {
+      try { return LS.get('fr_hygiene_' + spotId); }
+      catch { return null; }
+    }
+    function saveHygieneData(spotId, data) {
+      LS.set('fr_hygiene_' + spotId, data);
+    }
+
+    // ── HYGIENE MODAL ─────────────────────────────────────────────────────────
+    let _hygieneSpotId = null;
+    let _hygieneAnswers = {};
+
+    function openHygieneModal(spotId, spotName) {
+      _hygieneSpotId = spotId;
+      _hygieneAnswers = getHygieneData(spotId) || {};
+      document.getElementById('hygieneSpotLabel').textContent = spotName;
+      // Pre-fill if already answered
+      ['hq1','hq2','hq3'].forEach(q => {
+        const key = q === 'hq1' ? 'gloves' : q === 'hq2' ? 'water' : 'bin';
+        const val = _hygieneAnswers[key];
+        if (val) selectHygiene(q, val);
+      });
+      document.getElementById('hygieneOverlay').style.display = 'flex';
+    }
+    function closeHygieneModal() {
+      document.getElementById('hygieneOverlay').style.display = 'none';
+      _hygieneSpotId = null;
+      _hygieneAnswers = {};
+      document.querySelectorAll('.hygiene-opt').forEach(b => {
+        b.classList.remove('selected','selected-no');
+      });
+    }
+    function selectHygiene(question, value) {
+      const key = question === 'hq1' ? 'gloves' : question === 'hq2' ? 'water' : 'bin';
+      _hygieneAnswers[key] = value;
+      ['yes','no','na'].forEach(v => {
+        const btn = document.getElementById(question + '-' + v);
+        if (!btn) return;
+        btn.classList.remove('selected','selected-no');
+        if (v === value) btn.classList.add(value === 'no' ? 'selected-no' : 'selected');
+      });
+    }
+    function submitHygiene() {
+      if (!_hygieneSpotId) return;
+      if (Object.keys(_hygieneAnswers).length < 3) {
+        showToast('Please answer all 3 questions'); return;
+      }
+      saveHygieneData(_hygieneSpotId, _hygieneAnswers);
+      closeHygieneModal();
+      showToast('🧼 Hygiene report saved! Thank you');
+      renderSpots(liveSpots);
+    }
+
+    // ── QUEUE MODAL ───────────────────────────────────────────────────────────
+    let _queueSpotId = null;
+    function openQueueModal(spotId, spotName) {
+      _queueSpotId = spotId;
+      document.getElementById('queueSpotLabel').textContent = spotName;
+      document.getElementById('queueOverlay').style.display = 'flex';
+    }
+    function closeQueueModal() {
+      document.getElementById('queueOverlay').style.display = 'none';
+      _queueSpotId = null;
+    }
+    function submitQueue(status) {
+      if (!_queueSpotId) return;
+      SmartMode.setQueueStatus(_queueSpotId, status);
+      closeQueueModal();
+      const labels = {low:'🟢 No queue reported',medium:'🟡 Queue reported',high:'🔴 Long queue reported'};
+      showToast(labels[status] + ' — expires in 2 hrs');
+      renderSpots(liveSpots);
+    }
+
+    // ── FLASH SALES ───────────────────────────────────────────────────────────
+    function renderFlashBoard() {
+      const sales = SmartMode.getFlashSales();
+      const grid  = document.getElementById('flashGrid');
+      if (!grid) return;
+      if (!sales.length) {
+        grid.innerHTML = '<div class="flash-empty">No active deals right now. Be the first to post one!</div>';
+        return;
+      }
+      grid.innerHTML = sales.map(f => `
+        <div class="flash-card">
+          <div class="flash-deal">⚡ ${escHtml(f.deal)}</div>
+          <div class="flash-meta">
+            📍 ${escHtml(f.spotName)} · ${escHtml(f.area)}
+            ${f.contact ? ` · <a href="https://wa.me/${f.contact.replace(/\D/g,'')}"
+              target="_blank" style="color:#FF5252;text-decoration:none">WhatsApp</a>` : ''}
+          </div>
+          <div class="flash-expiry">⏱ ${SmartMode.flashSaleExpiryMins(f.ts)} min left · ${SmartMode.timeAgo(f.ts)}</div>
+        </div>`).join('');
+    }
+
+    function postFlashSale() {
+      const spotName = document.getElementById('fSpotName').value.trim();
+      const area     = document.getElementById('fArea').value.trim();
+      const deal     = document.getElementById('fDeal').value.trim();
+      const contact  = document.getElementById('fContact').value.trim();
+      if (!spotName || !deal) { showToast('Please fill stall name and deal details'); return; }
+      SmartMode.addFlashSale({ spotName, area, deal, contact });
+      document.getElementById('fSpotName').value = '';
+      document.getElementById('fArea').value     = '';
+      document.getElementById('fDeal').value     = '';
+      document.getElementById('fContact').value  = '';
+      renderFlashBoard();
+      showToast('⚡ Deal posted! Visible to everyone for 3 hours');
+    }
+
+    // ── SMART TOOLBAR LOGIC ───────────────────────────────────────────────────
+    // ── UNIFIED FILTER STATE ──────────────────────────────────────────────────
+    // Single source of truth — ALL filter functions write here, masterFilter reads it
+    let activeArea   = null;   // set by zone card clicks
+    let activeSmartFilters = new Set();
+
+    // ── MASTER FILTER — called by everything, applies ALL active filters ──────
+    async function masterFilter() {
+      const q            = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      const chipFilter   = activeFilter;   // 'all','veg','nonveg','budget','odia','street','sweet', or a category string
+      const areaFilter   = activeArea;     // e.g. 'Nayapalli', null = no area filter
+
+      let pool = liveSpots;
+
+      // 1. Area filter (from zone card click)
+      if (areaFilter) {
+        pool = pool.filter(s => (s.area||'').toLowerCase().includes(areaFilter.toLowerCase()));
+      }
+
+      // 2. Text search (only if user typed something)
+      if (q) {
+        pool = pool.filter(s =>
+          s.name.toLowerCase().includes(q) ||
+          (s.category||'').toLowerCase().includes(q) ||
+          (s.area||'').toLowerCase().includes(q) ||
+          (s.tags||[]).some(t => t.toLowerCase().includes(q))
+        );
+      }
+
+      // 3. Chip filter
+      if      (chipFilter === 'veg')    pool = pool.filter(s => s.food_type === 'veg');
+      else if (chipFilter === 'nonveg') pool = pool.filter(s => s.food_type === 'nonveg' || s.food_type === 'both');
+      else if (chipFilter === 'budget') pool = pool.filter(s => s.price_range === '₹');
+      else if (chipFilter === 'odia')   pool = pool.filter(s => s.category?.includes('Odia') || s.category?.includes('Dhaba'));
+      else if (chipFilter === 'street') pool = pool.filter(s => s.category?.includes('Street'));
+      else if (chipFilter === 'sweet')  pool = pool.filter(s => s.category?.includes('Sweet'));
+      else if (chipFilter !== 'all')    pool = pool.filter(s => s.category === chipFilter);
+
+      // 4. Smart filters (only if any are active — applied as OR within smart, AND with above)
+      if (activeSmartFilters.size > 0) {
+        const smartFns = _buildSmartFilterFns();
+        if (smartFns.length) {
+          pool = pool.filter(s => smartFns.some(fn => fn(s)));
+        }
+      }
+
+      renderSpots(pool.length ? pool : (areaFilter || q ? [] : liveSpots));
+      if (pool.length === 0 && (areaFilter || q)) {
+        showToast('No spots found — try clearing filters');
+      }
+
+      // Update area banner
+      _updateAreaBanner();
+    }
+
+    function _buildSmartFilterFns() {
+      const fns = [];
+      if (activeSmartFilters.has('midnight')) fns.push(s => s.tags?.includes('late-night')||s.tags?.includes('24hr')||s.category==='Dhaba');
+      if (activeSmartFilters.has('lull'))     fns.push(s => s.tags?.includes('all-day')||s.category==='Chai & Snacks');
+      if (activeSmartFilters.has('rain'))     fns.push(s => ['Chai & Snacks','Street Food'].includes(s.category));
+      if (activeSmartFilters.has('pakhala'))  fns.push(s => s.tags?.some(t=>t.toLowerCase().includes('pakhala')));
+      if (activeSmartFilters.has('student'))  fns.push(s => s.price_range==='₹' && (s.avg_price==null||s.avg_price<=100));
+      return fns;
+    }
+
+    function _updateAreaBanner() {
+      let banner = document.getElementById('areaBanner');
+      if (!activeArea) { if (banner) banner.remove(); return; }
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'areaBanner';
+        banner.style.cssText = 'background:rgba(232,103,10,.1);border-bottom:1px solid rgba(232,103,10,.25);padding:8px 5%;display:flex;align-items:center;gap:10px;font-size:.82rem;font-weight:600;color:var(--clay)';
+        document.getElementById('spots').insertAdjacentElement('beforebegin', banner);
+      }
+      banner.innerHTML = `📍 Showing spots in <strong>${activeArea}</strong> &nbsp;
+        <button onclick="clearAreaFilter()" style="margin-left:auto;border:1px solid rgba(232,103,10,.4);background:transparent;color:var(--clay);border-radius:50px;padding:3px 12px;font-size:.75rem;font-weight:700;cursor:pointer">✕ Clear area</button>`;
+    }
+
+    function clearAreaFilter() {
+      activeArea = null;
+      document.getElementById('searchInput').value = '';
+      masterFilter();
+    }
+
+    // ── REPLACE ALL OLD FILTER FUNCTIONS ─────────────────────────────────────
+    function applyFilters()  { masterFilter(); }
+    function applySearch()   { masterFilter(); }
+
+    function filterByArea(area) {
+      activeArea   = area;
+      activeFilter = 'all';
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      document.querySelector('.chip')?.classList.add('active');
+      // Suppress the input event so it doesn't null out activeArea
+      _suppressInputEvent = true;
+      document.getElementById('searchInput').value = '';
+      _suppressInputEvent = false;
+      masterFilter();
+      document.getElementById('spots').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showToast('📍 Showing all spots in ' + area);
+    }
+
+    async function initSmartToolbar() {
+      const modes = await SmartMode.getActiveModes();
+      modes.forEach(m => {
+        const btnMap = { midnight:'btnMidnight',lull:'btnLull',rain:'btnRain',pakhala:'btnPakhala',student:'btnStudent' };
+        const btn = document.getElementById(btnMap[m.id]);
+        if (btn && m.id !== 'student') btn.style.boxShadow = '0 0 0 2px ' + m.color;
+      });
+      if (SmartMode.isStudentMode()) {
+        document.getElementById('btnStudent').classList.add('student-on');
+        activeSmartFilters.add('student');
+        masterFilter();
+      }
+      SmartMode.renderBanner('smartBanner');
+    }
+
+    function toggleSmartFilter(id) {
+      if (activeSmartFilters.has(id)) activeSmartFilters.delete(id);
+      else activeSmartFilters.add(id);
+      refreshSmartUI();
+      masterFilter();
+    }
+
+    function refreshSmartUI() {
+      const colorMap = {midnight:'midnight-on',lull:'active',rain:'rain-on',pakhala:'pakhala-on',student:'student-on'};
+      const btnMap   = {midnight:'btnMidnight',lull:'btnLull',rain:'btnRain',pakhala:'btnPakhala',student:'btnStudent'};
+      if (SmartMode.isStudentMode()) activeSmartFilters.add('student');
+      else activeSmartFilters.delete('student');
+      Object.entries(btnMap).forEach(([id, btnId]) => {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        Object.values(colorMap).forEach(c => btn.classList.remove(c));
+        if (activeSmartFilters.has(id)) btn.classList.add(colorMap[id]);
+      });
+    }
+
+    function clearSmartFilters() {
+      activeSmartFilters.clear();
+      SmartMode.setStudentMode(false);
+      refreshSmartUI();
+      masterFilter();
+    }
+
+
+    // ── OPEN STATUS DETECTION ──────────────────────────────────────────────────
+    function guessOpenStatus(spot) {
+      if (spot.opening_hours) {
+        // Simple heuristic: if "24/7" always open
+        if (spot.opening_hours.includes('24/7')) return true;
+      }
+      const h = new Date().getHours();
+      // Street food / chai stalls usually open 6am-11pm
+      if (spot.category === 'Street Food' || spot.category === 'Chai & Snacks')
+        return h >= 6 && h < 23;
+      // Sweet shops 8am-9pm
+      if (spot.category === 'Sweet Shop') return h >= 8 && h < 21;
+      // Tiffin centres 7am-3pm
+      if (spot.category === 'Tiffin Centre') return h >= 7 && h < 15;
+      // Dhabas 6am-midnight
+      if (spot.category === 'Dhaba') return h >= 6 && h < 24;
+      return h >= 8 && h < 22;
+    }
+
+    // ── CATEGORY COUNTS ────────────────────────────────────────────────────────
+    function updateCategoryCounts(spots) {
+      const counts = {};
+      spots.forEach(s => { counts[s.category] = (counts[s.category]||0) + 1; });
+      const map = {
+        'cnt-thali':  ['Odia Thali'],
+        'cnt-tiffin': ['Tiffin Centre'],
+        'cnt-street': ['Street Food'],
+        'cnt-sweet':  ['Sweet Shop'],
+        'cnt-chai':   ['Chai & Snacks'],
+        'cnt-organic':['Organic Store'],
+      };
+      Object.entries(map).forEach(([id, cats]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const n = cats.reduce((a,c) => a + (counts[c]||0), 0);
+        el.textContent = n > 0 ? n + (id.includes('tiffin')?' centres':' spots') : '– spots';
+      });
+    }
+
+    // ── LIVE MAP MARKER UPDATE ─────────────────────────────────────────────────
+    let _fullMap = null;
+    let _mapMarkers = [];
+    function updateMapMarkers(spots) {
+      if (!_fullMap) return;
+      _mapMarkers.forEach(m => _fullMap.removeLayer(m));
+      _mapMarkers = [];
+      const catColors = {
+        'Odia Thali':'#E8670A','Tiffin Centre':'#F5A623','Street Food':'#2E7D32',
+        'Dhaba':'#9D0208','Sweet Shop':'#FB8500','Chai & Snacks':'#795548',
+        'Organic Store':'#388E3C','Restaurant':'#1565C0','Eatery':'#6A1B9A',
+      };
+      spots.filter(s => s.latitude && s.longitude).forEach(s => {
+        const col  = catColors[s.category] || '#E8670A';
+        const icon = L.divIcon({
+          className:'',
+          html:`<div style="background:${col};width:20px;height:20px;border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);border:2px solid #fff;
+            box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,
+          iconSize:[20,20],iconAnchor:[10,20],popupAnchor:[0,-24]
+        });
+        const popup = `
+          <div style="min-width:160px">
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:2px">${s.name}</div>
+            <div style="font-size:.72rem;color:#E8670A;margin-bottom:4px">${s.category}</div>
+            ${s.rating ? `<div style="font-size:.74rem">⭐ ${s.rating}</div>` : ''}
+            <div style="font-size:.74rem;margin-top:4px">📍 ${s.area||''}</div>
+            <a href="spot.html?id=${s.id}" style="display:inline-block;margin-top:8px;
+              padding:4px 12px;background:#E8670A;color:#fff;border-radius:6px;
+              font-size:.72rem;font-weight:700;text-decoration:none">View Details →</a>
+          </div>`;
+        const m = L.marker([s.latitude, s.longitude], {icon}).addTo(_fullMap).bindPopup(popup);
+        _mapMarkers.push(m);
+      });
+    }
+
+    // ── NEAR ME / GEOLOCATION ─────────────────────────────────────────────────
+    let _userLat = null, _userLng = null;
+    function nearMe() {
+      const btn = document.getElementById('btnNearMe');
+      if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
+      btn.textContent = '📡 Locating...';
+      btn.disabled = true;
+      navigator.geolocation.getCurrentPosition(pos => {
+        _userLat = pos.coords.latitude;
+        _userLng = pos.coords.longitude;
+        btn.textContent = '📍 Near Me ✓';
+        btn.classList.add('active');
+        btn.disabled = false;
+
+        // Sort liveSpots by distance, show within 5km
+        const withDist = liveSpots
+          .filter(s => s.latitude && s.longitude)
+          .map(s => ({
+            ...s,
+            _dist: getDistanceMeters(_userLat, _userLng, s.latitude, s.longitude)
+          }))
+          .filter(s => s._dist < 5000)
+          .sort((a,b) => a._dist - b._dist);
+
+        if (withDist.length === 0) {
+          showToast('No spots found within 5km of you');
+          return;
+        }
+        renderSpots(withDist);
+        showToast(`📍 Showing ${withDist.length} spots within 5km`);
+
+        // Pan map to user
+        if (_fullMap) {
+          _fullMap.setView([_userLat, _userLng], 14);
+          L.circleMarker([_userLat, _userLng], {
+            radius:10, color:'#1A237E', fillColor:'#3F51B5', fillOpacity:.7, weight:2
+          }).addTo(_fullMap).bindPopup('<strong>You are here</strong>').openPopup();
+        }
+      }, () => {
+        btn.textContent = '📍 Near Me';
+        btn.disabled = false;
+        showToast('Could not get location. Please allow location access.');
+      });
+    }
+
+    function clearNearMe() {
+      _userLat = null; _userLng = null;
+      const btn = document.getElementById('btnNearMe');
+      if (btn) { btn.textContent = '📍 Near Me'; btn.classList.remove('active'); btn.disabled = false; }
+      renderSpots(liveSpots);
+    }
+
+    // ── WHATSAPP SHARE ────────────────────────────────────────────────────────
+    function shareSpot(spotId, spotName, area) {
+      const url  = encodeURIComponent(`https://foodieradar.vercel.app/spot.html?id=${spotId}`);
+      const text = encodeURIComponent(`🍛 Found a great spot on FoodieRadar!
+*${spotName}* — ${area}
+Check it out: `);
+      window.open(`https://wa.me/?text=${text}${url}`, '_blank');
+    }
+
+    // ── NAV BEHAVIOUR ─────────────────────────────────────────────────────────
+    (function() {
+      const nav = document.getElementById('mainNav');
+
+      // Shrink on scroll
+      window.addEventListener('scroll', () => {
+        nav.classList.toggle('scrolled', window.scrollY > 40);
+        // Highlight active section link
+        const sections = [
+          { id:'explore',      link:'nl-explore' },
+          { id:'map-section',  link:'nl-map' },
+        ];
+        sections.forEach(({ id, link }) => {
+          const el = document.getElementById(id);
+          const a  = document.getElementById(link);
+          if (!el || !a) return;
+          const rect = el.getBoundingClientRect();
+          a.classList.toggle('active', rect.top < 120 && rect.bottom > 60);
+        });
+      }, { passive: true });
+    })();
+
+    function toggleDrawer() {
+      const drawer = document.getElementById('navDrawer');
+      const burger = document.getElementById('navHamburger');
+      const open = drawer.classList.toggle('open');
+      burger.classList.toggle('open', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    }
+    function closeDrawer() {
+      document.getElementById('navDrawer').classList.remove('open');
+      document.getElementById('navHamburger').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // ── INIT ─────────────────────────────────────────────────────────────────
+    renderSpots(SEED_SPOTS);
+    renderEvents(SEED_EVENTS);
+    renderZones();
+    initMaps();
+    renderFlashBoard();
+    initSmartToolbar();
+    loadLiveData();
+    // Refresh flash board every 2 minutes
+    setInterval(renderFlashBoard, 120000);
+  </script>
+  <!-- HYGIENE REPORT MODAL -->
+  <div class="modal-overlay" id="hygieneOverlay" onclick="if(event.target===this)closeHygieneModal()" style="display:none">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-header">
+        <div><div class="modal-title">🧼 Rate Hygiene</div><p id="hygieneSpotLabel" style="font-size:.82rem;color:var(--subtext);margin-top:4px"></p></div>
+        <button class="modal-close" onclick="closeHygieneModal()">✕</button>
+      </div>
+      <div class="hygiene-modal-body">
+        <div class="hygiene-q">
+          <div class="hygiene-q-label">👐 Gloves / tongs used?</div>
+          <div class="hygiene-opts">
+            <button class="hygiene-opt" id="hq1-yes" onclick="selectHygiene('hq1','yes')">✅ Yes</button>
+            <button class="hygiene-opt" id="hq1-no"  onclick="selectHygiene('hq1','no')">❌ No</button>
+            <button class="hygiene-opt" id="hq1-na"  onclick="selectHygiene('hq1','na')">🤷 Not sure</button>
+          </div>
+        </div>
+        <div class="hygiene-q">
+          <div class="hygiene-q-label">💧 Clean water / filtered water used?</div>
+          <div class="hygiene-opts">
+            <button class="hygiene-opt" id="hq2-yes" onclick="selectHygiene('hq2','yes')">✅ Yes</button>
+            <button class="hygiene-opt" id="hq2-no"  onclick="selectHygiene('hq2','no')">❌ No</button>
+            <button class="hygiene-opt" id="hq2-na"  onclick="selectHygiene('hq2','na')">🤷 Not sure</button>
+          </div>
+        </div>
+        <div class="hygiene-q">
+          <div class="hygiene-q-label">🗑️ Waste bin / garbage disposal present?</div>
+          <div class="hygiene-opts">
+            <button class="hygiene-opt" id="hq3-yes" onclick="selectHygiene('hq3','yes')">✅ Yes</button>
+            <button class="hygiene-opt" id="hq3-no"  onclick="selectHygiene('hq3','no')">❌ No</button>
+            <button class="hygiene-opt" id="hq3-na"  onclick="selectHygiene('hq3','na')">🤷 Not sure</button>
+          </div>
+        </div>
+        <button class="btn-primary" style="width:100%;margin-top:8px" onclick="submitHygiene()">Submit Hygiene Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUEUE REPORT MODAL -->
+  <div class="modal-overlay" id="queueOverlay" onclick="if(event.target===this)closeQueueModal()" style="display:none">
+    <div class="modal" style="max-width:360px">
+      <div class="modal-header">
+        <div><div class="modal-title">⏳ Report Queue</div><p id="queueSpotLabel" style="font-size:.82rem;color:var(--subtext);margin-top:4px"></p></div>
+        <button class="modal-close" onclick="closeQueueModal()">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;padding:8px 0">
+        <button onclick="submitQueue('low')"    style="padding:16px;border-radius:12px;border:2px solid #1B5E20;background:#E8F5E9;color:#1B5E20;font-size:1rem;font-weight:700;cursor:pointer">🟢 No queue — walk right in</button>
+        <button onclick="submitQueue('medium')" style="padding:16px;border-radius:12px;border:2px solid #E65100;background:#FFF3E0;color:#E65100;font-size:1rem;font-weight:700;cursor:pointer">🟡 Medium queue — 5–10 min wait</button>
+        <button onclick="submitQueue('high')"   style="padding:16px;border-radius:12px;border:2px solid #B71C1C;background:#FFEBEE;color:#B71C1C;font-size:1rem;font-weight:700;cursor:pointer">🔴 Long queue — avoid right now</button>
+        <p style="font-size:.72rem;color:var(--subtext);text-align:center">Report expires automatically after 2 hours</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FoodieRadar Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Load central config FIRST -->
+  <script src="config.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --saffron:#E8670A;--soil:#1C0F06;--cream:#FDF6EC;
+      --mist:#FAF0E2;--leaf:#2E7D32;--border:#E8D5BF;
+      --subtext:#6B4C35;--red:#C62828;--card:#fff;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:#F5F5F0;color:var(--soil);min-height:100vh}
+
+    .admin-header{
+      background:var(--soil);padding:16px 32px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .admin-logo{font-family:'Yeseva One',serif;font-size:1.2rem;color:#fff}
+    .admin-logo span{color:#F5A623}
+    .admin-meta{display:flex;align-items:center;gap:12px}
+    .admin-user{font-size:.78rem;color:rgba(255,255,255,.5)}
+    .btn-logout{
+      background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+      color:rgba(255,255,255,.7);font-size:.78rem;font-weight:600;
+      padding:5px 14px;border-radius:20px;cursor:pointer;
+      font-family:'DM Sans',sans-serif;transition:all .18s;
+    }
+    .btn-logout:hover{background:rgba(255,255,255,.2)}
+
+    /* LOGIN SCREEN */
+    .login-screen{
+      min-height:calc(100vh - 57px);
+      display:flex;align-items:center;justify-content:center;padding:24px;
+    }
+    .login-card{
+      background:var(--card);border-radius:20px;padding:44px;
+      max-width:400px;width:100%;
+      box-shadow:0 8px 40px rgba(0,0,0,.12);border:1px solid var(--border);
+      text-align:center;
+    }
+    .login-icon{font-size:2.8rem;margin-bottom:14px}
+    .login-title{font-family:'Yeseva One',serif;font-size:1.6rem;margin-bottom:6px}
+    .login-sub{font-size:.84rem;color:var(--subtext);margin-bottom:28px;line-height:1.5}
+    .field{margin-bottom:14px;text-align:left}
+    .field label{display:block;font-size:.8rem;font-weight:600;color:var(--soil);margin-bottom:6px}
+    .field input{
+      width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:12px;
+      font-family:'DM Sans',sans-serif;font-size:.9rem;background:var(--mist);
+      outline:none;transition:border-color .2s;
+    }
+    .field input:focus{border-color:var(--saffron)}
+    .btn-login{
+      width:100%;padding:13px;background:var(--saffron);color:#fff;border:none;
+      border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.95rem;
+      font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px;
+    }
+    .btn-login:hover{background:#C04A1B}
+    .btn-login:disabled{background:#ccc;cursor:not-allowed}
+    .login-error{
+      background:#FFEBEE;border:1px solid #FFCDD2;color:var(--red);
+      font-size:.82rem;padding:10px 14px;border-radius:10px;
+      margin-top:12px;display:none;
+    }
+    .login-note{font-size:.72rem;color:var(--subtext);margin-top:14px;line-height:1.5;opacity:.7}
+
+    /* ADMIN PANEL */
+    .admin-main{max-width:1100px;margin:0 auto;padding:32px 24px;display:none}
+
+    /* STATS */
+    .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+    .stat-box{background:var(--card);border-radius:12px;padding:20px;
+      border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.04)}
+    .stat-num{font-family:'Yeseva One',serif;font-size:2rem;line-height:1;margin-bottom:4px}
+    .stat-label{font-size:.78rem;color:var(--subtext)}
+    .stat-box.pending  .stat-num{color:#F57C00}
+    .stat-box.approved .stat-num{color:var(--leaf)}
+    .stat-box.rejected .stat-num{color:var(--red)}
+    .stat-box.total    .stat-num{color:var(--saffron)}
+
+    /* TABS */
+    .tab-bar{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+    .tab-btn{
+      padding:9px 20px;border-radius:50px;font-size:.84rem;font-weight:600;
+      cursor:pointer;border:1.5px solid var(--border);background:var(--card);
+      color:var(--subtext);font-family:'DM Sans',sans-serif;transition:all .18s;
+    }
+    .tab-btn.active{background:var(--soil);border-color:var(--soil);color:#fff}
+    .tab-count{
+      background:rgba(0,0,0,.1);font-size:.72rem;padding:1px 7px;
+      border-radius:10px;margin-left:6px;
+    }
+    .tab-btn.active .tab-count{background:rgba(255,255,255,.2)}
+
+    /* SPOT CARD */
+    .spot-list{display:flex;flex-direction:column;gap:14px}
+    .spot-card{
+      background:var(--card);border-radius:14px;padding:22px;
+      border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.04);
+      display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;
+    }
+    .spot-card.pending  {border-left:3px solid #F57C00}
+    .spot-card.approved {border-left:3px solid var(--leaf)}
+    .spot-card.rejected {border-left:3px solid var(--red);opacity:.65}
+
+    .spot-name{font-family:'Yeseva One',serif;font-size:1.1rem;margin-bottom:6px}
+    .spot-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+    .pill{
+      background:var(--mist);border:1px solid var(--border);
+      font-size:.72rem;padding:2px 9px;border-radius:20px;color:var(--subtext);
+    }
+    .spot-desc{font-size:.82rem;color:var(--subtext);line-height:1.6;margin-bottom:6px}
+    .spot-footer-info{font-size:.72rem;color:#bbb}
+
+    .status-badge{
+      display:inline-block;font-size:.68rem;font-weight:700;
+      padding:2px 9px;border-radius:20px;text-transform:uppercase;
+      letter-spacing:.04em;margin-left:8px;
+    }
+    .status-badge.pending  {background:#FFF3E0;color:#E65100}
+    .status-badge.approved {background:#E8F5E9;color:#1B5E20}
+    .status-badge.rejected {background:#FFEBEE;color:#B71C1C}
+
+    .actions{display:flex;flex-direction:column;gap:8px;min-width:130px}
+    .btn-approve,.btn-reject,.btn-gem,.btn-feature{
+      padding:9px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;
+      font-size:.8rem;font-weight:600;cursor:pointer;border:none;
+      transition:all .18s;text-align:center;
+    }
+    .btn-approve{background:var(--leaf);color:#fff}
+    .btn-approve:hover{background:#1B5E20}
+    .btn-reject{background:var(--card);color:var(--red);border:1.5px solid #FFCDD2}
+    .btn-reject:hover{background:#FFEBEE}
+    .btn-gem{background:#FFF8E1;color:#F57F17;border:1.5px solid #FFE082}
+    .btn-gem:hover{background:#FFE082}
+    .btn-gem.on{background:#F57F17;color:#fff;border-color:#F57F17}
+    .btn-feature{background:#E3F2FD;color:#1565C0;border:1.5px solid #BBDEFB}
+    .btn-feature.on{background:#1565C0;color:#fff;border-color:#1565C0}
+
+    /* SECTION DIVIDER */
+    .section-divider{
+      margin:32px 0 20px;font-family:'Yeseva One',serif;font-size:1.1rem;
+      color:var(--soil);padding-bottom:10px;border-bottom:2px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+
+    /* TIFFIN PENDING */
+    .tiffin-pending-list{display:flex;flex-direction:column;gap:12px}
+    .tiffin-card{
+      background:var(--card);border-radius:12px;padding:18px;
+      border:1px solid var(--border);border-left:3px solid #F57C00;
+      display:grid;grid-template-columns:1fr auto;gap:12px;
+    }
+    .tiffin-name{font-weight:700;font-size:.95rem;margin-bottom:4px}
+    .tiffin-meta{font-size:.76rem;color:var(--subtext)}
+
+    /* EMPTY / LOADING */
+    .empty-state{text-align:center;padding:60px;color:var(--subtext)}
+    .spinner{
+      width:32px;height:32px;border:3px solid var(--border);
+      border-top-color:var(--saffron);border-radius:50%;
+      animation:spin .8s linear infinite;margin:0 auto 12px;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .toast{
+      position:fixed;bottom:24px;right:24px;z-index:9999;
+      background:var(--soil);color:#fff;padding:12px 20px;border-radius:10px;
+      font-size:.88rem;border-left:3px solid var(--saffron);
+      box-shadow:0 8px 24px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;
+      transition:all .3s;pointer-events:none;
+    }
+    .toast.show{transform:translateY(0);opacity:1}
+
+    @media(max-width:700px){
+      .stats-bar{grid-template-columns:1fr 1fr}
+      .spot-card{grid-template-columns:1fr}
+      .actions{flex-direction:row;flex-wrap:wrap}
+      .admin-header{padding:12px 16px}
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-header">
+  <div class="admin-logo">Foodie<span>Radar</span> <span style="font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:400;color:rgba(255,255,255,.35);margin-left:8px">Admin</span></div>
+  <div class="admin-meta">
+    <span class="admin-user" id="adminUserEmail"></span>
+    <button class="btn-logout" id="logoutBtn" onclick="logout()" style="display:none">Sign Out</button>
+  </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-icon">🔐</div>
+    <div class="login-title">Admin Sign In</div>
+    <p class="login-sub">Use the admin email and password you set up in Supabase → Authentication → Users</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="admin@foodieradar.com"
+        onkeydown="if(event.key==='Enter') document.getElementById('loginPassword').focus()"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Your password"
+        onkeydown="if(event.key==='Enter') doLogin()"/>
+    </div>
+
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="loginError"></div>
+    <p class="login-note">
+      To create your admin account: Supabase dashboard → Authentication → Users → Add User.<br>
+      This login is JWT-secured — not stored in the browser code.
+    </p>
+  </div>
+</div>
+
+<!-- ADMIN PANEL (shown after login) -->
+<div class="admin-main" id="adminMain">
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-box pending">
+      <div class="stat-num" id="cPending">–</div>
+      <div class="stat-label">Pending Spots</div>
+    </div>
+    <div class="stat-box approved">
+      <div class="stat-num" id="cApproved">–</div>
+      <div class="stat-label">Live Spots</div>
+    </div>
+    <div class="stat-box rejected">
+      <div class="stat-num" id="cRejected">–</div>
+      <div class="stat-label">Rejected</div>
+    </div>
+    <div class="stat-box total">
+      <div class="stat-num" id="cTotal">–</div>
+      <div class="stat-label">Total Submitted</div>
+    </div>
+  </div>
+
+  <!-- Spot Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('pending',this)">
+      ⏳ Pending <span class="tab-count" id="tPending">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('approved',this)">
+      ✅ Approved <span class="tab-count" id="tApproved">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('rejected',this)">
+      ❌ Rejected <span class="tab-count" id="tRejected">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('all',this)">📋 All</button>
+  </div>
+
+  <div id="spotListContainer">
+    <div class="empty-state"><div class="spinner"></div>Loading...</div>
+  </div>
+
+  <!-- Tiffin Pending Section -->
+  <div class="section-divider">
+    <span>🏠 Pending Tiffin Registrations</span>
+    <span style="font-size:.8rem;font-weight:400;font-family:'DM Sans',sans-serif;color:var(--subtext)" id="tiffinPendingCount"></span>
+  </div>
+  <div id="tiffinListContainer">
+    <div class="empty-state" style="padding:24px">Loading tiffin registrations...</div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // db is already initialised from config.js
+  let allSpots   = [];
+  let allTiffins = [];
+  let currentTab = 'pending';
+
+  // ── AUTH ───────────────────────────────────────────────────────────────────
+  async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass  = document.getElementById('loginPassword').value;
+    const btn   = document.getElementById('loginBtn');
+    const err   = document.getElementById('loginError');
+
+    if (!email || !pass) {
+      showErr('Please enter both email and password.'); return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Signing in...';
+    err.style.display = 'none';
+
+    const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+
+    if (error) {
+      showErr('Sign in failed: ' + error.message);
+      btn.disabled    = false;
+      btn.textContent = 'Sign In';
+      return;
+    }
+
+    showAdminPanel(data.user.email);
+    loadAllData();
+  }
+
+  function showErr(msg) {
+    const err = document.getElementById('loginError');
+    err.textContent   = '⚠ ' + msg;
+    err.style.display = 'block';
+    document.getElementById('loginBtn').disabled    = false;
+    document.getElementById('loginBtn').textContent = 'Sign In';
+  }
+
+  async function logout() {
+    await db.auth.signOut();
+    document.getElementById('adminMain').style.display   = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('logoutBtn').style.display   = 'none';
+    document.getElementById('loginPassword').value       = '';
+    document.getElementById('adminUserEmail').textContent = '';
+  }
+
+  function showAdminPanel(email) {
+    document.getElementById('loginScreen').style.display  = 'none';
+    document.getElementById('adminMain').style.display    = 'block';
+    document.getElementById('logoutBtn').style.display    = 'inline-block';
+    document.getElementById('adminUserEmail').textContent = email;
+  }
+
+  // Check if already logged in (Supabase persists session in localStorage)
+  async function checkSession() {
+    const { data } = await db.auth.getSession();
+    if (data.session) {
+      showAdminPanel(data.session.user.email);
+      loadAllData();
+    }
+  }
+
+  // ── LOAD DATA ──────────────────────────────────────────────────────────────
+  async function loadAllData() {
+    await Promise.all([loadSpots(), loadTiffins()]);
+  }
+
+  async function loadSpots() {
+    try {
+      // Authenticated user bypasses RLS — sees ALL spots including pending
+      const { data, error } = await db
+        .from('spots')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      allSpots = data || [];
+    } catch(e) {
+      allSpots = [];
+      showToast('⚠ Could not load spots: ' + e.message);
+    }
+    updateCounts();
+    renderSpots(currentTab);
+  }
+
+  async function loadTiffins() {
+    try {
+      const { data, error } = await db
+        .from('tiffin_listings')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      allTiffins = data || [];
+    } catch(e) {
+      allTiffins = [];
+    }
+    renderTiffins();
+  }
+
+  // ── RENDER SPOTS ───────────────────────────────────────────────────────────
+  function updateCounts() {
+    const p = allSpots.filter(s => s.status === 'pending').length;
+    const a = allSpots.filter(s => s.status === 'approved').length;
+    const r = allSpots.filter(s => s.status === 'rejected').length;
+
+    document.getElementById('cPending').textContent  = p;
+    document.getElementById('cApproved').textContent = a;
+    document.getElementById('cRejected').textContent = r;
+    document.getElementById('cTotal').textContent    = allSpots.length;
+    document.getElementById('tPending').textContent  = p;
+    document.getElementById('tApproved').textContent = a;
+    document.getElementById('tRejected').textContent = r;
+  }
+
+  function renderSpots(status) {
+    const c        = document.getElementById('spotListContainer');
+    const filtered = status === 'all' ? allSpots : allSpots.filter(s => s.status === status);
+
+    if (allSpots.length === 0) {
+      c.innerHTML = `<div class="empty-state">
+        <div style="font-size:2.5rem;margin-bottom:10px">📭</div>
+        No spot submissions yet.
+      </div>`; return;
+    }
+    if (filtered.length === 0) {
+      c.innerHTML = `<div class="empty-state">
+        <div style="font-size:2.5rem;margin-bottom:10px">${status === 'pending' ? '🎉' : '📭'}</div>
+        ${status === 'pending' ? 'No pending spots — all clear!' : 'Nothing here yet.'}
+      </div>`; return;
+    }
+
+    c.innerHTML = `<div class="spot-list">${filtered.map(buildSpotCard).join('')}</div>`;
+  }
+
+  function buildSpotCard(s) {
+    const date   = new Date(s.created_at).toLocaleDateString('en-IN',
+      { day:'numeric', month:'short', year:'numeric' });
+    const coords = (s.latitude && s.longitude)
+      ? `${s.latitude.toFixed(4)}, ${s.longitude.toFixed(4)}`
+      : 'No coords';
+
+    return `
+      <div class="spot-card ${s.status}" id="sc-${s.id}">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+            <div class="spot-name">${escHtml(s.name)}</div>
+            <span class="status-badge ${s.status}">${s.status}</span>
+            ${s.is_gem     ? '<span style="background:#FFF8E1;color:#F57F17;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px">✨ Gem</span>' : ''}
+            ${s.is_featured? '<span style="background:#E3F2FD;color:#1565C0;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px">⭐ Featured</span>' : ''}
+          </div>
+          <div class="spot-pills">
+            <span class="pill">📂 ${s.category}</span>
+            <span class="pill">📍 ${s.area}</span>
+            <span class="pill">${s.food_type === 'veg' ? '🟢 Veg' : s.food_type === 'nonveg' ? '🔴 Non-Veg' : '🍽 Both'}</span>
+            ${s.price_range ? `<span class="pill">${s.price_range}</span>` : ''}
+            ${s.address     ? `<span class="pill">🏠 ${escHtml(s.address)}</span>` : ''}
+          </div>
+          ${s.description ? `<div class="spot-desc">${escHtml(s.description)}</div>` : ''}
+          <div class="spot-footer-info">
+            📍 ${coords} &nbsp;·&nbsp;
+            👤 ${escHtml(s.submitted_by || 'Anonymous')} &nbsp;·&nbsp;
+            📅 ${date} &nbsp;·&nbsp;
+            ⭐ ${s.rating || 0} (${s.review_count || 0} reviews)
+          </div>
+        </div>
+        <div class="actions">
+          ${s.status !== 'approved'
+            ? `<button class="btn-approve" onclick="setSpotStatus('${s.id}','approved')">✅ Approve</button>` : ''}
+          ${s.status !== 'rejected'
+            ? `<button class="btn-reject"  onclick="setSpotStatus('${s.id}','rejected')">❌ Reject</button>`  : ''}
+          <button class="btn-gem ${s.is_gem ? 'on' : ''}"
+            onclick="toggleField('${s.id}','is_gem',${s.is_gem})">
+            ${s.is_gem ? '✨ Is Gem' : '⭐ Mark Gem'}
+          </button>
+          <button class="btn-feature ${s.is_featured ? 'on' : ''}"
+            onclick="toggleField('${s.id}','is_featured',${s.is_featured})">
+            ${s.is_featured ? '⭐ Featured' : '+ Feature'}
+          </button>
+        </div>
+      </div>`;
+  }
+
+  // ── RENDER TIFFINS ─────────────────────────────────────────────────────────
+  function renderTiffins() {
+    const c = document.getElementById('tiffinListContainer');
+    document.getElementById('tiffinPendingCount').textContent =
+      allTiffins.length + ' pending';
+
+    if (allTiffins.length === 0) {
+      c.innerHTML = `<div class="empty-state" style="padding:24px">
+        🎉 No pending tiffin registrations.
+      </div>`; return;
+    }
+
+    c.innerHTML = `<div class="tiffin-pending-list">${allTiffins.map(t => `
+      <div class="tiffin-card">
+        <div>
+          <div class="tiffin-name">${escHtml(t.cook_name)}</div>
+          <div class="tiffin-meta">
+            📍 ${t.area} · 📞 ${t.phone} · ${t.food_type === 'veg' ? '🟢 Veg' : '🔴 Non-Veg'} · ${t.delivery}
+          </div>
+          ${t.menu_text ? `<div style="font-size:.78rem;color:var(--subtext);margin-top:6px">${escHtml(t.menu_text)}</div>` : ''}
+        </div>
+        <div class="actions">
+          <button class="btn-approve" onclick="approveTiffin('${t.id}')">✅ Approve</button>
+          <button class="btn-reject"  onclick="rejectTiffin('${t.id}')">❌ Reject</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // ── SPOT ACTIONS ───────────────────────────────────────────────────────────
+  async function setSpotStatus(id, status) {
+    const { error } = await db.from('spots').update({ status }).eq('id', id);
+    if (error) { showToast('❌ Failed: ' + error.message); return; }
+    const s = allSpots.find(s => s.id === id);
+    if (s) s.status = status;
+    updateCounts();
+    renderSpots(currentTab);
+    showToast(status === 'approved' ? '✅ Spot is now live!' : '❌ Spot rejected.');
+  }
+
+  async function toggleField(id, field, currentVal) {
+    const update = { [field]: !currentVal };
+    const { error } = await db.from('spots').update(update).eq('id', id);
+    if (error) { showToast('❌ Failed: ' + error.message); return; }
+    const s = allSpots.find(s => s.id === id);
+    if (s) s[field] = !currentVal;
+    renderSpots(currentTab);
+    showToast('✓ Updated!');
+  }
+
+  // ── TIFFIN ACTIONS ─────────────────────────────────────────────────────────
+  async function approveTiffin(id) {
+    const { error } = await db.from('tiffin_listings').update({ status:'approved' }).eq('id', id);
+    if (error) { showToast('❌ Failed'); return; }
+    allTiffins = allTiffins.filter(t => t.id !== id);
+    renderTiffins();
+    showToast('✅ Tiffin listing approved!');
+  }
+
+  async function rejectTiffin(id) {
+    const { error } = await db.from('tiffin_listings').update({ status:'rejected' }).eq('id', id);
+    if (error) { showToast('❌ Failed'); return; }
+    allTiffins = allTiffins.filter(t => t.id !== id);
+    renderTiffins();
+    showToast('❌ Tiffin listing rejected.');
+  }
+
+  // ── UTILS ──────────────────────────────────────────────────────────────────
+  function switchTab(tab, btn) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderSpots(tab);
+  }
+
+  // Prevent XSS from user-submitted content
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  // ── INIT ───────────────────────────────────────────────────────────────────
+  checkSession();
+</script>
+</body>
+</html>

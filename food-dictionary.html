@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="smart-mode.js"></script>
+  <meta charset="UTF-8"/>
+    <!-- SEO + Social Sharing -->
+  <meta name="description" content="Your complete guide to 35+ Odia dishes. Learn what Dahibara, Pakhala, Chhena Poda and Dalma are before you visit Bhubaneswar."/>
+  <meta property="og:title" content="Odia Food Dictionary — FoodieRadar Khordha"/>
+  <meta property="og:description" content="Your complete guide to 35+ Odia dishes. Learn what Dahibara, Pakhala, Chhena Poda and Dalma are before you visit Bhubaneswar."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://foodieradar.vercel.app/food-dictionary.html"/>
+  <meta property="og:image" content="https://foodieradar.vercel.app/og-image.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Odia Food Dictionary — FoodieRadar Khordha"/>
+  <meta name="twitter:description" content="Your complete guide to 35+ Odia dishes. Learn what Dahibara, Pakhala, Chhena Poda and Dalma are before you visit Bhubaneswar."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#E8670A"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Odia Food Dictionary — FoodieRadar Khordha</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --saffron:#E8670A;--turmeric:#F5A623;--clay:#C04A1B;
+      --soil:#1C0F06;--cream:#FDF6EC;--mist:#FAF0E2;
+      --leaf:#2E7D32;--subtext:#6B4C35;--border:#E8D5BF;
+      --card:#FFFFFF;--r-md:16px;--r-lg:24px;
+      --shadow-sm:0 2px 8px rgba(28,15,6,.08);
+      --shadow-md:0 6px 24px rgba(28,15,6,.12);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--soil);overflow-x:hidden}
+    
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo-icon{width:36px;height:36px;background:var(--saffron);border-radius:10px;
+      display:flex;align-items:center;justify-content:center;font-size:18px}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:900;color:var(--soil)}
+    .nav-logo-text span{color:var(--saffron)}
+    .nav-back{color:var(--subtext);text-decoration:none;font-size:.88rem;font-weight:500;
+      display:flex;align-items:center;gap:6px}
+    .nav-back:hover{color:var(--saffron)}
+
+    /* HERO */
+    .dict-hero{
+      background:linear-gradient(135deg,#1C0F06 0%,#3D1C08 60%,#5C2D11 100%);
+      padding:60px 5% 50px;text-align:center;
+    }
+    .dict-hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.5rem);
+      color:#fff;margin-bottom:12px}
+    .dict-hero h1 em{color:var(--turmeric);font-style:normal}
+    .dict-hero p{color:rgba(255,255,255,.6);font-size:1rem;max-width:540px;margin:0 auto 28px}
+    .dict-odia{font-size:1.1rem;color:var(--turmeric);letter-spacing:.05em;margin-bottom:24px}
+
+    /* SEARCH */
+    .dict-search-wrap{max-width:480px;margin:0 auto;position:relative}
+    .dict-search{width:100%;padding:14px 20px 14px 48px;border-radius:50px;
+      border:none;font-size:.95rem;font-family:'DM Sans',sans-serif;
+      background:rgba(255,255,255,.12);color:#fff;outline:none;
+      border:1.5px solid rgba(255,255,255,.15);}
+    .dict-search::placeholder{color:rgba(255,255,255,.35)}
+    .dict-search:focus{border-color:var(--turmeric);background:rgba(255,255,255,.15)}
+    .dict-search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);
+      font-size:1rem;opacity:.5}
+
+    /* CATEGORY TABS */
+    .cat-tabs{display:flex;gap:8px;flex-wrap:wrap;padding:28px 5% 0;border-bottom:1px solid var(--border)}
+    .cat-tab{padding:9px 18px;border-radius:12px 12px 0 0;border:1px solid transparent;
+      font-size:.82rem;font-weight:600;cursor:pointer;background:none;
+      font-family:'DM Sans',sans-serif;color:var(--subtext);transition:all .18s;
+      border-bottom:none}
+    .cat-tab.active{background:var(--card);border-color:var(--border);border-bottom:1px solid var(--card);
+      color:var(--saffron);margin-bottom:-1px}
+    .cat-tab:hover:not(.active){color:var(--saffron)}
+
+    /* DICT GRID */
+    .dict-content{padding:32px 5%}
+    .dict-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+    .dict-card{
+      background:var(--card);border-radius:var(--r-lg);border:1px solid var(--border);
+      overflow:hidden;box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s;
+    }
+    .dict-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+    .dict-card-img{height:120px;display:flex;align-items:center;justify-content:center;
+      font-size:3.5rem;position:relative;overflow:hidden}
+    .dict-season-tag{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.45);
+      color:#fff;font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:20px;
+      -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+    .dict-card-body{padding:18px}
+    .dict-name{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;
+      color:var(--soil);margin-bottom:3px}
+    .dict-odia-name{font-size:.78rem;color:var(--turmeric);margin-bottom:8px;letter-spacing:.03em}
+    .dict-desc{font-size:.84rem;color:var(--subtext);line-height:1.55;margin-bottom:12px}
+    .dict-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+    .dict-tag{background:var(--mist);border:1px solid var(--border);color:var(--subtext);
+      font-size:.65rem;font-weight:600;padding:2px 8px;border-radius:20px}
+    .dict-tag.veg{background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20}
+    .dict-tag.nonveg{background:#FFEBEE;border-color:#FFCDD2;color:#C62828}
+    .dict-tag.sweet{background:#FFF8E1;border-color:#FFE082;color:#F57F17}
+    .dict-tag.seasonal{background:#E8EAF6;border-color:#9FA8DA;color:#283593}
+    .dict-where{font-size:.74rem;color:var(--subtext);display:flex;align-items:center;gap:4px}
+
+    /* COUNT BAR */
+    .dict-count{padding:16px 5% 0;font-size:.84rem;color:var(--subtext)}
+    .dict-count strong{color:var(--soil)}
+
+    @media(max-width:600px){
+      .dict-hero{padding:40px 4% 36px}
+      .cat-tabs{padding:20px 4% 0}
+      .dict-content{padding:24px 4%}
+      .dict-grid{grid-template-columns:1fr}
+    }
+  
+    /* ── NAV ─────────────────────────────────────────────────────────────────── */
+    nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.96);
+      -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);padding:0 5%;
+      display:flex;align-items:center;justify-content:space-between;
+      height:68px;transition:height .25s,box-shadow .25s}
+    nav.scrolled{height:56px;box-shadow:0 4px 24px rgba(28,15,6,.10)}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--saffron),var(--clay));
+      border-radius:12px;display:flex;align-items:center;justify-content:center;
+      font-size:19px;box-shadow:0 3px 10px rgba(232,103,10,.4);transition:transform .2s}
+    .nav-logo:hover .nav-logo-icon{transform:rotate(-8deg) scale(1.08)}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.22rem;font-weight:900;
+      color:var(--soil);letter-spacing:-0.02em;line-height:1}
+    .nav-logo-sub{display:block;font-family:'DM Sans',sans-serif;font-size:.6rem;font-weight:600;
+      color:var(--subtext);letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
+    .nav-links{display:flex;align-items:center;gap:2px;list-style:none;
+      background:rgba(28,15,6,.04);border:1px solid var(--border);
+      border-radius:50px;padding:4px 6px}
+    .nav-links li a{text-decoration:none;color:var(--subtext);font-size:.82rem;font-weight:500;
+      padding:6px 13px;border-radius:50px;transition:all .18s;
+      display:flex;align-items:center;gap:5px;white-space:nowrap}
+    .nav-links li a:hover{color:var(--saffron);background:rgba(232,103,10,.08)}
+    .nav-links li a.active{color:var(--saffron);background:rgba(232,103,10,.12);font-weight:600}
+    .nav-actions{display:flex;align-items:center;gap:10px}
+    .nav-back{display:flex;align-items:center;gap:6px;padding:7px 14px;
+      border:1.5px solid var(--border);border-radius:50px;font-size:.82rem;
+      font-weight:600;color:var(--subtext);text-decoration:none;transition:all .18s;white-space:nowrap}
+    .nav-back:hover{border-color:var(--saffron);color:var(--saffron);background:rgba(232,103,10,.06)}
+    .nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;
+      padding:6px;border:none;background:transparent}
+    .nav-hamburger span{display:block;width:22px;height:2px;background:var(--soil);
+      border-radius:2px;transition:all .25s}
+    .nav-hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+    .nav-hamburger.open span:nth-child(2){opacity:0}
+    .nav-hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+    .nav-drawer{display:none;position:fixed;inset:0;top:56px;
+      background:rgba(253,246,236,.98);-webkit-backdrop-filter:blur(20px);
+      backdrop-filter:blur(20px);z-index:998;flex-direction:column;
+      padding:24px 6%;border-top:1px solid var(--border)}
+    .nav-drawer.open{display:flex}
+    .nav-drawer a{text-decoration:none;color:var(--soil);font-size:1.1rem;font-weight:600;
+      padding:14px 0;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:12px}
+    .nav-drawer a:last-child{border-bottom:none}
+    @media(max-width:860px){.nav-links{display:none}.nav-hamburger{display:flex}}
+  </style>
+</head>
+<body>
+
+<nav id="mainNav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">🍛</div>
+    <div>
+      <span class="nav-logo-text">Foodie<span class="accent">Radar</span></span>
+      <span class="nav-logo-sub">Khordha District</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">🗺️ Explore</a></li>
+    <li><a href="index.html#map-section">📍 Map</a></li>
+    <li><a href="events.html">🎪 Events</a></li>
+    <li><a href="food-trails.html">🥾 Trails</a></li>
+    <li><a href="food-dictionary.html" class="active">📖 Dictionary</a></li>
+    <li><a href="passport.html">🏅 Passport</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="index.html" class="nav-back">← Radar</a>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="index.html" onclick="closeDrawer()">🗺️ Explore Spots</a>
+  <a href="events.html">🎪 Food Events</a>
+  <a href="food-trails.html">🥾 Food Trails</a>
+  <a href="food-dictionary.html">📖 Food Dictionary</a>
+  <a href="passport.html">🏅 My Passport</a>
+  <a href="haat-festival.html">🛒 Haat Tracker</a>
+  <a href="tiffin.html">🍱 Home Tiffin</a>
+  <a href="cook-off.html">🥊 Cook-Off Battles</a>
+</div>
+
+<div class="dict-hero">
+  <div class="dict-odia">ଓଡ଼ିଆ ଖାଦ୍ୟ ଅଭିଧାନ</div>
+  <h1>Odia <em>Food</em> Dictionary</h1>
+  <p>New to Bhubaneswar? Confused by the menu? Here's every dish you need to know — from street staples to festival specials.</p>
+  <div class="dict-search-wrap">
+    <span class="dict-search-icon">🔍</span>
+    <input class="dict-search" id="dictSearch" placeholder="Search dishes, ingredients..." oninput="filterDict()" title="Search dishes"/>
+  </div>
+</div>
+
+<div class="cat-tabs" id="catTabs">
+  <button class="cat-tab active" onclick="switchCat('all',this)">🍽 All</button>
+  <button class="cat-tab" onclick="switchCat('rice',this)">🍚 Rice & Main</button>
+  <button class="cat-tab" onclick="switchCat('street',this)">🌮 Street Food</button>
+  <button class="cat-tab" onclick="switchCat('sweet',this)">🍮 Sweets</button>
+  <button class="cat-tab" onclick="switchCat('snack',this)">🥪 Snacks</button>
+  <button class="cat-tab" onclick="switchCat('festival',this)">🎉 Festival</button>
+  <button class="cat-tab" onclick="switchCat('drink',this)">🍵 Drinks</button>
+</div>
+
+<div class="dict-count"><strong id="dictCount">35</strong> dishes in dictionary</div>
+<div class="dict-content">
+  <div class="dict-grid" id="dictGrid"></div>
+</div>
+
+<script>
+const DISHES = [
+  // ── RICE & MAIN ──────────────────────────────────────────────────────────
+  { name:'Pakhala Bhata',     odia:'ପଖାଳ ଭାତ',   emoji:'🍚', cat:'rice',
+    desc:'Fermented watered rice — the soul of Odia summers. Served cold with fried fish, saga bhaja, badi chura, and aloo bharta. Eaten for breakfast during Raja season.',
+    tags:['veg','seasonal'], season:'March–July',
+    where:'Home-style dhabas, Odia Thali restaurants' },
+  { name:'Dalma',             odia:'ଡାଲ୍ମା',       emoji:'🥘', cat:'rice',
+    desc:'Toor dal cooked with raw vegetables like raw banana, yam, and raw papaya. Tempered with panch phoron and coconut. The unofficial state dish of Odisha.',
+    tags:['veg'],
+    where:'Every Odia Thali restaurant, temple prasad' },
+  { name:'Odia Thali',        odia:'ଓଡ଼ିଆ ଥାଳି', emoji:'🍛', cat:'rice',
+    desc:'A full meal plate: rice, dal, dalma, two vegetable curries, chhena, papad, and pickle. Often includes a sweet. Best value meal in any Odia town.',
+    tags:['veg'],
+    where:'Thali restaurants, tiffin centres across Khordha' },
+  { name:'Macha Bhaja',       odia:'ମାଛ ଭଜା',    emoji:'🐟', cat:'rice',
+    desc:'Crispy shallow-fried fish — typically Rohu or Catla — marinated with turmeric, chilli, and mustard oil. Eaten with pakhala or hot rice.',
+    tags:['nonveg'],
+    where:'Dhabas on NH-16, Maa Tarini area stalls' },
+  { name:'Mutton Curry (Odia)', odia:'ମଟନ ତରକାରି', emoji:'🍖', cat:'rice',
+    desc:'Slow-cooked in mustard oil with whole spices, onion, and ginger-garlic. Richer and spicier than North Indian versions. Often cooked in clay pots (Mati Handi).',
+    tags:['nonveg'],
+    where:'NH-16 dhabas, Mati Handi spots outside Khordha town' },
+  { name:'Saga Bhaja',        odia:'ଶାଗ ଭଜା',    emoji:'🥬', cat:'rice',
+    desc:'Stir-fried leafy greens (spinach, colocasia leaves, or mustard leaves) with garlic, dried chilli, and mustard oil. Simple, essential Odia side dish.',
+    tags:['veg'],
+    where:'All Odia Thali restaurants' },
+  { name:'Badi Chura',        odia:'ବଡ଼ି ଚୁରା',  emoji:'🟤', cat:'rice',
+    desc:'Sun-dried black gram dumplings crumbled and mixed with onion, green chilli, and mustard oil. Classic pakhala accompaniment.',
+    tags:['veg','seasonal'],
+    where:'Served with pakhala at home-style restaurants' },
+
+  // ── STREET FOOD ───────────────────────────────────────────────────────────
+  { name:'Dahibara Aloodum',  odia:'ଦହିବରା ଆଳୁଦମ', emoji:'🤍', cat:'street',
+    desc:'THE street food of Bhubaneswar. Soft lentil fritters (baras) soaked in spiced yoghurt, topped with potato curry, tamarind chutney, and sev. Eaten at breakfast and evening.',
+    tags:['veg'],
+    where:'Raghu Dahibara (Cuttack Road), every market corner in Old Town' },
+  { name:'Gupchup',           odia:'ଗୁପ୍‌ଚୁପ',   emoji:'💧', cat:'street',
+    desc:"Odisha's version of pani puri. Crispy hollow balls filled with spiced potato/chickpea and dunked in tangy tamarind water. The standard by which all street stalls are judged.",
+    tags:['veg'],
+    where:'Every street corner, especially Unit 4 and Saheed Nagar' },
+  { name:'Ghuguni',           odia:'ଘୁଘୁଣି',      emoji:'🫘', cat:'street',
+    desc:'Yellow peas (dried white peas) cooked in a spiced gravy with onion, chilli, and mustard oil. Served with puri or as a snack. Popular at haats.',
+    tags:['veg'],
+    where:'Haat markets, tiffin centres, roadside stalls' },
+  { name:'Bara',              odia:'ବରା',          emoji:'🫓', cat:'street',
+    desc:'Lentil fritters — the same used in dahibara but eaten fresh and crispy. Made from urad dal batter, deep-fried. Eaten with ghuguni or as evening snack.',
+    tags:['veg'],
+    where:'Tea stalls, tiffin centres' },
+  { name:'Aloo Chop',         odia:'ଆଳୁ ଚପ',     emoji:'🥔', cat:'street',
+    desc:'Spiced mashed potato coated in chickpea batter and deep fried. Served with mustard or tamarind chutney. A 5 PM staple across Bhubaneswar.',
+    tags:['veg'],
+    where:'Street stalls near colleges, bus stands' },
+  { name:'Chhena Tarkari',    odia:'ଛେନା ତରକାରୀ', emoji:'🟡', cat:'street',
+    desc:'Freshly made cottage cheese cubes cooked in a spiced tomato-based gravy. Odia version of paneer curry but lighter and more tangy.',
+    tags:['veg'],
+    where:'Odia Thali restaurants, tiffin centres' },
+
+  // ── SWEETS ───────────────────────────────────────────────────────────────
+  { name:'Chhena Poda',       odia:'ଛେନା ପୋଡ଼',  emoji:'🟫', cat:'sweet',
+    desc:'Burnt cottage cheese cake — caramelised, smoky, and crumbly. Called the "burnt cheesecake of Odisha." Originated in Nayagarh. An absolute must-try.',
+    tags:['veg','sweet'],
+    where:'Lakshmi Sweet House (Unit 4), sweet shops across Old Town' },
+  { name:'Rasgulla',          odia:'ରସଗୋଲ୍ଲା',    emoji:'⚪', cat:'sweet',
+    desc:"Soft spongy cottage cheese balls in sugar syrup. Odisha claims to have invented it before Bengal — the GI dispute is still famous. Odisha's version is softer and less sweet.",
+    tags:['veg','sweet'],
+    where:'Every sweet shop in Bhubaneswar; try the ones in Old Town' },
+  { name:'Chhena Jhili',      odia:'ছেনা ঝিলি',  emoji:'🟡', cat:'sweet',
+    desc:'Deep-fried cottage cheese doughnuts soaked in sugar syrup. Crispy outside, spongy inside. Originally from Nimapara in Puri district.',
+    tags:['veg','sweet'],
+    where:'Sweet shops, temple market areas' },
+  { name:'Arisa Pitha',       odia:'ଆରିଷ ପିଠା', emoji:'🟤', cat:'sweet',
+    desc:'Deep-fried crispy rice cake made during Raja festival. Sweet, crunchy disc made from rice flour and jaggery. Distinctly Odia — nothing like it elsewhere.',
+    tags:['veg','sweet','seasonal'], season:'Raja Festival (June)',
+    where:'Home kitchens, sweet shops during Raja' },
+  { name:'Manda Pitha',       odia:'ମଣ୍ଡା ପିଠା',emoji:'🌕', cat:'sweet',
+    desc:'Steamed rice dumplings stuffed with coconut and jaggery. Made during Ganesh Chaturthi and Kumar Purnima. Soft, mild, and comforting.',
+    tags:['veg','sweet','seasonal'], season:'Ganesh Chaturthi / Kumar Purnima',
+    where:'Home kitchens, occasional haat stalls during festivals' },
+  { name:'Khiri',             odia:'ଖିରି',        emoji:'🍚', cat:'sweet',
+    desc:'Odia-style rice kheer made with full-fat milk, rice, and sugar, flavoured with cardamom and saffron. Offered as temple prasad.',
+    tags:['veg','sweet'],
+    where:'Temple prasad, sweet shops' },
+
+  // ── SNACKS ───────────────────────────────────────────────────────────────
+  { name:'Chakuli Pitha',     odia:'ଚକୁଳି ପିଠା',emoji:'🫓', cat:'snack',
+    desc:'Thin, crispy rice and black gram crepes. Odia version of dosa but softer and more sour. Eaten with coconut chutney or ghuguni for breakfast.',
+    tags:['veg'],
+    where:'Tiffin centres, morning street stalls' },
+  { name:'Mudhi',             odia:'ମୁଢ଼ି',       emoji:'🍿', cat:'snack',
+    desc:'Puffed rice — the universal Odia snack. Eaten plain, mixed with mustard oil and onion, or with dahibara. Also used in "Mudhi Mansa" (puffed rice with mutton gravy).',
+    tags:['veg'],
+    where:'Everywhere — haats, homes, street stalls' },
+  { name:'Mudhi Mansa',       odia:'ମୁଢ଼ି ମାଂସ', emoji:'🍖', cat:'snack',
+    desc:'Puffed rice served with spicy mutton curry. A Cuttack specialty now popular in Bhubaneswar. The contrast of crispy mudhi soaking into the gravy is unique.',
+    tags:['nonveg'],
+    where:'Cuttack-style street stalls, some dhabas in Old Town' },
+  { name:'Pakala Pakoda',     odia:'ପକୋଡ଼ା',     emoji:'🟡', cat:'snack',
+    desc:'Onion, potato, or spinach fritters in spiced chickpea batter. Best eaten hot during monsoon with tea. The definitive "rainy day" food of Odisha.',
+    tags:['veg'],
+    where:'Tea stalls everywhere during rain' },
+  { name:'Idli',              odia:'ଇଡ଼ଲି',       emoji:'⚪', cat:'snack',
+    desc:'South Indian-origin steamed rice cakes widely adopted in Bhubaneswar tiffin culture. Available at almost every tiffin centre. ₹10–20 for two with sambar.',
+    tags:['veg'],
+    where:'Tiffin centres across Khordha, especially Saheed Nagar' },
+
+  // ── FESTIVAL ─────────────────────────────────────────────────────────────
+  { name:'Abadha (Mahaprasad)',odia:'ଅବଧ',        emoji:'🙏', cat:'festival',
+    desc:'The sacred cooked offering of Lord Jagannath — rice, dalma, khiri, and vegetable dishes cooked in the Puri temple kitchen. Considered the purest food in Odisha.',
+    tags:['veg','seasonal'], season:'Available daily at Puri; locally at Rath Yatra',
+    where:'Puri Temple, local Jagannath temples during Rath Yatra' },
+  { name:'Pana',              odia:'ପଣା',          emoji:'🟠', cat:'festival',
+    desc:'A sweet tangy drink made from raw mango, coconut, jaggery, milk, and spices. Distributed as prasad during Pana Sankranti (Odia New Year in April). Cooling and refreshing.',
+    tags:['veg','seasonal'], season:'Pana Sankranti (April 14)',
+    where:'Street stalls during Pana Sankranti, temple distribution' },
+  { name:'Khechedi (Pakhala Festival)',odia:'ଖେଚୁଡ଼ି',emoji:'🍲',cat:'festival',
+    desc:'Rice and lentil dish cooked together with ghee and spices. Distributed as prasad at many Odia temples and during community festivals.',
+    tags:['veg','seasonal'],
+    where:'Temple prasad, community kitchens during Bihu/Pana Sankranti' },
+  { name:'Pitha (Festival Cakes)',odia:'ପିଠା',    emoji:'🎑', cat:'festival',
+    desc:'Generic term for Odia rice cakes — dozens of varieties exist (Manda, Arisa, Chakuli, Kakara, Enduri). Each festival has its specific pitha. Learning to recognise them is an art.',
+    tags:['veg','seasonal'], season:'Year-round but peak at Raja, Nuakhai, Ganesh Chaturthi',
+    where:'Home kitchens, haats during festivals, occasional sweet shops' },
+  { name:'Nuakhai Bhoga',     odia:'ନୂଆଖାଇ ଭୋଗ',emoji:'🌾',cat:'festival',
+    desc:'New rice offerings during Nuakhai festival (Sept/Oct in western Odisha). First rice of the new harvest cooked as khiri or plain rice and offered to the deity before eating.',
+    tags:['veg','seasonal'], season:'Nuakhai (September)',
+    where:'Western Odisha families in Bhubaneswar; cultural events' },
+
+  // ── DRINKS ───────────────────────────────────────────────────────────────
+  { name:'Chai (Odia style)', odia:'ଚା',           emoji:'☕', cat:'drink',
+    desc:'Strong, milky tea brewed with ginger and sometimes cardamom. Served in small glasses. The social glue of every Odia neighbourhood. ₹5–₹15.',
+    tags:['veg'],
+    where:'Every chai adda across Bhubaneswar — thousands of them' },
+  { name:'Lassi',             odia:'ଲସ୍ସୀ',       emoji:'🥛', cat:'drink',
+    desc:'Sweetened or salted yoghurt drink. Popular at sweet shops and during summer. Some Old Town shops serve it with rose water and malai (cream).',
+    tags:['veg'],
+    where:'Sweet shops, some tiffin centres' },
+  { name:'Tanka Torani',      odia:'ଟଙ୍କ ଟୋରାଣି', emoji:'💚', cat:'drink',
+    desc:'Raw mango-based green drink blended with cumin, black salt, and mint. An Odia summer staple — extremely cooling and popular as a home remedy for heat stroke.',
+    tags:['veg','seasonal'], season:'March–June',
+    where:'Home-made, some stalls during summer; haats' },
+  { name:'Coconut Water',     odia:'ଡାବ ପାଣି',    emoji:'🥥', cat:'drink',
+    desc:'Fresh green coconut water sold from pushcarts. Extremely common across Bhubaneswar — the most accessible hydration in summer. ₹20–₹30.',
+    tags:['veg'],
+    where:'Pushcarts everywhere, especially near hospitals and markets' },
+];
+
+let currentCat = 'all';
+let searchQuery = '';
+
+function renderDictionary() {
+  let filtered = DISHES;
+  if (currentCat !== 'all') filtered = filtered.filter(d => d.cat === currentCat);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(d =>
+      d.name.toLowerCase().includes(q) ||
+      d.odia.includes(q) ||
+      d.desc.toLowerCase().includes(q) ||
+      d.tags.some(t => t.includes(q))
+    );
+  }
+  document.getElementById('dictCount').textContent = filtered.length;
+  document.getElementById('dictGrid').innerHTML = filtered.length === 0
+    ? '<p style="color:var(--subtext);padding:40px 0">No dishes found. Try a different search.</p>'
+    : filtered.map(d => `
+      <div class="dict-card">
+        <div class="dict-card-img" style="background:${bgFor(d.cat)}">
+          <span>${d.emoji}</span>
+          ${d.season ? `<div class="dict-season-tag">🗓 ${d.season}</div>` : ''}
+        </div>
+        <div class="dict-card-body">
+          <div class="dict-name">${d.name}</div>
+          <div class="dict-odia-name">${d.odia}</div>
+          <div class="dict-desc">${d.desc}</div>
+          <div class="dict-tags">
+            ${d.tags.map(t => `<span class="dict-tag ${t}">${tagLabel(t)}</span>`).join('')}
+            <span class="dict-tag">${catLabel(d.cat)}</span>
+          </div>
+          <div class="dict-where">📍 <em>${d.where}</em></div>
+        </div>
+      </div>`).join('');
+}
+
+function bgFor(cat) {
+  const m = {
+    rice:'linear-gradient(135deg,#E65100,#BF360C)',
+    street:'linear-gradient(135deg,#E8670A,#C04A1B)',
+    sweet:'linear-gradient(135deg,#F57F17,#E65100)',
+    snack:'linear-gradient(135deg,#2E7D32,#1B5E20)',
+    festival:'linear-gradient(135deg,#6A1B9A,#4A148C)',
+    drink:'linear-gradient(135deg,#0277BD,#01579B)',
+  };
+  return m[cat] || 'linear-gradient(135deg,#E8670A,#C04A1B)';
+}
+function tagLabel(t) {
+  const m = {veg:'🟢 Veg',nonveg:'🔴 Non-Veg',sweet:'🍮 Sweet',
+             seasonal:'🗓 Seasonal',snack:'🥪 Snack'};
+  return m[t] || t;
+}
+function catLabel(c) {
+  const m = {rice:'🍚 Rice & Main',street:'🌮 Street',sweet:'🍮 Sweet',
+             snack:'🥪 Snack',festival:'🎉 Festival',drink:'🍵 Drink'};
+  return m[c] || c;
+}
+
+function switchCat(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDictionary();
+}
+
+function filterDict() {
+  searchQuery = document.getElementById('dictSearch').value.trim();
+  renderDictionary();
+}
+
+renderDictionary();
+</script>
+</body>
+</html>

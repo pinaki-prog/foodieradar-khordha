@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Spot Details — FoodieRadar Khordha</title>
+
+  <!-- SEO — updated dynamically by JS -->
+  <meta name="description" content="Food spot details on FoodieRadar Khordha"/>
+  <meta property="og:type" content="website"/>
+  <meta name="theme-color" content="#E8670A"/>
+  <link rel="manifest" href="manifest.json"/>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <script src="config.js"></script>
+  <script src="smart-mode.js"></script>
+
+  <style>
+    :root{
+      --saffron:#E8670A;--turmeric:#F5A623;--clay:#C04A1B;
+      --soil:#1C0F06;--cream:#FDF6EC;--mist:#FAF0E2;
+      --leaf:#2E7D32;--petal:#FDEBD0;--subtext:#6B4C35;
+      --border:#E8D5BF;--card:#FFFFFF;
+      --shadow-sm:0 2px 8px rgba(28,15,6,.08);
+      --shadow-md:0 6px 24px rgba(28,15,6,.12);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--soil);overflow-x:hidden}
+
+    /* NAV */
+    nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.95);
+      -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);padding:0 5%;
+      display:flex;align-items:center;justify-content:space-between;height:62px;gap:16px}
+    .nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0}
+    .nav-logo-icon{width:32px;height:32px;background:var(--saffron);border-radius:9px;
+      display:flex;align-items:center;justify-content:center;font-size:16px}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:var(--soil)}
+    .nav-logo-text span{color:var(--saffron)}
+    .nav-actions{display:flex;align-items:center;gap:10px}
+    .btn-back{color:var(--subtext);text-decoration:none;font-size:.84rem;font-weight:500;
+      display:flex;align-items:center;gap:4px}
+    .btn-back:hover{color:var(--saffron)}
+    .btn-share-nav{padding:7px 16px;background:var(--saffron);color:#fff;border:none;
+      border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;
+      font-family:'DM Sans',sans-serif;transition:background .18s}
+    .btn-share-nav:hover{background:var(--clay)}
+
+    /* LOADING */
+    .loading-state{display:flex;flex-direction:column;align-items:center;
+      justify-content:center;min-height:60vh;gap:12px;color:var(--subtext)}
+    .spinner{width:36px;height:36px;border:3px solid var(--border);
+      border-top-color:var(--saffron);border-radius:50%;
+      animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* HERO */
+    .spot-hero{position:relative;height:300px;overflow:hidden}
+    .spot-hero-img{width:100%;height:100%;object-fit:cover}
+    .spot-hero-bg{width:100%;height:100%;display:flex;align-items:center;
+      justify-content:center;font-size:5rem}
+    .spot-hero-overlay{position:absolute;inset:0;
+      background:linear-gradient(to top,rgba(28,15,6,.85) 0%,rgba(28,15,6,.2) 60%,transparent 100%)}
+    .spot-hero-content{position:absolute;bottom:0;left:0;right:0;padding:28px 5%}
+    .spot-badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+    .spot-badge-pill{padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700}
+    .badge-veg{background:#E8F5E9;color:#1B5E20}
+    .badge-nonveg{background:#FFEBEE;color:#B71C1C}
+    .badge-gem{background:rgba(245,166,35,.9);color:#1C0F06}
+    .badge-open{background:rgba(46,125,50,.9);color:#fff}
+    .badge-closed{background:rgba(183,28,28,.9);color:#fff}
+    .spot-name-hero{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,4vw,2.2rem);
+      font-weight:900;color:#fff;line-height:1.2;margin-bottom:6px}
+    .spot-meta-hero{font-size:.84rem;color:rgba(255,255,255,.7);display:flex;
+      flex-wrap:wrap;gap:12px;align-items:center}
+    .spot-rating-hero{color:var(--turmeric);font-weight:700}
+
+    /* LAYOUT */
+    .spot-layout{display:grid;grid-template-columns:1fr 380px;gap:32px;
+      padding:32px 5%;max-width:1200px;margin:0 auto}
+    .spot-main{}
+    .spot-sidebar{}
+
+    /* QUICK STATS */
+    .quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+    .stat-box{background:var(--card);border:1px solid var(--border);border-radius:14px;
+      padding:16px;text-align:center}
+    .stat-box-val{font-size:1.3rem;font-weight:900;color:var(--saffron);margin-bottom:3px}
+    .stat-box-label{font-size:.68rem;color:var(--subtext);text-transform:uppercase;
+      letter-spacing:.06em;font-weight:600}
+
+    /* SECTIONS */
+    .section-card{background:var(--card);border:1px solid var(--border);
+      border-radius:18px;padding:24px;margin-bottom:20px}
+    .section-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;
+      color:var(--soil);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .section-title span{color:var(--saffron)}
+
+    /* TAGS */
+    .tags-wrap{display:flex;flex-wrap:wrap;gap:8px}
+    .tag-pill{background:var(--mist);border:1px solid var(--border);
+      color:var(--subtext);font-size:.74rem;font-weight:600;
+      padding:4px 12px;border-radius:20px}
+    .tag-pill.highlight{background:var(--petal);border-color:var(--saffron);color:var(--clay)}
+
+    /* HOURS */
+    .hours-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .hour-row{display:flex;justify-content:space-between;font-size:.82rem;
+      padding:6px 10px;border-radius:8px;background:var(--mist)}
+    .hour-row.today{background:var(--petal);border:1px solid var(--border);font-weight:600}
+    .hour-closed{color:#B71C1C}
+    .hour-open{color:var(--leaf)}
+
+    /* MAP */
+    #spotMap{height:220px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+
+    /* ACTIONS SIDEBAR */
+    .action-card{background:var(--card);border:1px solid var(--border);
+      border-radius:18px;padding:20px;margin-bottom:16px}
+    .btn-action{display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;
+      border-radius:12px;border:1.5px solid var(--border);background:var(--mist);
+      font-size:.85rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;
+      color:var(--soil);transition:all .18s;margin-bottom:8px;text-decoration:none}
+    .btn-action:hover{border-color:var(--saffron);background:var(--petal);color:var(--saffron)}
+    .btn-action.primary{background:var(--saffron);border-color:var(--saffron);color:#fff}
+    .btn-action.primary:hover{background:var(--clay)}
+    .btn-action.whatsapp{background:#25D366;border-color:#25D366;color:#fff}
+    .btn-action.whatsapp:hover{background:#128C7E}
+    .btn-action-icon{font-size:1.1rem;flex-shrink:0}
+
+    /* QUEUE */
+    .queue-section{margin-bottom:16px}
+    .queue-title{font-size:.82rem;font-weight:700;color:var(--subtext);margin-bottom:8px;
+      text-transform:uppercase;letter-spacing:.06em}
+    .queue-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+    .queue-btn{padding:10px 6px;border-radius:10px;border:1.5px solid var(--border);
+      background:var(--mist);font-size:.72rem;font-weight:700;cursor:pointer;
+      font-family:'DM Sans',sans-serif;text-align:center;transition:all .18s;color:var(--subtext)}
+    .queue-btn:hover{border-color:var(--saffron)}
+    .queue-btn.active-low{background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20}
+    .queue-btn.active-medium{background:#FFF3E0;border-color:#FFB74D;color:#E65100}
+    .queue-btn.active-high{background:#FFEBEE;border-color:#EF9A9A;color:#C62828}
+
+    /* HYGIENE */
+    .hygiene-display{display:flex;gap:8px;flex-wrap:wrap}
+    .hygiene-pill{display:flex;align-items:center;gap:5px;padding:6px 12px;
+      border-radius:10px;font-size:.78rem;font-weight:600}
+    .hygiene-pill.yes{background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7}
+    .hygiene-pill.no{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2}
+    .hygiene-pill.na{background:var(--mist);color:var(--subtext);border:1px solid var(--border)}
+
+    /* REVIEWS */
+    .review-card{border-bottom:1px solid var(--border);padding:16px 0}
+    .review-card:last-child{border-bottom:none}
+    .review-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .review-avatar{width:34px;height:34px;border-radius:50%;background:var(--saffron);
+      color:#fff;display:flex;align-items:center;justify-content:center;
+      font-size:.82rem;font-weight:700;flex-shrink:0}
+    .review-name{font-weight:700;font-size:.86rem}
+    .review-stars{color:var(--turmeric);font-size:.82rem}
+    .review-date{font-size:.72rem;color:var(--subtext);margin-left:auto}
+    .review-dish{display:inline-block;background:var(--petal);color:var(--clay);
+      font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;margin-bottom:6px}
+    .review-text{font-size:.84rem;color:var(--subtext);line-height:1.55}
+    .review-img{width:100%;max-height:160px;object-fit:cover;border-radius:10px;
+      margin-top:8px;cursor:pointer}
+
+    /* REVIEW FORM */
+    .review-form{border-top:1px solid var(--border);padding-top:20px;margin-top:4px}
+    .rf-label{font-size:.82rem;font-weight:700;color:var(--soil);margin-bottom:6px;display:block}
+    .rf-stars{display:flex;gap:6px;margin-bottom:14px}
+    .rf-star{font-size:1.4rem;cursor:pointer;transition:transform .1s;filter:grayscale(1)}
+    .rf-star.active{filter:none;transform:scale(1.1)}
+    .rf-input{width:100%;padding:10px 14px;border:1.5px solid var(--border);
+      border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.85rem;
+      background:var(--mist);color:var(--soil);outline:none;transition:border-color .2s}
+    .rf-input:focus{border-color:var(--saffron)}
+    .rf-input.textarea{min-height:90px;resize:vertical}
+    .btn-submit-review{margin-top:12px;padding:11px 24px;background:var(--saffron);
+      color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;
+      font-size:.85rem;font-weight:700;cursor:pointer;transition:background .2s}
+    .btn-submit-review:hover{background:var(--clay)}
+    .btn-submit-review:disabled{background:var(--border);cursor:not-allowed}
+
+    /* NOT FOUND */
+    .not-found{text-align:center;padding:80px 5%;color:var(--subtext)}
+    .not-found h2{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--soil);margin-bottom:12px}
+
+    /* TOAST */
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+      background:var(--soil);color:#fff;padding:12px 24px;border-radius:12px;
+      font-size:.85rem;font-weight:500;z-index:9999;opacity:0;transition:opacity .3s;
+      pointer-events:none;max-width:90vw;text-align:center}
+    #toast.show{opacity:1}
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .fade-in{animation:fadeIn .4s ease both}
+
+    @media(max-width:900px){
+      .spot-layout{grid-template-columns:1fr;padding:20px 4%}
+      .spot-sidebar{order:-1}
+      .quick-stats{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:600px){
+      .spot-hero{height:220px}
+      nav{padding:0 4%}
+      .quick-stats{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">🍛</div>
+    <span class="nav-logo-text">Foodie<span>Radar</span></span>
+  </a>
+  <div class="nav-actions">
+    <a href="javascript:history.back()" class="btn-back">← Back</a>
+    <button class="btn-share-nav" onclick="shareOnWhatsApp()">📲 Share</button>
+  </div>
+</nav>
+
+<div id="loadingState" class="loading-state">
+  <div class="spinner"></div>
+  <div>Loading spot...</div>
+</div>
+
+<div id="spotContent" style="display:none"></div>
+<div id="notFound" class="not-found" style="display:none">
+  <div style="font-size:3rem;margin-bottom:16px">🍽️</div>
+  <h2>Spot not found</h2>
+  <p>This spot may have been removed or the link is incorrect.</p>
+  <a href="index.html" style="display:inline-block;margin-top:20px;padding:12px 28px;
+    background:var(--saffron);color:#fff;border-radius:10px;text-decoration:none;font-weight:700">
+    ← Back to FoodieRadar
+  </a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentSpot = null;
+let reviewRating = 0;
+let spotMap = null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if (!id) { showNotFound(); return; }
+
+  try {
+    // Try Supabase first
+    if (!FR_CONFIG.SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
+      const { data } = await db.from('spots').select('*').eq('id', id).single();
+      if (data) { renderSpot(data); return; }
+    }
+  } catch(e) {}
+
+  // Fallback: check OSM ID pattern
+  if (id.startsWith('osm-')) {
+    showNotFound();
+    return;
+  }
+
+  showNotFound();
+}
+
+// ── RENDER SPOT ───────────────────────────────────────────────────────────────
+async function renderSpot(spot) {
+  currentSpot = spot;
+
+  // Update document title + meta
+  document.title = `${spot.name} — FoodieRadar Khordha`;
+
+  const isOpen = guessOpen(spot);
+  const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
+
+  const catBg = {
+    'Odia Thali':'linear-gradient(135deg,#f4a261,#e76f51)',
+    'Tiffin Centre':'linear-gradient(135deg,#e9c46a,#f4a261)',
+    'Street Food':'linear-gradient(135deg,#2d6a4f,#40916c)',
+    'Dhaba':'linear-gradient(135deg,#9d0208,#d62828)',
+    'Sweet Shop':'linear-gradient(135deg,#ffb703,#fb8500)',
+    'Chai & Snacks':'linear-gradient(135deg,#795548,#4e342e)',
+    'Organic Store':'linear-gradient(135deg,#1b4332,#2d6a4f)',
+  }[spot.category] || 'linear-gradient(135deg,#E8670A,#C04A1B)';
+
+  const catEmoji = {
+    'Odia Thali':'🍛','Tiffin Centre':'🥞','Street Food':'🍢',
+    'Dhaba':'🍖','Sweet Shop':'🍮','Chai & Snacks':'☕','Organic Store':'🥗',
+  }[spot.category] || '🍽️';
+
+  const hygiene = getHygiene(spot.id);
+
+  document.getElementById('spotContent').innerHTML = `
+    <!-- HERO -->
+    <div class="spot-hero">
+      ${spot.image_url
+        ? `<img class="spot-hero-img" src="${esc(spot.image_url)}" alt="${esc(spot.name)}"/>`
+        : `<div class="spot-hero-bg" style="background:${catBg}">${catEmoji}</div>`}
+      <div class="spot-hero-overlay"></div>
+      <div class="spot-hero-content">
+        <div class="spot-badges">
+          <span class="spot-badge-pill ${spot.food_type==='nonveg'?'badge-nonveg':'badge-veg'}">
+            ${spot.food_type==='nonveg'?'🔴 Non-Veg':'🟢 Veg'}</span>
+          ${spot.is_gem ? '<span class="spot-badge-pill badge-gem">✨ Hidden Gem</span>' : ''}
+          <span class="spot-badge-pill ${isOpen?'badge-open':'badge-closed'}">
+            ${isOpen?'● Open Now':'● Closed'}</span>
+          <span class="spot-badge-pill" style="background:rgba(0,0,0,.5);color:#fff">${esc(spot.category)}</span>
+        </div>
+        <div class="spot-name-hero">${esc(spot.name)}</div>
+        <div class="spot-meta-hero">
+          <span>📍 ${esc(spot.area)}</span>
+          ${spot.rating ? `<span class="spot-rating-hero">⭐ ${spot.rating} <span style="opacity:.6;font-weight:400">(${spot.review_count||0} reviews)</span></span>` : '<span style="opacity:.5">No ratings yet</span>'}
+          <span>${spot.price_range||'₹'} /person</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="spot-layout">
+      <!-- MAIN COLUMN -->
+      <div class="spot-main fade-in">
+
+        <!-- QUICK STATS -->
+        <div class="quick-stats">
+          <div class="stat-box">
+            <div class="stat-box-val">${spot.rating||'–'}</div>
+            <div class="stat-box-label">Rating</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-val">${spot.review_count||0}</div>
+            <div class="stat-box-label">Reviews</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-val">${spot.avg_price ? '₹'+spot.avg_price : spot.price_range||'₹'}</div>
+            <div class="stat-box-label">Avg /person</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-val">${isOpen?'✅':'⛔'}</div>
+            <div class="stat-box-label">${isOpen?'Open Now':'Closed'}</div>
+          </div>
+        </div>
+
+        <!-- ABOUT -->
+        ${spot.description ? `
+        <div class="section-card">
+          <div class="section-title">📖 About <span>${esc(spot.name)}</span></div>
+          <p style="font-size:.88rem;color:var(--subtext);line-height:1.65">${esc(spot.description)}</p>
+        </div>` : ''}
+
+        <!-- TAGS / KNOWN FOR -->
+        ${(spot.tags||[]).length > 0 ? `
+        <div class="section-card">
+          <div class="section-title">🍴 Known For</div>
+          <div class="tags-wrap">
+            ${(spot.tags||[]).map(t=>`<span class="tag-pill highlight">${esc(t)}</span>`).join('')}
+          </div>
+        </div>` : ''}
+
+        <!-- OPENING HOURS -->
+        <div class="section-card">
+          <div class="section-title">🕐 Opening Hours</div>
+          ${spot.opening_hours
+            ? `<p style="font-size:.84rem;color:var(--subtext)">${esc(spot.opening_hours)}</p>`
+            : buildHoursGrid(spot.category, dayName)}
+        </div>
+
+        <!-- HYGIENE REPORT -->
+        <div class="section-card">
+          <div class="section-title">🧼 Hygiene Report</div>
+          ${hygiene ? `
+            <div class="hygiene-display" style="margin-bottom:12px">
+              <div class="hygiene-pill ${hygiene.gloves}">
+                ${hygiene.gloves==='yes'?'✅':hygiene.gloves==='no'?'❌':'🤷'} Gloves / Tongs
+              </div>
+              <div class="hygiene-pill ${hygiene.water}">
+                ${hygiene.water==='yes'?'✅':hygiene.water==='no'?'❌':'🤷'} Clean Water
+              </div>
+              <div class="hygiene-pill ${hygiene.bin}">
+                ${hygiene.bin==='yes'?'✅':hygiene.bin==='no'?'❌':'🤷'} Waste Bin
+              </div>
+            </div>
+            <p style="font-size:.74rem;color:var(--subtext)">Community reported · <a href="#" onclick="clearHygiene('${spot.id}');return false" style="color:var(--saffron)">Update report</a></p>
+          ` : `
+            <p style="font-size:.84rem;color:var(--subtext);margin-bottom:14px">No hygiene report yet. Be the first to report!</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div>
+                <div style="font-size:.76rem;font-weight:700;margin-bottom:6px">Gloves/Tongs?</div>
+                <div style="display:flex;gap:4px">
+                  <button class="queue-btn" onclick="setHygieneQ('gloves','yes',this)">✅</button>
+                  <button class="queue-btn" onclick="setHygieneQ('gloves','no',this)">❌</button>
+                  <button class="queue-btn" onclick="setHygieneQ('gloves','na',this)">🤷</button>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:.76rem;font-weight:700;margin-bottom:6px">Clean Water?</div>
+                <div style="display:flex;gap:4px">
+                  <button class="queue-btn" onclick="setHygieneQ('water','yes',this)">✅</button>
+                  <button class="queue-btn" onclick="setHygieneQ('water','no',this)">❌</button>
+                  <button class="queue-btn" onclick="setHygieneQ('water','na',this)">🤷</button>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:.76rem;font-weight:700;margin-bottom:6px">Waste Bin?</div>
+                <div style="display:flex;gap:4px">
+                  <button class="queue-btn" onclick="setHygieneQ('bin','yes',this)">✅</button>
+                  <button class="queue-btn" onclick="setHygieneQ('bin','no',this)">❌</button>
+                  <button class="queue-btn" onclick="setHygieneQ('bin','na',this)">🤷</button>
+                </div>
+              </div>
+            </div>
+            <button onclick="submitHygieneInline('${spot.id}')"
+              style="margin-top:12px;padding:8px 20px;background:var(--saffron);color:#fff;
+              border:none;border-radius:8px;font-family:'DM Sans',sans-serif;
+              font-size:.82rem;font-weight:700;cursor:pointer">
+              Submit Hygiene Report
+            </button>
+          `}
+        </div>
+
+        <!-- REVIEWS -->
+        <div class="section-card">
+          <div class="section-title">💬 Reviews
+            <span id="reviewCountBadge" style="font-size:.72rem;background:var(--mist);
+              color:var(--subtext);padding:2px 8px;border-radius:20px;margin-left:4px">
+              Loading...</span>
+          </div>
+          <div id="reviewsList"><div style="color:var(--subtext);font-size:.84rem">Loading reviews...</div></div>
+
+          <!-- WRITE REVIEW -->
+          <div class="review-form">
+            <div class="section-title" style="margin-bottom:12px">✍️ Write a Review</div>
+            <label class="rf-label">Your rating</label>
+            <div class="rf-stars" id="rfStars">
+              ${[1,2,3,4,5].map(i=>`<span class="rf-star" onclick="setRating(${i})">★</span>`).join('')}
+            </div>
+            <input class="rf-input" id="rfName" placeholder="Your name (optional)" style="margin-bottom:10px"/>
+            <input class="rf-input" id="rfDish" placeholder="Dish you tried (optional)" style="margin-bottom:10px"/>
+            <textarea class="rf-input textarea" id="rfComment" placeholder="Tell others what you thought — be specific about the food, value, service..."></textarea>
+            <button class="btn-submit-review" onclick="submitReviewInline('${spot.id}')">
+              Submit Review
+            </button>
+          </div>
+        </div>
+
+      </div><!-- end main -->
+
+      <!-- SIDEBAR -->
+      <div class="spot-sidebar fade-in">
+
+        <!-- ACTION BUTTONS -->
+        <div class="action-card">
+          ${spot.phone ? `
+          <a class="btn-action primary" href="tel:${esc(spot.phone)}">
+            <span class="btn-action-icon">📞</span> Call ${esc(spot.phone)}
+          </a>` : ''}
+          <button class="btn-action whatsapp" onclick="shareOnWhatsApp()">
+            <span class="btn-action-icon">📲</span> Share on WhatsApp
+          </button>
+          ${spot.latitude && spot.longitude ? `
+          <a class="btn-action" target="_blank"
+            href="https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}">
+            <span class="btn-action-icon">🗺️</span> Get Directions (Google Maps)
+          </a>
+          <a class="btn-action" target="_blank"
+            href="https://www.openstreetmap.org/?mlat=${spot.latitude}&mlon=${spot.longitude}#map=18/${spot.latitude}/${spot.longitude}">
+            <span class="btn-action-icon">📍</span> View on OpenStreetMap
+          </a>` : ''}
+          ${spot.website ? `
+          <a class="btn-action" href="${esc(spot.website)}" target="_blank">
+            <span class="btn-action-icon">🌐</span> Visit Website
+          </a>` : ''}
+          <button class="btn-action" onclick="saveToPassport()">
+            <span class="btn-action-icon">🔖</span> Save to FoodiePassport
+          </button>
+        </div>
+
+        <!-- LOCATION MAP -->
+        ${spot.latitude && spot.longitude ? `
+        <div class="section-card" style="padding:16px">
+          <div class="section-title" style="margin-bottom:12px">📍 Location</div>
+          <div id="spotMap"></div>
+          <div style="font-size:.78rem;color:var(--subtext);margin-top:10px">
+            📍 ${esc(spot.address||spot.area||'')}
+          </div>
+        </div>` : ''}
+
+        <!-- QUEUE STATUS -->
+        <div class="action-card">
+          <div class="queue-title">⏳ Current Queue Status</div>
+          <div class="queue-btns">
+            <button class="queue-btn ${getQueue(spot.id)==='low'?'active-low':''}"
+              onclick="reportQueue('${spot.id}','low')">🟢<br>No Queue</button>
+            <button class="queue-btn ${getQueue(spot.id)==='medium'?'active-medium':''}"
+              onclick="reportQueue('${spot.id}','medium')">🟡<br>Medium</button>
+            <button class="queue-btn ${getQueue(spot.id)==='high'?'active-high':''}"
+              onclick="reportQueue('${spot.id}','high')">🔴<br>Long</button>
+          </div>
+          ${getQueue(spot.id) ? `<p style="font-size:.72rem;color:var(--subtext);margin-top:8px;text-align:center">Expires in ${SmartMode.flashSaleExpiryMins ? '' : ''}2 hours</p>` : ''}
+        </div>
+
+        <!-- SPOT INFO -->
+        <div class="section-card">
+          <div class="section-title">ℹ️ Details</div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:.84rem">
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--subtext)">Category</span>
+              <strong>${esc(spot.category)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--subtext)">Food Type</span>
+              <strong>${spot.food_type==='nonveg'?'🔴 Non-Veg':spot.food_type==='both'?'🟡 Both':'🟢 Veg'}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--subtext)">Price Range</span>
+              <strong>${spot.price_range||'₹'} (avg ₹${spot.avg_price||'–'})</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--subtext)">Area</span>
+              <strong>${esc(spot.area)}</strong>
+            </div>
+            ${spot.submitted_by ? `
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--subtext)">Added by</span>
+              <strong>${esc(spot.submitted_by)}</strong>
+            </div>` : ''}
+          </div>
+        </div>
+
+        <!-- SUGGEST EDIT -->
+        <div style="text-align:center;padding:8px 0">
+          <a href="index.html" style="color:var(--subtext);font-size:.76rem;text-decoration:none">
+            ← Browse more spots
+          </a>
+          &nbsp;·&nbsp;
+          <a href="#" onclick="suggestEdit();return false" style="color:var(--subtext);font-size:.76rem">
+            Suggest an edit
+          </a>
+        </div>
+
+      </div><!-- end sidebar -->
+    </div><!-- end layout -->
+  `;
+
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('spotContent').style.display = 'block';
+
+  // Init map
+  if (spot.latitude && spot.longitude) {
+    setTimeout(() => initSpotMap(spot), 200);
+  }
+
+  // Load reviews
+  loadReviews(spot.id);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function guessOpen(spot) {
+  const h = new Date().getHours();
+  if (spot.category === 'Tiffin Centre') return h >= 7 && h < 15;
+  if (spot.category === 'Sweet Shop')    return h >= 8 && h < 21;
+  if (spot.category === 'Chai & Snacks') return h >= 6 && h < 23;
+  if (spot.category === 'Dhaba')         return h >= 6;
+  return h >= 8 && h < 22;
+}
+
+function buildHoursGrid(category, today) {
+  const schedules = {
+    'Tiffin Centre': {Mon:'7:00 AM – 3:00 PM',Tue:'7:00 AM – 3:00 PM',Wed:'7:00 AM – 3:00 PM',Thu:'7:00 AM – 3:00 PM',Fri:'7:00 AM – 3:00 PM',Sat:'7:00 AM – 1:00 PM',Sun:'Closed'},
+    'Street Food':   {Mon:'11:00 AM – 10:00 PM',Tue:'11:00 AM – 10:00 PM',Wed:'11:00 AM – 10:00 PM',Thu:'11:00 AM – 10:00 PM',Fri:'11:00 AM – 11:00 PM',Sat:'10:00 AM – 11:00 PM',Sun:'10:00 AM – 9:00 PM'},
+    'Sweet Shop':    {Mon:'8:00 AM – 9:00 PM',Tue:'8:00 AM – 9:00 PM',Wed:'8:00 AM – 9:00 PM',Thu:'8:00 AM – 9:00 PM',Fri:'8:00 AM – 9:30 PM',Sat:'8:00 AM – 9:30 PM',Sun:'9:00 AM – 8:00 PM'},
+    'Chai & Snacks': {Mon:'6:00 AM – 11:00 PM',Tue:'6:00 AM – 11:00 PM',Wed:'6:00 AM – 11:00 PM',Thu:'6:00 AM – 11:00 PM',Fri:'6:00 AM – 11:00 PM',Sat:'6:00 AM – 11:00 PM',Sun:'6:00 AM – 10:00 PM'},
+  };
+  const sched = schedules[category] || {Mon:'8:00 AM – 10:00 PM',Tue:'8:00 AM – 10:00 PM',Wed:'8:00 AM – 10:00 PM',Thu:'8:00 AM – 10:00 PM',Fri:'8:00 AM – 10:00 PM',Sat:'8:00 AM – 10:00 PM',Sun:'9:00 AM – 9:00 PM'};
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const todayShort = today.substring(0,3);
+  return `<div class="hours-grid">` + days.map(d => `
+    <div class="hour-row ${d===todayShort?'today':''}">
+      <span>${d}${d===todayShort?' (Today)':''}</span>
+      <span class="${sched[d]==='Closed'?'hour-closed':'hour-open'}">${sched[d]}</span>
+    </div>`).join('') + `</div><p style="font-size:.72rem;color:var(--subtext);margin-top:8px">* Estimated hours — verify before visiting</p>`;
+}
+
+// ── MAP ───────────────────────────────────────────────────────────────────────
+function initSpotMap(spot) {
+  if (spotMap) { spotMap.remove(); spotMap = null; }
+  const el = document.getElementById('spotMap');
+  if (!el) return;
+  spotMap = L.map('spotMap', {zoomControl:true, scrollWheelZoom:false})
+    .setView([spot.latitude, spot.longitude], 16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'© OpenStreetMap contributors', maxZoom:19
+  }).addTo(spotMap);
+  const icon = L.divIcon({
+    className:'',
+    html:`<div style="background:#E8670A;width:28px;height:28px;border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.3)"></div>`,
+    iconSize:[28,28],iconAnchor:[14,28]
+  });
+  L.marker([spot.latitude, spot.longitude], {icon}).addTo(spotMap)
+    .bindPopup(`<strong>${spot.name}</strong>`).openPopup();
+}
+
+// ── QUEUE ─────────────────────────────────────────────────────────────────────
+function getQueue(spotId) {
+  try {
+    const data = LS.get('fr_queue_' + spotId);
+    if (!data) return null;
+    const { status, ts } = data;
+    if ((Date.now() - ts) > 7200000) { LS.remove('fr_queue_' + spotId); return null; }
+    return status;
+  } catch { return null; }
+}
+function reportQueue(spotId, status) {
+  LS.set('fr_queue_' + spotId, {status, ts: Date.now()});
+  const labels = {low:'🟢 No queue reported',medium:'🟡 Queue reported',high:'🔴 Long queue reported'};
+  showToast(labels[status] + ' — visible on homepage for 2 hours');
+  // Refresh queue buttons
+  document.querySelectorAll('.queue-btn').forEach(b => {
+    b.classList.remove('active-low','active-medium','active-high');
+  });
+  const btns = document.querySelectorAll('.queue-btn');
+  const map = {low:0,medium:1,high:2};
+  if (btns[map[status]]) btns[map[status]].classList.add('active-' + status);
+}
+
+// ── HYGIENE ───────────────────────────────────────────────────────────────────
+let _hygieneAnswers = {};
+function getHygiene(spotId) {
+  try { return LS.get('fr_hygiene_' + spotId); }
+  catch { return null; }
+}
+function setHygieneQ(key, val, btn) {
+  _hygieneAnswers[key] = val;
+  // Highlight button row
+  const parent = btn.parentElement;
+  parent.querySelectorAll('.queue-btn').forEach(b => b.classList.remove('active-low','active-medium'));
+  btn.classList.add(val === 'yes' ? 'active-low' : val === 'no' ? 'active-high' : 'active-medium');
+}
+function submitHygieneInline(spotId) {
+  if (Object.keys(_hygieneAnswers).length < 3) { showToast('Please answer all 3 questions'); return; }
+  LS.set('fr_hygiene_' + spotId, _hygieneAnswers);
+  showToast('🧼 Hygiene report saved! Refreshing...');
+  setTimeout(() => location.reload(), 1200);
+}
+function clearHygiene(spotId) {
+  LS.remove('fr_hygiene_' + spotId);
+  _hygieneAnswers = {};
+  location.reload();
+}
+
+// ── REVIEWS ───────────────────────────────────────────────────────────────────
+async function loadReviews(spotId) {
+  const list = document.getElementById('reviewsList');
+  const badge = document.getElementById('reviewCountBadge');
+  try {
+    const { data } = await db.from('reviews')
+      .select('*').eq('spot_id', spotId)
+      .order('created_at', {ascending:false}).limit(20);
+
+    if (!data || data.length === 0) {
+      list.innerHTML = '<p style="color:var(--subtext);font-size:.84rem">No reviews yet. Be the first!</p>';
+      badge.textContent = '0 reviews';
+      return;
+    }
+    badge.textContent = data.length + ' review' + (data.length===1?'':'s');
+    list.innerHTML = data.map(r => `
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-avatar">${(r.reviewer_name||'A')[0].toUpperCase()}</div>
+          <div>
+            <div class="review-name">${esc(r.reviewer_name||'Anonymous')}</div>
+            <div class="review-stars">${'★'.repeat(r.rating||0)}${'☆'.repeat(5-(r.rating||0))}</div>
+          </div>
+          <div class="review-date">${new Date(r.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
+        </div>
+        ${r.dish_name ? `<span class="review-dish">Tried: ${esc(r.dish_name)}</span>` : ''}
+        <div class="review-text">${esc(r.comment||'')}</div>
+        ${r.image_url ? `<img class="review-img" src="${esc(r.image_url)}" alt="Food photo" loading="lazy" onclick="window.open('${esc(r.image_url)}')"/>` : ''}
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML = '<p style="color:var(--subtext);font-size:.84rem">Could not load reviews.</p>';
+    if (badge) badge.textContent = '';
+  }
+}
+
+function setRating(n) {
+  reviewRating = n;
+  document.querySelectorAll('.rf-star').forEach((s,i) => {
+    s.classList.toggle('active', i < n);
+  });
+}
+
+async function submitReviewInline(spotId) {
+  if (!reviewRating) { showToast('Please select a star rating'); return; }
+  const comment = document.getElementById('rfComment').value.trim();
+  if (comment.length < 5) { showToast('Please write at least 5 characters'); return; }
+
+  const btn = document.querySelector('.btn-submit-review');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+
+  try {
+    const { error } = await db.from('reviews').insert([{
+      spot_id:       spotId,
+      rating:        reviewRating,
+      comment:       comment,
+      reviewer_name: document.getElementById('rfName').value.trim() || 'Anonymous',
+      dish_name:     document.getElementById('rfDish').value.trim() || null,
+    }]);
+    if (error) throw error;
+    showToast('✅ Review submitted! Thank you.');
+    document.getElementById('rfComment').value = '';
+    document.getElementById('rfName').value = '';
+    document.getElementById('rfDish').value = '';
+    reviewRating = 0;
+    document.querySelectorAll('.rf-star').forEach(s => s.classList.remove('active'));
+    loadReviews(spotId);
+  } catch(e) {
+    showToast('Could not submit review. Please try again.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Submit Review';
+  }
+}
+
+// ── PASSPORT ──────────────────────────────────────────────────────────────────
+function saveToPassport() {
+  if (!currentSpot) return;
+  const passport = LS.get('fr_passport');
+  if (!passport) {
+    showToast('📛 Create your FoodiePassport first!');
+    setTimeout(() => window.location.href = 'passport.html', 1500);
+    return;
+  }
+  if (passport.visited.find(v => v.spotId === currentSpot.id)) {
+    showToast('Already in your Passport! ✓'); return;
+  }
+  passport.visited.push({
+    spotId: currentSpot.id, spotName: currentSpot.name,
+    category: currentSpot.category, area: currentSpot.area,
+    isGem: currentSpot.is_gem, priceRange: currentSpot.price_range,
+    date: new Date().toISOString()
+  });
+  passport.xp += currentSpot.is_gem ? 20 : 10;
+  LS.set('fr_passport', passport);
+  showToast('📍 Saved to Passport! +' + (currentSpot.is_gem ? 20 : 10) + ' XP');
+}
+
+// ── SHARE ─────────────────────────────────────────────────────────────────────
+function shareOnWhatsApp() {
+  if (!currentSpot) return;
+  const url  = encodeURIComponent(window.location.href);
+  const text = encodeURIComponent(`🍛 Found a great spot!\n*${currentSpot.name}* — ${currentSpot.area}\n⭐ ${currentSpot.rating||'Unrated'} · ${currentSpot.price_range||'₹'}\n\nCheck it out on FoodieRadar: `);
+  window.open(`https://wa.me/?text=${text}${url}`, '_blank');
+}
+
+// ── SUGGEST EDIT ──────────────────────────────────────────────────────────────
+function suggestEdit() {
+  if (!currentSpot) return;
+  const url = encodeURIComponent(window.location.href);
+  const text = encodeURIComponent(`Hi! I want to suggest an edit for: ${currentSpot.name} (${currentSpot.area})\n\nWhat needs to be updated:\n`);
+  window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function showNotFound() {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('notFound').style.display = 'block';
+}
+
+// ── START ─────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

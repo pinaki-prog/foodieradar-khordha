@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="smart-mode.js"></script>
+  <meta charset="UTF-8"/>
+    <!-- SEO + Social Sharing -->
+  <meta name="description" content="8 curated street food walking routes in Bhubaneswar. Student budget trails, midnight radar, heritage walks and more."/>
+  <meta property="og:title" content="Food Trails — FoodieRadar Khordha"/>
+  <meta property="og:description" content="8 curated street food walking routes in Bhubaneswar. Student budget trails, midnight radar, heritage walks and more."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://foodieradar.vercel.app/food-trails.html"/>
+  <meta property="og:image" content="https://foodieradar.vercel.app/og-image.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Food Trails — FoodieRadar Khordha"/>
+  <meta name="twitter:description" content="8 curated street food walking routes in Bhubaneswar. Student budget trails, midnight radar, heritage walks and more."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#E8670A"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Food Trails — FoodieRadar Khordha</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --saffron:#E8670A;--turmeric:#F5A623;--clay:#C04A1B;
+      --soil:#1C0F06;--cream:#FDF6EC;--mist:#FAF0E2;
+      --leaf:#2E7D32;--subtext:#6B4C35;--border:#E8D5BF;
+      --card:#FFFFFF;--r-md:16px;--r-lg:24px;
+      --shadow-sm:0 2px 8px rgba(28,15,6,.08);
+      --shadow-md:0 6px 24px rgba(28,15,6,.12);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--soil);overflow-x:hidden}
+    
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo-icon{width:36px;height:36px;background:var(--saffron);border-radius:10px;
+      display:flex;align-items:center;justify-content:center;font-size:18px}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:900;color:var(--soil)}
+    .nav-logo-text span{color:var(--saffron)}
+    .nav-back{color:var(--subtext);text-decoration:none;font-size:.88rem;font-weight:500}
+    .nav-back:hover{color:var(--saffron)}
+
+    /* HERO */
+    .trail-hero{
+      background:linear-gradient(135deg,#0D1B0F 0%,#1B3A1F 60%,#2E5C34 100%);
+      padding:60px 5% 50px;text-align:center;
+    }
+    .trail-hero h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4.5vw,3rem);
+      color:#fff;margin-bottom:10px}
+    .trail-hero h1 em{color:#81C784;font-style:normal}
+    .trail-hero p{color:rgba(255,255,255,.55);font-size:.95rem;max-width:520px;margin:0 auto}
+    .hero-stats{display:flex;justify-content:center;gap:32px;margin-top:28px;flex-wrap:wrap}
+    .h-stat{text-align:center}
+    .h-stat-num{font-size:1.6rem;font-weight:900;color:#81C784}
+    .h-stat-label{font-size:.72rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em}
+
+    /* LAYOUT */
+    .trails-layout{display:grid;grid-template-columns:400px 1fr;min-height:calc(100vh - 64px)}
+    .trails-sidebar{overflow-y:auto;max-height:calc(100vh - 64px);position:sticky;top:64px;
+      border-right:1px solid var(--border);background:var(--cream)}
+    .trail-map-panel{position:sticky;top:64px;height:calc(100vh - 64px)}
+    #trailMap{width:100%;height:100%}
+
+    /* FILTER BAR */
+    .trail-filters{padding:16px 20px;border-bottom:1px solid var(--border);
+      display:flex;gap:8px;flex-wrap:wrap;background:var(--card)}
+    .trail-filter-btn{padding:6px 14px;border-radius:50px;border:1.5px solid var(--border);
+      background:var(--mist);color:var(--subtext);font-size:.76rem;font-weight:600;
+      cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s}
+    .trail-filter-btn:hover,.trail-filter-btn.active{background:var(--saffron);
+      border-color:var(--saffron);color:#fff}
+
+    /* TRAIL CARDS */
+    .trail-list{padding:16px}
+    .trail-card{
+      background:var(--card);border:1.5px solid var(--border);border-radius:var(--r-lg);
+      padding:20px;margin-bottom:14px;cursor:pointer;transition:all .2s;
+      position:relative;overflow:hidden;
+    }
+    .trail-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+      background:var(--saffron);border-radius:4px 0 0 4px}
+    .trail-card:hover{border-color:var(--saffron);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+    .trail-card.active{border-color:var(--saffron);box-shadow:0 0 0 2px var(--saffron)40}
+    .trail-card::before{background:var(--trail-color,var(--saffron))}
+    .trail-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+    .trail-emoji{font-size:2rem;flex-shrink:0}
+    .trail-name{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;
+      color:var(--soil);margin-bottom:3px}
+    .trail-area{font-size:.76rem;color:var(--subtext)}
+    .trail-desc{font-size:.82rem;color:var(--subtext);line-height:1.5;margin-bottom:12px}
+    .trail-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .trail-meta-item{font-size:.72rem;color:var(--subtext);display:flex;align-items:center;gap:3px;
+      background:var(--mist);padding:3px 9px;border-radius:20px}
+    .trail-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+    .trail-tag{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;
+      background:var(--mist);border:1px solid var(--border);color:var(--subtext)}
+    .trail-tag.student{background:#EDE7F6;border-color:#B39DDB;color:#4527A0}
+    .trail-tag.night{background:#E8EAF6;border-color:#9FA8DA;color:#1A237E}
+    .trail-tag.pakhala{background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20}
+
+    /* STOPS LIST */
+    .stops-list{border-top:1px solid var(--border);padding-top:12px}
+    .stop-item{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;
+      padding:8px;border-radius:10px;transition:background .15s}
+    .stop-item:hover{background:var(--mist)}
+    .stop-num{width:24px;height:24px;border-radius:50%;background:var(--saffron);
+      color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;
+      justify-content:center;flex-shrink:0;margin-top:2px}
+    .stop-info{flex:1}
+    .stop-name{font-size:.85rem;font-weight:700;color:var(--soil)}
+    .stop-detail{font-size:.74rem;color:var(--subtext);margin-top:2px;line-height:1.4}
+    .stop-price{font-size:.7rem;font-weight:700;color:var(--saffron);margin-top:3px}
+
+    .btn-open-trail{
+      width:100%;padding:10px;background:var(--saffron);color:#fff;border:none;
+      border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:700;
+      cursor:pointer;transition:background .2s;margin-top:12px;
+    }
+    .btn-open-trail:hover{background:var(--clay)}
+
+    @media(max-width:900px){
+      .trails-layout{grid-template-columns:1fr;min-height:auto}
+      .trails-sidebar{max-height:none;position:static;border-right:none}
+      .trail-map-panel{height:400px;position:static;border-top:1px solid var(--border)}
+    }
+    @media(max-width:600px){
+      .trail-hero{padding:40px 4% 36px}
+      .trail-list{padding:12px}
+    }
+  
+    /* ── NAV ─────────────────────────────────────────────────────────────────── */
+    nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.96);
+      -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);padding:0 5%;
+      display:flex;align-items:center;justify-content:space-between;
+      height:68px;transition:height .25s,box-shadow .25s}
+    nav.scrolled{height:56px;box-shadow:0 4px 24px rgba(28,15,6,.10)}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--saffron),var(--clay));
+      border-radius:12px;display:flex;align-items:center;justify-content:center;
+      font-size:19px;box-shadow:0 3px 10px rgba(232,103,10,.4);transition:transform .2s}
+    .nav-logo:hover .nav-logo-icon{transform:rotate(-8deg) scale(1.08)}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.22rem;font-weight:900;
+      color:var(--soil);letter-spacing:-0.02em;line-height:1}
+    .nav-logo-sub{display:block;font-family:'DM Sans',sans-serif;font-size:.6rem;font-weight:600;
+      color:var(--subtext);letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
+    .nav-links{display:flex;align-items:center;gap:2px;list-style:none;
+      background:rgba(28,15,6,.04);border:1px solid var(--border);
+      border-radius:50px;padding:4px 6px}
+    .nav-links li a{text-decoration:none;color:var(--subtext);font-size:.82rem;font-weight:500;
+      padding:6px 13px;border-radius:50px;transition:all .18s;
+      display:flex;align-items:center;gap:5px;white-space:nowrap}
+    .nav-links li a:hover{color:var(--saffron);background:rgba(232,103,10,.08)}
+    .nav-links li a.active{color:var(--saffron);background:rgba(232,103,10,.12);font-weight:600}
+    .nav-actions{display:flex;align-items:center;gap:10px}
+    .nav-back{display:flex;align-items:center;gap:6px;padding:7px 14px;
+      border:1.5px solid var(--border);border-radius:50px;font-size:.82rem;
+      font-weight:600;color:var(--subtext);text-decoration:none;transition:all .18s;white-space:nowrap}
+    .nav-back:hover{border-color:var(--saffron);color:var(--saffron);background:rgba(232,103,10,.06)}
+    .nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;
+      padding:6px;border:none;background:transparent}
+    .nav-hamburger span{display:block;width:22px;height:2px;background:var(--soil);
+      border-radius:2px;transition:all .25s}
+    .nav-hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+    .nav-hamburger.open span:nth-child(2){opacity:0}
+    .nav-hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+    .nav-drawer{display:none;position:fixed;inset:0;top:56px;
+      background:rgba(253,246,236,.98);-webkit-backdrop-filter:blur(20px);
+      backdrop-filter:blur(20px);z-index:998;flex-direction:column;
+      padding:24px 6%;border-top:1px solid var(--border)}
+    .nav-drawer.open{display:flex}
+    .nav-drawer a{text-decoration:none;color:var(--soil);font-size:1.1rem;font-weight:600;
+      padding:14px 0;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:12px}
+    .nav-drawer a:last-child{border-bottom:none}
+    @media(max-width:860px){.nav-links{display:none}.nav-hamburger{display:flex}}
+  </style>
+</head>
+<body>
+
+<nav id="mainNav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">🍛</div>
+    <div>
+      <span class="nav-logo-text">Foodie<span class="accent">Radar</span></span>
+      <span class="nav-logo-sub">Khordha District</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">🗺️ Explore</a></li>
+    <li><a href="index.html#map-section">📍 Map</a></li>
+    <li><a href="events.html">🎪 Events</a></li>
+    <li><a href="food-trails.html" class="active">🥾 Trails</a></li>
+    <li><a href="food-dictionary.html">📖 Dictionary</a></li>
+    <li><a href="passport.html">🏅 Passport</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="index.html" class="nav-back">← Radar</a>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="index.html" onclick="closeDrawer()">🗺️ Explore Spots</a>
+  <a href="events.html">🎪 Food Events</a>
+  <a href="food-trails.html">🥾 Food Trails</a>
+  <a href="food-dictionary.html">📖 Food Dictionary</a>
+  <a href="passport.html">🏅 My Passport</a>
+  <a href="haat-festival.html">🛒 Haat Tracker</a>
+  <a href="tiffin.html">🍱 Home Tiffin</a>
+  <a href="cook-off.html">🥊 Cook-Off Battles</a>
+</div>
+
+<div class="trail-hero">
+  <h1>Curated <em>Food Trails</em></h1>
+  <p>Hand-picked walking routes through Bhubaneswar's best food streets. Eat like a local.</p>
+  <div class="hero-stats">
+    <div class="h-stat"><div class="h-stat-num" id="trailCount">8</div><div class="h-stat-label">Trails</div></div>
+    <div class="h-stat"><div class="h-stat-num" id="stopCount">42</div><div class="h-stat-label">Total Stops</div></div>
+    <div class="h-stat"><div class="h-stat-num">₹150</div><div class="h-stat-label">Avg Spend</div></div>
+  </div>
+</div>
+
+<div class="trail-filters">
+  <button class="trail-filter-btn active" onclick="filterTrails('all',this)">All Trails</button>
+  <button class="trail-filter-btn" onclick="filterTrails('student',this)">🎒 Student</button>
+  <button class="trail-filter-btn" onclick="filterTrails('night',this)">🌙 Night</button>
+  <button class="trail-filter-btn" onclick="filterTrails('pakhala',this)">🌿 Pakhala</button>
+  <button class="trail-filter-btn" onclick="filterTrails('heritage',this)">📜 Heritage</button>
+</div>
+
+<div class="trails-layout">
+  <div class="trails-sidebar">
+    <div class="trail-list" id="trailList"></div>
+  </div>
+  <div class="trail-map-panel">
+    <div id="trailMap"></div>
+  </div>
+</div>
+
+<script>
+const TRAILS = [
+  {
+    id:'t1', emoji:'🌅', name:'Patia Breakfast Trail',
+    area:'Patia, BBSR', color:'#E8670A',
+    dist:'1.2 km walk', time:'45 min', budget:'₹40–60', tags:['student'],
+    desc:'Start your day right. Three stops, under ₹60 total. Perfect before class or work.',
+    stops:[
+      { name:'Swagat Tiffin Centre', detail:'Idli + sambar + coconut chutney', price:'₹20', lat:20.3524, lng:85.8172 },
+      { name:'Patia Chai Adda',      detail:'Strong ginger tea + butter biscuits', price:'₹10', lat:20.3530, lng:85.8180 },
+      { name:'Morning Gupchup Stall',detail:'6 gupchups — crispy, tangy, perfect', price:'₹15', lat:20.3518, lng:85.8165 },
+    ]
+  },
+  {
+    id:'t2', emoji:'🌆', name:'Old Town Evening Walk',
+    area:'Old Town, BBSR', color:'#C04A1B',
+    dist:'2.1 km walk', time:'90 min', budget:'₹80–120', tags:['heritage'],
+    desc:'The heart of Bhubaneswar. Street food as old as the temples beside them. Best after 5 PM.',
+    stops:[
+      { name:'Raghu Dahibara Stall',   detail:'Famous dahibara aloodum — been here since the 70s', price:'₹30', lat:20.2961, lng:85.8245 },
+      { name:'Old Town Chaat Corner',  detail:'Aloo chop + ghuguni with extra chilli', price:'₹25', lat:20.2955, lng:85.8238 },
+      { name:'Lingaraj Chai Adda',     detail:'Tea with a view of the temple spire', price:'₹8', lat:20.2948, lng:85.8250 },
+      { name:'Chhena Poda Shop',       detail:'Warm chhena poda — straight from the clay oven', price:'₹30', lat:20.2940, lng:85.8230 },
+    ]
+  },
+  {
+    id:'t3', emoji:'🌙', name:'Midnight Hunger Fix',
+    area:'Saheed Nagar / Master Canteen', color:'#1A237E',
+    dist:'Drive recommended', time:'60 min', budget:'₹100–150', tags:['night'],
+    desc:'The 1 AM emergency. These stalls run until 3 AM. For IT workers, students, and night owls.',
+    stops:[
+      { name:'Master Canteen Chicken', detail:'Chicken biryani — big portions, 24hrs', price:'₹80', lat:20.2980, lng:85.8180 },
+      { name:'Late Night Paratha Stall',detail:'Egg paratha + butter + achaar', price:'₹30', lat:20.2970, lng:85.8175 },
+      { name:'Saheed Nagar Night Chai', detail:'₹10 chai and samosa until 2 AM', price:'₹15', lat:20.3116, lng:85.8245 },
+    ]
+  },
+  {
+    id:'t4', emoji:'🍚', name:'Pakhala Experience Trail',
+    area:'Old Town & Nayapalli', color:'#1B5E20',
+    dist:'Drive recommended', time:'2–3 hrs', budget:'₹80–100', tags:['pakhala','heritage'],
+    desc:'The ultimate Odia food ritual. Seek out the places that still serve proper fermented pakhala with all the traditional accompaniments.',
+    stops:[
+      { name:'Maa Odia Kitchen',   detail:'Pakhala + macha bhaja + saga bhaja + badi chura', price:'₹60', lat:20.2961, lng:85.8240 },
+      { name:'Traditional Thali House',detail:'Pakhala thali with 6 side dishes', price:'₹80', lat:20.2996, lng:85.8036 },
+      { name:'Seasonal Juice Stall',   detail:'Tanka torani (raw mango drink) to finish', price:'₹20', lat:20.2975, lng:85.8050 },
+    ]
+  },
+  {
+    id:'t5', emoji:'🎒', name:'KIIT Student Survival Trail',
+    area:'Patia / KIIT Road', color:'#6A1B9A',
+    dist:'0.8 km walk', time:'30 min', budget:'₹30–50', tags:['student'],
+    desc:'When your pocket is empty but your stomach is not. This trail feeds you for ₹50. Approved by final-year students.',
+    stops:[
+      { name:'KIIT Gate Maggi Stall',  detail:'Maggi with extra masala + egg', price:'₹20', lat:20.3530, lng:85.8160 },
+      { name:'Budget Idli Corner',     detail:'3 idlis + sambar — best ₹15 breakfast in Patia', price:'₹15', lat:20.3540, lng:85.8170 },
+      { name:'₹10 Tea Adda',           detail:'Strong tea + parle-g biscuits', price:'₹10', lat:20.3525, lng:85.8155 },
+    ]
+  },
+  {
+    id:'t6', emoji:'☕', name:'Chai Adda Hopping Tour',
+    area:'Nayapalli → Saheed Nagar', color:'#795548',
+    dist:'3.5 km (auto/bike)', time:'2 hrs', budget:'₹40–60', tags:[],
+    desc:'Bhubaneswar runs on chai. This trail visits the most distinct tea cultures across three neighbourhoods.',
+    stops:[
+      { name:'Nayapalli Chai Adda',    detail:'Standing chai + political debate crowd', price:'₹8', lat:20.2996, lng:85.8036 },
+      { name:'Unit 4 Cycle Chai',      detail:'Chai served from a bicycle cart since 1992', price:'₹8', lat:20.3060, lng:85.8140 },
+      { name:'Saheed Nagar Student Adda',detail:'Strong chai + samosa + noisy crowd', price:'₹20', lat:20.3116, lng:85.8245 },
+      { name:'Infocity IT Chai',        detail:'Premium "office chai" — filter coffee also available', price:'₹25', lat:20.3524, lng:85.8172 },
+    ]
+  },
+  {
+    id:'t7', emoji:'🏛️', name:'Temple Food Culture Trail',
+    area:'Old Town Heritage Belt', color:'#BF360C',
+    dist:'2.8 km walk', time:'3 hrs', budget:'₹100–150', tags:['heritage'],
+    desc:'Food and faith intertwined. These spots exist because of the temple culture around them. Best on festival days.',
+    stops:[
+      { name:'Bindu Sagar Prasad Corner', detail:'Dalma + khiri offered as temple prasad', price:'₹40', lat:20.2950, lng:85.8235 },
+      { name:'Ananta Vasudev Temple Stall',detail:'Traditional thali — pure sattvic food', price:'₹50', lat:20.2945, lng:85.8228 },
+      { name:'Old Town Chhena Shop',      detail:'Freshly made chhena sweets since 1955', price:'₹30', lat:20.2958, lng:85.8240 },
+      { name:'Maa Tarini Pitha Corner',   detail:'Seasonal pitha made fresh — varies by festival', price:'₹20', lat:20.2965, lng:85.8248 },
+    ]
+  },
+  {
+    id:'t8', emoji:'🔥', name:'Mati Handi Mutton Trail',
+    area:'NH-16 / Khordha Town Outskirts', color:'#3E2723',
+    dist:'Drive required (15 km)', time:'2 hrs', budget:'₹200–350', tags:[],
+    desc:"Clay-pot slow-cooked mutton. These places don't have menus or Google Maps presence. You go because you know. Best on weekends.",
+    stops:[
+      { name:'Roadside Mati Handi Dhaba', detail:'Mutton cooked since 6 AM in clay pots — sells out by 1 PM', price:'₹150', lat:20.1820, lng:85.6070 },
+      { name:'NH-16 Chicken Stall',       detail:'Whole chicken roasted over wood fire', price:'₹120', lat:20.1840, lng:85.6090 },
+      { name:'Khordha Town Sweet Finish',  detail:'Chhena poda and chai after the heavy meal', price:'₹30', lat:20.1800, lng:85.6050 },
+    ]
+  },
+];
+
+let activeFilter = 'all';
+let activeTrailId = TRAILS[0].id;
+let map, markers = [], polylines = [];
+
+function renderTrailList() {
+  const list = document.getElementById('trailList');
+  let filtered = TRAILS;
+  if (activeFilter !== 'all') filtered = TRAILS.filter(t => t.tags.includes(activeFilter));
+
+  document.getElementById('trailCount').textContent = filtered.length;
+  document.getElementById('stopCount').textContent = filtered.reduce((a,t)=>a+t.stops.length,0);
+
+  list.innerHTML = filtered.map(t => `
+    <div class="trail-card ${t.id===activeTrailId?'active':''}"
+      style="--trail-color:${t.color}"
+      onclick="selectTrail('${t.id}')">
+      <div class="trail-header">
+        <span class="trail-emoji">${t.emoji}</span>
+        <div>
+          <div class="trail-name">${t.name}</div>
+          <div class="trail-area">📍 ${t.area}</div>
+        </div>
+      </div>
+      <div class="trail-desc">${t.desc}</div>
+      <div class="trail-meta">
+        <span class="trail-meta-item">🚶 ${t.dist}</span>
+        <span class="trail-meta-item">⏱ ${t.time}</span>
+        <span class="trail-meta-item">💰 ${t.budget}</span>
+      </div>
+      ${t.tags.length ? `<div class="trail-tags">${t.tags.map(tag=>`<span class="trail-tag ${tag}">${tagLabel(tag)}</span>`).join('')}</div>` : ''}
+      <div class="stops-list">
+        ${t.stops.map((s,i)=>`
+          <div class="stop-item">
+            <div class="stop-num" style="background:${t.color}">${i+1}</div>
+            <div class="stop-info">
+              <div class="stop-name">${s.name}</div>
+              <div class="stop-detail">${s.detail}</div>
+              <div class="stop-price">${s.price}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <button class="btn-open-trail" style="background:${t.color}"
+        onclick="event.stopPropagation();openMapTrail('${t.id}')">
+        🗺️ Open on Map
+      </button>
+    </div>`).join('');
+}
+
+function tagLabel(t) {
+  const m = {student:'🎒 Student-friendly',night:'🌙 Night',
+             pakhala:'🌿 Pakhala',heritage:'📜 Heritage'};
+  return m[t]||t;
+}
+
+function filterTrails(filter, btn) {
+  activeFilter = filter;
+  document.querySelectorAll('.trail-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTrailList();
+}
+
+function selectTrail(id) {
+  activeTrailId = id;
+  renderTrailList();
+  openMapTrail(id);
+}
+
+function openMapTrail(trailId) {
+  const trail = TRAILS.find(t=>t.id===trailId);
+  if (!trail||!map) return;
+
+  // Clear previous
+  markers.forEach(m=>map.removeLayer(m));
+  polylines.forEach(p=>map.removeLayer(p));
+  markers = []; polylines = [];
+
+  const coords = trail.stops.map(s=>[s.lat,s.lng]);
+
+  // Draw route line
+  const line = L.polyline(coords, {color:trail.color,weight:3,opacity:.7,dashArray:'6,6'}).addTo(map);
+  polylines.push(line);
+
+  // Add numbered markers
+  trail.stops.forEach((stop,i) => {
+    const icon = L.divIcon({
+      className:'',
+      html:`<div style="background:${trail.color};color:#fff;width:28px;height:28px;
+        border-radius:50%;display:flex;align-items:center;justify-content:center;
+        font-size:.78rem;font-weight:700;border:2px solid #fff;
+        box-shadow:0 2px 8px rgba(0,0,0,.3)">${i+1}</div>`,
+      iconSize:[28,28],iconAnchor:[14,14]
+    });
+    const marker = L.marker([stop.lat,stop.lng],{icon}).addTo(map)
+      .bindPopup(`<strong>${stop.name}</strong><br>
+        <span style="color:#888;font-size:.78rem">${stop.detail}</span><br>
+        <strong style="color:${trail.color}">${stop.price}</strong>`);
+    markers.push(marker);
+  });
+
+  // Fit map to trail
+  if (coords.length > 1) map.fitBounds(coords,{padding:[40,40]});
+  else map.setView(coords[0],16);
+
+  // Open first popup
+  if (markers.length) markers[0].openPopup();
+}
+
+// Init map
+window.addEventListener('DOMContentLoaded', () => {
+  map = L.map('trailMap',{zoomControl:true}).setView([20.296,85.824],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap contributors',maxZoom:19
+  }).addTo(map);
+
+  renderTrailList();
+  // Load first trail on map
+  setTimeout(()=>openMapTrail(TRAILS[0].id),300);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+    <!-- SEO + Social Sharing -->
+  <meta name="description" content="Track weekly haats and festival food zones in Khordha. Find local organic markets and temple food during Raja, Rath Yatra and more."/>
+  <meta property="og:title" content="Haats & Festival Food — FoodieRadar Khordha"/>
+  <meta property="og:description" content="Track weekly haats and festival food zones in Khordha. Find local organic markets and temple food during Raja, Rath Yatra and more."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://foodieradar.vercel.app/haat-festival.html"/>
+  <meta property="og:image" content="https://foodieradar.vercel.app/og-image.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Haats & Festival Food — FoodieRadar Khordha"/>
+  <meta name="twitter:description" content="Track weekly haats and festival food zones in Khordha. Find local organic markets and temple food during Raja, Rath Yatra and more."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#E8670A"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Haats & Festival Food Zones — FoodieRadar Khordha</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="smart-mode.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=DM+Sans:wght@300;400;500;600;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --saffron:#E8670A;--turmeric:#F5A623;--clay:#C04A1B;
+      --soil:#1C0F06;--cream:#FDF6EC;--mist:#FAF0E2;
+      --leaf:#2E7D32;--border:#E8D5BF;--subtext:#6B4C35;--card:#fff;
+      --indigo:#1A237E;--teal:#00695C;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--soil)}
+
+    
+    
+    
+    
+    
+
+    /* PAGE TABS */
+    .page-tabs{
+      background:var(--card);border-bottom:1px solid var(--border);
+      padding:0 5%;display:flex;gap:0;
+    }
+    .page-tab{
+      padding:14px 24px;font-size:.88rem;font-weight:600;cursor:pointer;
+      border-bottom:3px solid transparent;color:var(--subtext);
+      transition:all .18s;background:transparent;border-top:none;border-left:none;border-right:none;
+      font-family:'DM Sans',sans-serif;
+    }
+    .page-tab.active{color:var(--saffron);border-bottom-color:var(--saffron)}
+    .page-tab:hover:not(.active){color:var(--soil)}
+
+    /* SECTION PANELS */
+    .panel{display:none}
+    .panel.active{display:block}
+
+    /* ─── HAAT TRACKER ─────────────────────────────────────────── */
+    .haat-hero{
+      background:linear-gradient(145deg,#004D40,#00695C);
+      padding:48px 5% 40px;position:relative;overflow:hidden;
+    }
+    .haat-hero::after{content:'🛒';position:absolute;right:6%;top:50%;
+      transform:translateY(-50%);font-size:7rem;opacity:.08}
+    .hero-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.12em;color:#80CBC4;margin-bottom:10px}
+    .haat-hero h1{font-family:'Yeseva One',serif;font-size:clamp(1.8rem,4vw,2.8rem);
+      color:#fff;line-height:1.1;margin-bottom:8px}
+    .haat-hero h1 em{color:#80CBC4;font-style:normal}
+    .haat-hero p{color:rgba(255,255,255,.5);font-size:.9rem;max-width:400px;line-height:1.7}
+
+    /* WEEK STRIP */
+    .week-strip{
+      background:var(--card);border-bottom:1px solid var(--border);
+      padding:0 5%;display:flex;gap:0;overflow-x:auto;
+    }
+    .day-btn{
+      padding:14px 20px;font-size:.82rem;font-weight:600;cursor:pointer;
+      border-bottom:3px solid transparent;color:var(--subtext);white-space:nowrap;
+      border-top:none;border-left:none;border-right:none;background:transparent;
+      font-family:'DM Sans',sans-serif;transition:all .18s;
+    }
+    .day-btn.active{color:var(--teal);border-bottom-color:var(--teal)}
+    .day-btn.today-btn{color:var(--saffron)}
+    .day-btn.today-btn.active{border-bottom-color:var(--saffron)}
+    .today-dot{display:inline-block;width:5px;height:5px;
+      border-radius:50%;background:var(--saffron);margin-left:4px;vertical-align:middle}
+
+    .haats-main{max-width:960px;margin:0 auto;padding:32px 5% 60px}
+
+    /* HAAT CARD */
+    .haats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+    .haat-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:16px;overflow:hidden;transition:all .22s;
+      box-shadow:0 2px 8px rgba(28,15,6,.06);
+    }
+    .haat-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,105,92,.15);
+      border-color:rgba(0,105,92,.3)}
+    .haat-card.active-today{border-color:var(--saffron);
+      box-shadow:0 4px 16px rgba(232,103,10,.2)}
+
+    .haat-header{
+      background:linear-gradient(135deg,#00695C,#004D40);
+      padding:18px 20px;display:flex;align-items:center;justify-content:space-between;
+    }
+    .haat-name{font-family:'Yeseva One',serif;font-size:1rem;color:#fff;margin-bottom:2px}
+    .haat-area{font-size:.74rem;color:rgba(255,255,255,.55)}
+    .haat-day-badge{
+      background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+      color:#fff;font-size:.72rem;font-weight:700;padding:4px 10px;
+      border-radius:20px;white-space:nowrap;
+    }
+    .haat-day-badge.today-badge{background:var(--saffron);border-color:var(--saffron)}
+
+    .haat-body{padding:16px}
+    .haat-time{font-size:.78rem;color:var(--saffron);font-weight:600;margin-bottom:8px}
+    .haat-desc{font-size:.78rem;color:var(--subtext);line-height:1.6;margin-bottom:12px}
+    .haat-sells-label{font-size:.7rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.08em;color:var(--subtext);margin-bottom:6px}
+    .haat-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+    .haat-tag{font-size:.72rem;background:var(--mist);border:1px solid var(--border);
+      color:var(--subtext);padding:2px 8px;border-radius:20px}
+    .haat-tag.seasonal{background:rgba(46,125,50,.08);border-color:rgba(46,125,50,.25);
+      color:var(--leaf)}
+    .haat-distance{font-size:.76rem;color:var(--subtext);
+      display:flex;align-items:center;gap:5px}
+    .btn-directions{
+      float:right;padding:6px 14px;background:var(--teal);color:#fff;
+      border:none;border-radius:8px;font-family:'DM Sans',sans-serif;
+      font-size:.76rem;font-weight:600;cursor:pointer;transition:background .18s;
+    }
+    .btn-directions:hover{background:#004D40}
+
+    /* EMPTY STATE */
+    .haats-empty{
+      background:var(--mist);border:1.5px dashed var(--border);
+      border-radius:14px;padding:40px;text-align:center;
+      color:var(--subtext);font-size:.9rem;
+    }
+
+    /* ─── FESTIVAL ZONES ────────────────────────────────────────── */
+    .fest-hero{
+      background:linear-gradient(145deg,#4A0012,#7B0022);
+      padding:48px 5% 40px;position:relative;overflow:hidden;
+    }
+    .fest-hero::after{content:'🎪';position:absolute;right:6%;top:50%;
+      transform:translateY(-50%);font-size:7rem;opacity:.08}
+    .fest-hero h1{font-family:'Yeseva One',serif;font-size:clamp(1.8rem,4vw,2.8rem);
+      color:#fff;line-height:1.1;margin-bottom:8px}
+    .fest-hero h1 em{color:#F48FB1;font-style:normal}
+    .fest-hero p{color:rgba(255,255,255,.5);font-size:.9rem;max-width:400px;line-height:1.7}
+
+    /* FESTIVAL SELECTOR */
+    .fest-selector{
+      background:var(--card);border-bottom:1px solid var(--border);
+      padding:16px 5%;display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    }
+    .fest-chip{
+      padding:8px 18px;border-radius:50px;font-size:.82rem;font-weight:600;
+      cursor:pointer;border:1.5px solid var(--border);background:transparent;
+      color:var(--subtext);font-family:'DM Sans',sans-serif;transition:all .18s;
+    }
+    .fest-chip.active{background:#7B0022;border-color:#7B0022;color:#fff}
+    .fest-chip:hover:not(.active){border-color:var(--clay);color:var(--clay)}
+
+    .fest-main{max-width:960px;margin:0 auto;padding:32px 5% 60px}
+
+    /* FESTIVAL OVERVIEW CARD */
+    .fest-overview{
+      background:linear-gradient(135deg,#4A0012,#7B0022);
+      border-radius:20px;padding:28px;color:#fff;margin-bottom:28px;
+      position:relative;overflow:hidden;
+    }
+    .fest-overview::before{content:'';position:absolute;inset:0;
+      background:radial-gradient(ellipse at 80% 20%,rgba(244,143,177,.12) 0%,transparent 60%)}
+    .fest-name{font-family:'Yeseva One',serif;font-size:1.5rem;margin-bottom:4px;position:relative}
+    .fest-odia{font-family:'Tiro Devanagari Hindi',serif;
+      color:rgba(255,255,255,.4);font-size:.88rem;margin-bottom:10px;position:relative}
+    .fest-about{font-size:.84rem;color:rgba(255,255,255,.6);line-height:1.7;
+      max-width:500px;margin-bottom:16px;position:relative}
+    .fest-meta-row{display:flex;gap:14px;flex-wrap:wrap;position:relative}
+    .fest-meta-item{
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+      padding:8px 14px;border-radius:10px;font-size:.76rem;color:rgba(255,255,255,.7);
+    }
+    .fest-meta-item strong{display:block;color:#F48FB1;font-size:.82rem;margin-bottom:1px}
+
+    /* ZONES MAP + LIST */
+    #festMap{height:380px;border-radius:16px;margin-bottom:24px;
+      border:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+
+    .zones-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+    .zone-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:14px;padding:18px;transition:all .22s;
+    }
+    .zone-card:hover{border-color:rgba(123,0,34,.3);transform:translateY(-2px);
+      box-shadow:0 6px 20px rgba(123,0,34,.1)}
+    .zone-num-big{
+      font-family:'Yeseva One',serif;font-size:2.2rem;color:#7B0022;
+      opacity:.25;line-height:1;margin-bottom:4px;
+    }
+    .zone-name-big{font-family:'Yeseva One',serif;font-size:1rem;color:var(--soil);margin-bottom:4px}
+    .zone-desc-txt{font-size:.78rem;color:var(--subtext);line-height:1.5;margin-bottom:10px}
+    .zone-foods{display:flex;flex-wrap:wrap;gap:5px}
+    .zone-food-tag{font-size:.7rem;background:rgba(123,0,34,.06);
+      border:1px solid rgba(123,0,34,.15);color:#7B0022;
+      padding:2px 8px;border-radius:20px}
+
+    /* SECTION TITLE */
+    .sec-title{font-family:'Yeseva One',serif;font-size:1.3rem;color:var(--soil);
+      margin-bottom:6px}
+    .sec-sub{font-size:.82rem;color:var(--subtext);margin-bottom:20px}
+
+    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;
+      background:var(--soil);color:#fff;padding:12px 20px;border-radius:10px;
+      font-size:.88rem;border-left:3px solid var(--saffron);
+      box-shadow:0 8px 24px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;
+      transition:all .3s;pointer-events:none}
+    .toast.show{transform:translateY(0);opacity:1}
+
+    /* Leaflet popup */
+    .leaflet-popup-content-wrapper{border-radius:12px !important;font-family:'DM Sans',sans-serif !important}
+    .popup-name{font-weight:700;font-size:.9rem;margin-bottom:2px}
+    .popup-sub{font-size:.75rem;color:#666}
+
+    @media(max-width:600px){
+      .page-tab{padding:12px 14px;font-size:.78rem}
+      .day-btn{padding:12px 12px;font-size:.76rem}
+    }
+  
+    /* ── NAV ─────────────────────────────────────────────────────────────────── */
+    nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.96);
+      -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);padding:0 5%;
+      display:flex;align-items:center;justify-content:space-between;
+      height:68px;transition:height .25s,box-shadow .25s}
+    nav.scrolled{height:56px;box-shadow:0 4px 24px rgba(28,15,6,.10)}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--saffron),var(--clay));
+      border-radius:12px;display:flex;align-items:center;justify-content:center;
+      font-size:19px;box-shadow:0 3px 10px rgba(232,103,10,.4);transition:transform .2s}
+    .nav-logo:hover .nav-logo-icon{transform:rotate(-8deg) scale(1.08)}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.22rem;font-weight:900;
+      color:var(--soil);letter-spacing:-0.02em;line-height:1}
+    .nav-logo-sub{display:block;font-family:'DM Sans',sans-serif;font-size:.6rem;font-weight:600;
+      color:var(--subtext);letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
+    .nav-links{display:flex;align-items:center;gap:2px;list-style:none;
+      background:rgba(28,15,6,.04);border:1px solid var(--border);
+      border-radius:50px;padding:4px 6px}
+    .nav-links li a{text-decoration:none;color:var(--subtext);font-size:.82rem;font-weight:500;
+      padding:6px 13px;border-radius:50px;transition:all .18s;
+      display:flex;align-items:center;gap:5px;white-space:nowrap}
+    .nav-links li a:hover{color:var(--saffron);background:rgba(232,103,10,.08)}
+    .nav-links li a.active{color:var(--saffron);background:rgba(232,103,10,.12);font-weight:600}
+    .nav-actions{display:flex;align-items:center;gap:10px}
+    .nav-back{display:flex;align-items:center;gap:6px;padding:7px 14px;
+      border:1.5px solid var(--border);border-radius:50px;font-size:.82rem;
+      font-weight:600;color:var(--subtext);text-decoration:none;transition:all .18s;white-space:nowrap}
+    .nav-back:hover{border-color:var(--saffron);color:var(--saffron);background:rgba(232,103,10,.06)}
+    .nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;
+      padding:6px;border:none;background:transparent}
+    .nav-hamburger span{display:block;width:22px;height:2px;background:var(--soil);
+      border-radius:2px;transition:all .25s}
+    .nav-hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+    .nav-hamburger.open span:nth-child(2){opacity:0}
+    .nav-hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+    .nav-drawer{display:none;position:fixed;inset:0;top:56px;
+      background:rgba(253,246,236,.98);-webkit-backdrop-filter:blur(20px);
+      backdrop-filter:blur(20px);z-index:998;flex-direction:column;
+      padding:24px 6%;border-top:1px solid var(--border)}
+    .nav-drawer.open{display:flex}
+    .nav-drawer a{text-decoration:none;color:var(--soil);font-size:1.1rem;font-weight:600;
+      padding:14px 0;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:12px}
+    .nav-drawer a:last-child{border-bottom:none}
+    @media(max-width:860px){.nav-links{display:none}.nav-hamburger{display:flex}}
+  </style>
+</head>
+<body>
+
+<nav id="mainNav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">🍛</div>
+    <div>
+      <span class="nav-logo-text">Foodie<span class="accent">Radar</span></span>
+      <span class="nav-logo-sub">Khordha District</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">🗺️ Explore</a></li>
+    <li><a href="index.html#map-section">📍 Map</a></li>
+    <li><a href="events.html" class="active">🎪 Events</a></li>
+    <li><a href="food-trails.html">🥾 Trails</a></li>
+    <li><a href="food-dictionary.html">📖 Dictionary</a></li>
+    <li><a href="passport.html">🏅 Passport</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="index.html" class="nav-back">← Radar</a>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="index.html" onclick="closeDrawer()">🗺️ Explore Spots</a>
+  <a href="events.html">🎪 Food Events</a>
+  <a href="food-trails.html">🥾 Food Trails</a>
+  <a href="food-dictionary.html">📖 Food Dictionary</a>
+  <a href="passport.html">🏅 My Passport</a>
+  <a href="haat-festival.html">🛒 Haat Tracker</a>
+  <a href="tiffin.html">🍱 Home Tiffin</a>
+  <a href="cook-off.html">🥊 Cook-Off Battles</a>
+</div>
+
+<!-- PAGE TABS -->
+<div class="page-tabs">
+  <button class="page-tab active" onclick="switchPanel('haat', this)">🛒 Haat Tracker</button>
+  <button class="page-tab"        onclick="switchPanel('fest', this)">🎪 Festival Food Zones</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  PANEL 1: HAAT TRACKER                                         -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="panel active" id="panel-haat">
+  <div class="haat-hero">
+    <div class="hero-tag">📅 Live Schedule</div>
+    <h1>Khordha <em>Haat</em><br>Tracker</h1>
+    <p>Weekly bazaars, farmers markets, and local haats across Khordha district — updated every week.</p>
+  </div>
+
+  <!-- DAY SELECTOR -->
+  <div class="week-strip" id="dayStrip"></div>
+
+  <div class="haats-main">
+    <div id="haatDayTitle" style="font-family:'Yeseva One',serif;font-size:1.3rem;
+      color:var(--soil);margin-bottom:16px"></div>
+    <div class="haats-grid" id="haatsGrid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  PANEL 2: FESTIVAL FOOD ZONES                                  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-fest">
+  <div class="fest-hero">
+    <div class="hero-tag">🎪 Seasonal Food Maps</div>
+    <h1>Festival <em>Food</em><br>Zones</h1>
+    <p>Where to eat during Odisha's biggest festivals — Raja, Rath Yatra, Pana Sankranti & more.</p>
+  </div>
+
+  <!-- FESTIVAL SELECTOR -->
+  <div class="fest-selector">
+    <button class="fest-chip active" onclick="selectFest('raja',this)">🌺 Raja Festival</button>
+    <button class="fest-chip" onclick="selectFest('rath',this)">🛕 Rath Yatra</button>
+    <button class="fest-chip" onclick="selectFest('pana',this)">🌿 Pana Sankranti</button>
+    <button class="fest-chip" onclick="selectFest('nuakhai',this)">🌾 Nuakhai</button>
+  </div>
+
+  <div class="fest-main">
+    <!-- Overview card -->
+    <div class="fest-overview" id="festOverview"></div>
+
+    <!-- Map -->
+    <div class="sec-title">Food Zone Map</div>
+    <div class="sec-sub">Tap a marker to see what food is available at each zone</div>
+    <div id="festMap"></div>
+
+    <!-- Zone Cards -->
+    <div class="sec-title">All Food Zones</div>
+    <div class="sec-sub" id="festZoneSub"></div>
+    <div class="zones-grid" id="festZonesGrid"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── HAAT DATA ────────────────────────────────────────────────────────────────
+  const HAATS = [
+    {name:'Balipatna Farmers Haat',  area:'Balipatna',      days:[5],     // Friday
+     time:'6am–1pm', lat:20.264, lng:85.820,
+     desc:'Largest weekly haat in rural Khordha. Fresh vegetables, fish, and local produce direct from farmers.',
+     sells:['Vegetables','Fish','Mahua','Kendu Leaves','Rice','Local Spices'],
+     seasonal:['Mahua','Kendu']},
+    {name:'Jatni Wednesday Market',  area:'Jatni',          days:[3],     // Wednesday
+     time:'7am–2pm', lat:20.274, lng:85.837,
+     desc:'Mid-week market known for fresh catch and seasonal produce. Very affordable prices.',
+     sells:['Fish','Crab','Vegetables','Fruits','Dairy'],seasonal:['Crab']},
+    {name:'Old Town Sunday Bazaar',  area:'Old Town, BBSR', days:[0],     // Sunday
+     time:'6am–12pm',lat:20.296, lng:85.824,
+     desc:'Largest urban weekly market. Everything from fresh produce to dry goods and street food.',
+     sells:['Vegetables','Fruits','Dry Fish','Pulses','Spices','Street Food'],seasonal:['Saga']},
+    {name:'Unit 9 Daily Market',     area:'Unit 9, BBSR',   days:[0,1,2,3,4,5,6],
+     time:'6am–10am',lat:20.320, lng:85.830,
+     desc:'Daily morning market — fresh vegetables and fish every single day.',
+     sells:['Vegetables','Fish','Dairy','Eggs'],seasonal:[]},
+    {name:'Khordha Town Haat',       area:'Khordha Town',   days:[2,6],   // Tue, Sat
+     time:'7am–1pm', lat:20.182, lng:85.607,
+     desc:'Twice-weekly haat at the old Khordha market ground. Known for local tribal produce.',
+     sells:['Forest Produce','Tubers','Honey','Vegetables','Dry Fish'],seasonal:['Honey','Tubers']},
+    {name:'Bhubaneswar Organic Haat',area:'Ekamra Haat',    days:[6,0],   // Sat, Sun
+     time:'8am–2pm', lat:20.289, lng:85.825,
+     desc:'Curated organic and natural products market at Ekamra Haat. Includes local artisan foods.',
+     sells:['Organic Veg','Millets','Cold-pressed Oil','Herbal Products','Natural Honey'],seasonal:[]},
+    {name:'Balianta Market',         area:'Balianta',       days:[1,4],   // Mon, Thu
+     time:'6am–11am',lat:20.312, lng:85.756,
+     desc:'Local haat near Balianta junction — affordable daily essentials.',
+     sells:['Vegetables','Rice','Fish','Household Items'],seasonal:[]},
+  ];
+
+  // ── FESTIVAL DATA ─────────────────────────────────────────────────────────────
+  const FESTIVALS = {
+    raja: {
+      name:'Raja Festival',odia:'ରଜ ମହୋତ୍ସବ',
+      about:'Three-day festival celebrating womanhood and the onset of monsoon. Bhubaneswar fills with swings, traditional games, and special Odia foods available only during Raja.',
+      dates:'Typically mid-June',area:'All of Bhubaneswar',
+      bestFor:'Poda Pitha, Chitou Pitha, Enduri Pitha, Arisa Pitha',
+      zones:[
+        {num:'01',name:'Old Town Swing Bazaar',    lat:20.296,lng:85.824,
+         desc:'Central hub for Raja sweets and traditional pitha making. Women sell homemade pithas.',
+         foods:['Poda Pitha','Arisa Pitha','Chungudi Pitha','Raja Sweets']},
+        {num:'02',name:'Master Canteen Festival Row',lat:20.298,lng:85.818,
+         desc:'Street food corridor that transforms during Raja — special stalls open only these 3 days.',
+         foods:['Chitou Pitha','Manda Pitha','Traditional Sweets','Fruit Chaat']},
+        {num:'03',name:'Ekamra Haat Special Mela',  lat:20.289,lng:85.825,
+         desc:'Cultural festival ground hosting food stalls, craft vendors, and live performances.',
+         foods:['Pitha Stalls','Odia Thali','Local Sweets','Sugarcane Juice']},
+        {num:'04',name:'Saheed Nagar Evening Strip', lat:20.311,lng:85.824,
+         desc:'Evening market that stays open until midnight during Raja. Popular with youth.',
+         foods:['Chaat','Ice Cream','Grilled Corn','Noodles','Pitha']},
+      ]
+    },
+    rath: {
+      name:'Rath Yatra',odia:'ରଥ ଯାତ୍ରା',
+      about:'The grand chariot festival of Lord Jagannath. Though centered in Puri, Bhubaneswar holds its own Rath processions with massive food gatherings along the route.',
+      dates:'July (Ashadha Shukla Dwitiya)',area:'Old Town, BBSR to Gundicha route',
+      bestFor:'Mahaprasad, Khechudi, Dalma, Enduri Pitha',
+      zones:[
+        {num:'01',name:'Lingaraj Temple Road Stalls',lat:20.238,lng:85.833,
+         desc:'Traditional Mahaprasad-inspired food stalls — sattvic cooking, no onion/garlic.',
+         foods:['Mahaprasad','Khechudi','Dalma','Kanika','Kheer']},
+        {num:'02',name:'Rath Road Food Row',         lat:20.296,lng:85.824,
+         desc:'Along the chariot route — dozens of temporary food stalls set up for 3 days.',
+         foods:['Odia Thali','Puri Sabji','Lassi','Prasad Distribution']},
+        {num:'03',name:'Bindusagar Lake Area',       lat:20.238,lng:85.836,
+         desc:'Sacred tank area with food vendors offering simple, devotional meals.',
+         foods:['Sattu','Coconut Water','Kheer','Pitha']},
+      ]
+    },
+    pana: {
+      name:'Pana Sankranti',odia:'ପଣା ସଂକ୍ରାନ୍ତି',
+      about:'Odia New Year — celebrated with Pana (sweet drink) made from various fruits. Community gatherings distribute Pana freely throughout Bhubaneswar.',
+      dates:'April 14–15 (Mesha Sankranti)',area:'Temples and community halls across BBSR',
+      bestFor:'Pana drink, Bela Pana, Dahi Pana, Coconut Pana',
+      zones:[
+        {num:'01',name:'Old Town Pana Distribution', lat:20.296,lng:85.824,
+         desc:'Community groups distribute free Pana to all visitors outside major temples.',
+         foods:['Bela Pana','Coconut Pana','Dahi Pana','Sweet Lassi','Fruits']},
+        {num:'02',name:'Unit 4 Community Gathering', lat:20.306,lng:85.814,
+         desc:'Large community Pana Sankranti gathering with food distribution and cultural programs.',
+         foods:['Various Pana','Odia Sweets','Chuda','Dahi','Fruits']},
+        {num:'03',name:'New Town Temple Area',        lat:20.319,lng:85.819,
+         desc:'Temple clusters in New Town area host annual Pana Sankranti food events.',
+         foods:['Pana','Kheer','Sweets','Coconut Water']},
+      ]
+    },
+    nuakhai: {
+      name:'Nuakhai Festival',odia:'ନୂଆଖାଇ',
+      about:'Harvest festival of Western Odisha — celebrated in Khordha by communities from that region. New rice is cooked and offered first to the deity, then shared with family.',
+      dates:'September (after Ganesh Chaturthi)',area:'Community halls, BBSR & Khordha',
+      bestFor:'New Rice (Nua Chaula), Kheer, Dalma, Arisa Pitha',
+      zones:[
+        {num:'01',name:'Kalinga Vihar Community Hall', lat:20.330,lng:85.810,
+         desc:'Large Nuakhai gathering — new rice cooked and distributed to hundreds of families.',
+         foods:['Nua Chaula Bhaat','Kheer','Dalma','Arisa Pitha','Laddoo']},
+        {num:'02',name:'VSS Nagar Cultural Ground',    lat:20.316,lng:85.821,
+         desc:'Annual community feast celebrating harvest — open to all visitors.',
+         foods:['Pitha','New Rice Kheer','Traditional Odia Meals','Sweets']},
+      ]
+    }
+  };
+
+  // ── STATE ─────────────────────────────────────────────────────────────────────
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const DAYS_S = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let selectedDay  = new Date().getDay();
+  let selectedFest = 'raja';
+  let festMap      = null;
+  let festMarkers  = [];
+
+  // ── PANEL SWITCH ──────────────────────────────────────────────────────────────
+  function switchPanel(id, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.page-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    btn.classList.add('active');
+    if (id === 'fest' && !festMap) initFestMap();
+  }
+
+  // ── HAAT TRACKER ──────────────────────────────────────────────────────────────
+  function buildDayStrip() {
+    const today = new Date().getDay();
+    const strip = document.getElementById('dayStrip');
+    strip.innerHTML = DAYS_S.map((d, i) => `
+      <button class="day-btn ${i === selectedDay ? 'active' : ''} ${i === today ? 'today-btn' : ''}"
+        onclick="selectDay(${i}, this)">
+        ${d}${i === today ? '<span class="today-dot"></span>' : ''}
+      </button>`
+    ).join('');
+  }
+
+  function selectDay(day, btn) {
+    selectedDay = day;
+    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderHaats();
+  }
+
+  function renderHaats() {
+    const today   = new Date().getDay();
+    const isToday = selectedDay === today;
+    const haats   = HAATS.filter(h => h.days.includes(selectedDay));
+
+    document.getElementById('haatDayTitle').textContent =
+      (isToday ? 'Today — ' : '') + DAYS[selectedDay] + ' Haats';
+
+    if (haats.length === 0) {
+      document.getElementById('haatsGrid').innerHTML = `
+        <div class="haats-empty" style="grid-column:1/-1">
+          😴 No haats on ${DAYS[selectedDay]}.<br>
+          <span style="font-size:.82rem;margin-top:6px;display:block">
+            Try another day — Friday, Saturday, and Sunday have the most activity.
+          </span>
+        </div>`;
+      return;
+    }
+
+    document.getElementById('haatsGrid').innerHTML = haats.map(h => `
+      <div class="haat-card ${isToday ? 'active-today' : ''}">
+        <div class="haat-header">
+          <div>
+            <div class="haat-name">${h.name}</div>
+            <div class="haat-area">📍 ${h.area}</div>
+          </div>
+          <div class="haat-day-badge ${isToday ? 'today-badge' : ''}">
+            ${isToday ? '● Today' : DAYS[selectedDay]}
+          </div>
+        </div>
+        <div class="haat-body">
+          <div class="haat-time">⏰ ${h.time}</div>
+          <div class="haat-desc">${h.desc}</div>
+          <div class="haat-sells-label">Available at this Haat</div>
+          <div class="haat-tags">
+            ${h.sells.map(s => `
+              <span class="haat-tag ${h.seasonal.includes(s) ? 'seasonal' : ''}">${s}</span>
+            `).join('')}
+          </div>
+          ${h.seasonal.length > 0
+            ? `<div style="font-size:.72rem;color:var(--leaf);margin-bottom:10px">
+                🌿 Seasonal: ${h.seasonal.join(', ')} in season
+               </div>` : ''}
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="haat-distance">📍 ${h.area}</div>
+            <button class="btn-directions"
+              onclick="window.open('https://www.openstreetmap.org/?mlat=${h.lat}&mlon=${h.lng}#map=16/${h.lat}/${h.lng}','_blank')">
+              Directions →
+            </button>
+          </div>
+        </div>
+      </div>`
+    ).join('');
+  }
+
+  // ── FESTIVAL ZONES ────────────────────────────────────────────────────────────
+  function selectFest(id, btn) {
+    selectedFest = id;
+    document.querySelectorAll('.fest-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    renderFestPanel();
+  }
+
+  function renderFestPanel() {
+    const f = FESTIVALS[selectedFest];
+
+    document.getElementById('festOverview').innerHTML = `
+      <div class="fest-name">${f.name}</div>
+      <div class="fest-odia">${f.odia}</div>
+      <div class="fest-about">${f.about}</div>
+      <div class="fest-meta-row">
+        <div class="fest-meta-item"><strong>📅 Dates</strong>${f.dates}</div>
+        <div class="fest-meta-item"><strong>📍 Area</strong>${f.area}</div>
+        <div class="fest-meta-item"><strong>🍛 Best For</strong>${f.bestFor}</div>
+      </div>`;
+
+    document.getElementById('festZoneSub').textContent =
+      f.zones.length + ' food zones mapped for ' + f.name;
+
+    document.getElementById('festZonesGrid').innerHTML = f.zones.map(z => `
+      <div class="zone-card">
+        <div class="zone-num-big">${z.num}</div>
+        <div class="zone-name-big">${z.name}</div>
+        <div class="zone-desc-txt">${z.desc}</div>
+        <div class="zone-foods">
+          ${z.foods.map(food => `<span class="zone-food-tag">${food}</span>`).join('')}
+        </div>
+      </div>`
+    ).join('');
+
+    updateFestMap(f);
+  }
+
+  function initFestMap() {
+    festMap = L.map('festMap').setView([20.296, 85.824], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'© OpenStreetMap',maxZoom:18
+    }).addTo(festMap);
+    renderFestPanel();
+  }
+
+  function updateFestMap(f) {
+    if (!festMap) return;
+    festMarkers.forEach(m => m.remove());
+    festMarkers = [];
+
+    const icon = L.divIcon({
+      className:'',
+      html:`<div style="background:#7B0022;width:24px;height:24px;border-radius:50% 50% 50% 0;
+        transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
+      iconSize:[24,24],iconAnchor:[12,24],popupAnchor:[0,-28]
+    });
+
+    f.zones.forEach(z => {
+      const m = L.marker([z.lat, z.lng], {icon})
+        .addTo(festMap)
+        .bindPopup(`<div class="popup-name">${z.name}</div>
+          <div class="popup-sub">${z.foods.slice(0,3).join(' · ')}</div>`);
+      festMarkers.push(m);
+    });
+
+    if (f.zones.length > 0) {
+      festMap.setView([f.zones[0].lat, f.zones[0].lng], 13);
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────────
+  buildDayStrip();
+  renderHaats();
+</script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+    <!-- SEO + Social Sharing -->
+  <meta name="description" content="Community voted best Odia Thali in Khordha this week. Nominate and vote for your favourite."/>
+  <meta property="og:title" content="Thali of the Week — FoodieRadar Khordha"/>
+  <meta property="og:description" content="Community voted best Odia Thali in Khordha this week. Nominate and vote for your favourite."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://foodieradar.vercel.app/thali-week.html"/>
+  <meta property="og:image" content="https://foodieradar.vercel.app/og-image.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Thali of the Week — FoodieRadar Khordha"/>
+  <meta name="twitter:description" content="Community voted best Odia Thali in Khordha this week. Nominate and vote for your favourite."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#E8670A"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Odia Thali of the Week — FoodieRadar Khordha</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Central config — db client already initialised here -->
+  <script src="config.js"></script>
+  <script src="smart-mode.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=DM+Sans:wght@300;400;500;600;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --saffron:#E8670A; --turmeric:#F5A623; --clay:#C04A1B;
+      --soil:#1C0F06;    --cream:#FDF6EC;    --mist:#FAF0E2;
+      --leaf:#2E7D32;    --border:#E8D5BF;   --subtext:#6B4C35;
+      --card:#FFFFFF;    --deep:#0D0600;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--soil);min-height:100vh}
+
+    /* NAV */
+    
+    
+    
+    
+    
+
+    /* HERO — deep terracotta with mandala pattern */
+    .thali-hero{
+      background:linear-gradient(145deg,#2C0E04 0%,#5C1A06 50%,#2C0E04 100%);
+      padding:56px 5% 48px; position:relative; overflow:hidden;
+    }
+    /* Mandala ring decoration */
+    .thali-hero::before{
+      content:'';position:absolute;right:-80px;top:-80px;
+      width:400px;height:400px;border-radius:50%;
+      border:40px solid rgba(245,166,35,.06);
+      box-shadow:inset 0 0 0 20px rgba(245,166,35,.04),
+                 inset 0 0 0 40px rgba(245,166,35,.03);
+    }
+    .thali-hero::after{
+      content:'🍛';font-size:7rem;
+      position:absolute;right:6%;top:50%;transform:translateY(-50%);
+      opacity:.08;filter:grayscale(0.3);
+    }
+    .hero-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.12em;color:var(--turmeric);margin-bottom:12px}
+    .thali-hero h1{
+      font-family:'Yeseva One',serif;font-size:clamp(2.2rem,5vw,3.4rem);
+      color:#fff;line-height:1.1;margin-bottom:8px;
+    }
+    .thali-hero h1 em{color:var(--turmeric);font-style:normal}
+    .hero-odia{font-family:'Tiro Devanagari Hindi',serif;font-size:1rem;
+      color:rgba(255,255,255,.35);margin-bottom:14px}
+    .thali-hero p{color:rgba(255,255,255,.5);font-size:.9rem;
+      max-width:400px;line-height:1.7}
+
+    /* MAIN */
+    .main{max-width:960px;margin:0 auto;padding:40px 5% 60px}
+
+    /* WINNER CARD */
+    .winner-wrap{
+      background:var(--deep);border-radius:24px;padding:36px;
+      position:relative;overflow:hidden;margin-bottom:36px;
+      box-shadow:0 20px 60px rgba(0,0,0,.3);
+    }
+    .winner-wrap::before{
+      content:'';position:absolute;inset:0;
+      background:radial-gradient(ellipse at 30% 50%,rgba(232,103,10,.15) 0%,transparent 60%),
+                 radial-gradient(ellipse at 80% 20%,rgba(245,166,35,.1) 0%,transparent 50%);
+    }
+    .winner-crown{
+      font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+      color:var(--turmeric);margin-bottom:12px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .winner-crown::before,.winner-crown::after{
+      content:'';flex:1;height:1px;background:rgba(245,166,35,.25);
+    }
+    .winner-body{
+      display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;
+      position:relative;z-index:1;
+    }
+    .winner-thali-visual{
+      background:linear-gradient(135deg,rgba(232,103,10,.15),rgba(245,166,35,.1));
+      border:1px solid rgba(245,166,35,.2);border-radius:20px;
+      padding:28px;text-align:center;
+    }
+    .thali-ring{
+      width:180px;height:180px;border-radius:50%;
+      background:linear-gradient(135deg,#8B4513,#5C2A0A);
+      margin:0 auto 16px;
+      border:6px solid rgba(245,166,35,.4);
+      display:flex;align-items:center;justify-content:center;
+      font-size:4rem;
+      box-shadow:0 0 0 3px rgba(245,166,35,.1),0 8px 32px rgba(0,0,0,.4);
+      position:relative;
+    }
+    .thali-ring::before{
+      content:'';position:absolute;inset:-14px;border-radius:50%;
+      border:2px dashed rgba(245,166,35,.2);
+    }
+    .winner-spot-name{
+      font-family:'Yeseva One',serif;font-size:1.4rem;color:#fff;
+      margin-bottom:4px;line-height:1.2;
+    }
+    .winner-spot-area{font-size:.8rem;color:rgba(255,255,255,.45);margin-bottom:12px}
+    .winner-votes-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(232,103,10,.2);border:1px solid rgba(232,103,10,.35);
+      color:var(--turmeric);font-size:.8rem;font-weight:700;
+      padding:5px 14px;border-radius:20px;
+    }
+
+    .winner-info{color:#fff}
+    .week-label{
+      font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+      color:var(--turmeric);margin-bottom:8px;
+    }
+    .winner-title{
+      font-family:'Yeseva One',serif;font-size:1.6rem;line-height:1.2;
+      margin-bottom:16px;
+    }
+    .winner-desc{
+      font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.8;margin-bottom:20px;
+    }
+    .thali-items{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}
+    .thali-item{
+      background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+      color:rgba(255,255,255,.75);font-size:.74rem;
+      padding:4px 11px;border-radius:20px;
+    }
+    .winner-price{
+      font-size:1.1rem;font-weight:700;color:var(--turmeric);
+    }
+    .winner-price span{font-size:.78rem;color:rgba(255,255,255,.4);font-weight:400}
+
+    /* VOTE BTN */
+    .btn-vote-thali{
+      margin-top:16px;padding:12px 28px;
+      background:var(--saffron);color:#fff;border:none;border-radius:50px;
+      font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;
+      cursor:pointer;transition:all .2s;
+      box-shadow:0 4px 16px rgba(232,103,10,.4);
+    }
+    .btn-vote-thali:hover:not(:disabled){background:var(--clay);transform:translateY(-2px)}
+    .btn-vote-thali:disabled{background:rgba(255,255,255,.15);cursor:not-allowed;box-shadow:none}
+    .btn-vote-thali.voted{background:var(--leaf);box-shadow:0 4px 16px rgba(46,125,50,.3)}
+
+    /* VOTE BAR */
+    .vote-progress{margin-top:20px}
+    .vp-label{display:flex;justify-content:space-between;
+      font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:5px}
+    .vp-track{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+    .vp-fill{height:100%;background:linear-gradient(to right,var(--saffron),var(--turmeric));
+      border-radius:3px;transition:width 1s ease}
+
+    /* SECTION HEADER */
+    .sec-hdr{
+      display:flex;align-items:flex-end;justify-content:space-between;
+      margin-bottom:20px;
+    }
+    .sec-title{
+      font-family:'Yeseva One',serif;font-size:1.5rem;color:var(--soil);
+    }
+    .sec-sub{font-size:.82rem;color:var(--subtext);margin-top:4px}
+
+    /* NOMINEES GRID */
+    .nominees-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:16px;margin-bottom:40px;
+    }
+    .nominee-card{
+      background:var(--card);border:1.5px solid var(--border);
+      border-radius:16px;padding:20px;cursor:pointer;
+      transition:all .22s;position:relative;
+    }
+    .nominee-card:hover:not(.current-winner){
+      border-color:var(--saffron);transform:translateY(-3px);
+      box-shadow:0 8px 24px rgba(232,103,10,.15);
+    }
+    .nominee-card.current-winner{
+      border-color:var(--turmeric);
+      background:linear-gradient(135deg,rgba(245,166,35,.06),rgba(232,103,10,.04));
+    }
+    .nominee-rank{
+      position:absolute;top:12px;right:12px;
+      width:28px;height:28px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:.78rem;font-weight:700;
+    }
+    .rank-1{background:var(--turmeric);color:var(--soil)}
+    .rank-2{background:#C0C0C0;color:#333}
+    .rank-3{background:#CD7F32;color:#fff}
+    .rank-other{background:var(--mist);color:var(--subtext)}
+
+    .nominee-emoji{font-size:2rem;margin-bottom:10px;display:block}
+    .nominee-name{font-family:'Yeseva One',serif;font-size:1rem;
+      color:var(--soil);margin-bottom:3px;line-height:1.3;padding-right:32px}
+    .nominee-area{font-size:.75rem;color:var(--subtext);margin-bottom:8px}
+    .nominee-specialty{
+      font-size:.78rem;color:var(--saffron);font-style:italic;margin-bottom:12px;line-height:1.5;
+    }
+    .nominee-bar-wrap{margin-bottom:10px}
+    .nominee-bar-top{display:flex;justify-content:space-between;
+      font-size:.72rem;color:var(--subtext);margin-bottom:4px}
+    .nominee-bar{height:5px;background:rgba(232,103,10,.1);border-radius:3px;overflow:hidden}
+    .nominee-bar-fill{height:100%;background:var(--saffron);border-radius:3px;transition:width .8s}
+    .btn-vote-nominee{
+      width:100%;padding:9px;background:var(--mist);
+      border:1.5px solid var(--border);border-radius:9px;
+      font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;
+      cursor:pointer;transition:all .18s;color:var(--subtext);
+    }
+    .btn-vote-nominee:hover:not(:disabled){
+      background:var(--saffron);border-color:var(--saffron);color:#fff;
+    }
+    .btn-vote-nominee:disabled{opacity:.5;cursor:not-allowed}
+    .btn-vote-nominee.my-pick{background:var(--leaf);border-color:var(--leaf);color:#fff}
+
+    /* NOMINATE FORM */
+    .nominate-section{
+      background:linear-gradient(135deg,var(--soil),#3D1F0D);
+      border-radius:20px;padding:32px;color:#fff;
+    }
+    .nominate-title{font-family:'Yeseva One',serif;font-size:1.3rem;
+      margin-bottom:6px}
+    .nominate-desc{font-size:.84rem;color:rgba(255,255,255,.5);
+      margin-bottom:20px;line-height:1.6}
+    .nominate-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .n-input,.n-select,.n-textarea{
+      width:100%;padding:10px 14px;
+      border:1.5px solid rgba(255,255,255,.12);border-radius:10px;
+      background:rgba(255,255,255,.06);color:#fff;
+      font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;
+      transition:border-color .2s;
+    }
+    .n-input::placeholder{color:rgba(255,255,255,.3)}
+    .n-input:focus,.n-select:focus,.n-textarea:focus{border-color:var(--saffron)}
+    .n-select option{background:var(--soil);color:#fff}
+    .n-textarea{resize:vertical;min-height:80px;grid-column:1/-1}
+    .n-label{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:5px;display:block}
+    .btn-nominate{
+      margin-top:16px;padding:12px 28px;
+      background:var(--saffron);color:#fff;border:none;border-radius:50px;
+      font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;
+      cursor:pointer;transition:all .2s;
+    }
+    .btn-nominate:hover{background:var(--clay)}
+
+    /* HOW IT WORKS */
+    .how-section{margin-bottom:36px}
+    .how-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .how-step{background:var(--card);border:1px solid var(--border);
+      border-radius:14px;padding:20px;text-align:center;}
+    .step-num{
+      width:36px;height:36px;border-radius:50%;background:rgba(232,103,10,.1);
+      border:2px solid rgba(232,103,10,.25);color:var(--saffron);
+      font-weight:700;font-size:.88rem;display:flex;align-items:center;
+      justify-content:center;margin:0 auto 10px;
+    }
+    .step-icon{font-size:1.5rem;margin-bottom:8px}
+    .step-title{font-weight:700;font-size:.88rem;color:var(--soil);margin-bottom:4px}
+    .step-desc{font-size:.75rem;color:var(--subtext);line-height:1.5}
+
+    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;
+      background:var(--soil);color:#fff;padding:12px 20px;border-radius:10px;
+      font-size:.88rem;border-left:3px solid var(--saffron);
+      box-shadow:0 8px 24px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;
+      transition:all .3s;pointer-events:none}
+    .toast.show{transform:translateY(0);opacity:1}
+
+    @media(max-width:700px){
+      .winner-body{grid-template-columns:1fr}
+      .thali-ring{width:130px;height:130px;font-size:3rem}
+      .how-steps{grid-template-columns:1fr}
+      .nominate-grid{grid-template-columns:1fr}
+    }
+  
+    /* ── NAV ─────────────────────────────────────────────────────────────────── */
+    nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.96);
+      -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);padding:0 5%;
+      display:flex;align-items:center;justify-content:space-between;
+      height:68px;transition:height .25s,box-shadow .25s}
+    nav.scrolled{height:56px;box-shadow:0 4px 24px rgba(28,15,6,.10)}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--saffron),var(--clay));
+      border-radius:12px;display:flex;align-items:center;justify-content:center;
+      font-size:19px;box-shadow:0 3px 10px rgba(232,103,10,.4);transition:transform .2s}
+    .nav-logo:hover .nav-logo-icon{transform:rotate(-8deg) scale(1.08)}
+    .nav-logo-text{font-family:'Playfair Display',serif;font-size:1.22rem;font-weight:900;
+      color:var(--soil);letter-spacing:-0.02em;line-height:1}
+    .nav-logo-sub{display:block;font-family:'DM Sans',sans-serif;font-size:.6rem;font-weight:600;
+      color:var(--subtext);letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
+    .nav-links{display:flex;align-items:center;gap:2px;list-style:none;
+      background:rgba(28,15,6,.04);border:1px solid var(--border);
+      border-radius:50px;padding:4px 6px}
+    .nav-links li a{text-decoration:none;color:var(--subtext);font-size:.82rem;font-weight:500;
+      padding:6px 13px;border-radius:50px;transition:all .18s;
+      display:flex;align-items:center;gap:5px;white-space:nowrap}
+    .nav-links li a:hover{color:var(--saffron);background:rgba(232,103,10,.08)}
+    .nav-links li a.active{color:var(--saffron);background:rgba(232,103,10,.12);font-weight:600}
+    .nav-actions{display:flex;align-items:center;gap:10px}
+    .nav-back{display:flex;align-items:center;gap:6px;padding:7px 14px;
+      border:1.5px solid var(--border);border-radius:50px;font-size:.82rem;
+      font-weight:600;color:var(--subtext);text-decoration:none;transition:all .18s;white-space:nowrap}
+    .nav-back:hover{border-color:var(--saffron);color:var(--saffron);background:rgba(232,103,10,.06)}
+    .nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;
+      padding:6px;border:none;background:transparent}
+    .nav-hamburger span{display:block;width:22px;height:2px;background:var(--soil);
+      border-radius:2px;transition:all .25s}
+    .nav-hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+    .nav-hamburger.open span:nth-child(2){opacity:0}
+    .nav-hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+    .nav-drawer{display:none;position:fixed;inset:0;top:56px;
+      background:rgba(253,246,236,.98);-webkit-backdrop-filter:blur(20px);
+      backdrop-filter:blur(20px);z-index:998;flex-direction:column;
+      padding:24px 6%;border-top:1px solid var(--border)}
+    .nav-drawer.open{display:flex}
+    .nav-drawer a{text-decoration:none;color:var(--soil);font-size:1.1rem;font-weight:600;
+      padding:14px 0;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:12px}
+    .nav-drawer a:last-child{border-bottom:none}
+    @media(max-width:860px){.nav-links{display:none}.nav-hamburger{display:flex}}
+  </style>
+</head>
+<body>
+
+<nav id="mainNav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">🍛</div>
+    <div>
+      <span class="nav-logo-text">Foodie<span class="accent">Radar</span></span>
+      <span class="nav-logo-sub">Khordha District</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">🗺️ Explore</a></li>
+    <li><a href="index.html#map-section">📍 Map</a></li>
+    <li><a href="events.html" class="active">🎪 Events</a></li>
+    <li><a href="food-trails.html">🥾 Trails</a></li>
+    <li><a href="food-dictionary.html">📖 Dictionary</a></li>
+    <li><a href="passport.html">🏅 Passport</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="index.html" class="nav-back">← Radar</a>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleDrawer()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="index.html" onclick="closeDrawer()">🗺️ Explore Spots</a>
+  <a href="events.html">🎪 Food Events</a>
+  <a href="food-trails.html">🥾 Food Trails</a>
+  <a href="food-dictionary.html">📖 Food Dictionary</a>
+  <a href="passport.html">🏅 My Passport</a>
+  <a href="haat-festival.html">🛒 Haat Tracker</a>
+  <a href="tiffin.html">🍱 Home Tiffin</a>
+  <a href="cook-off.html">🥊 Cook-Off Battles</a>
+</div>
+
+<div class="thali-hero">
+  <div class="hero-tag">🍛 Community Voted</div>
+  <h1>Odia <em>Thali</em><br>of the Week</h1>
+  <p class="hero-odia">ଏ ସପ୍ତାହର ସ୍ଵାଦ</p>
+  <p>Every week, Khordha votes for the best Odia Thali experience. Authentic, local, and decided by you.</p>
+</div>
+
+<div class="main">
+
+  <!-- CURRENT WINNER -->
+  <div class="winner-wrap" id="winnerWrap">
+    <div class="winner-crown">🏆 &nbsp; This Week's Winner &nbsp; 🏆</div>
+    <div class="winner-body" id="winnerBody">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-section">
+    <div class="sec-hdr"><div>
+      <div class="sec-title">How it Works</div>
+    </div></div>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="step-icon">📍</div>
+        <div class="step-num">1</div>
+        <div class="step-title">Nominate</div>
+        <div class="step-desc">Suggest a spot that does an outstanding Odia Thali in Khordha</div>
+      </div>
+      <div class="how-step">
+        <div class="step-icon">🗳️</div>
+        <div class="step-num">2</div>
+        <div class="step-title">Vote</div>
+        <div class="step-desc">Community votes each week. One vote per device, resets every Monday</div>
+      </div>
+      <div class="how-step">
+        <div class="step-icon">🏆</div>
+        <div class="step-num">3</div>
+        <div class="step-title">Win</div>
+        <div class="step-desc">Winner gets featured on the homepage and earns the Thali Crown badge</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL NOMINEES -->
+  <div class="sec-hdr">
+    <div>
+      <div class="sec-title">This Week's Nominees</div>
+      <div class="sec-sub" id="voteStatus">Vote for your favourite</div>
+    </div>
+    <span style="font-size:.8rem;color:var(--subtext)" id="totalVoteDisplay"></span>
+  </div>
+  <div class="nominees-grid" id="nomineesGrid"></div>
+
+  <!-- NOMINATE FORM -->
+  <div class="nominate-section">
+    <div class="nominate-title">🍛 Nominate a Thali Spot</div>
+    <div class="nominate-desc">Know a spot that does Odia Thali better than anyone? Nominate them for next week's vote.</div>
+    <div class="nominate-grid">
+      <div>
+        <label class="n-label">Restaurant / Spot Name *</label>
+        <input class="n-input" id="nomName" placeholder="e.g. Maa Tarini Dhaba"/>
+      </div>
+      <div>
+        <label class="n-label">Area *</label>
+        <select class="n-select" id="nomArea" title="Area in Khordha" aria-label="Area in Khordha">
+          <option value="">Select area...</option>
+          <option>Old Town, BBSR</option><option>Saheed Nagar, BBSR</option>
+          <option>Unit 4, BBSR</option><option>Nayapalli, BBSR</option>
+          <option>Patia, BBSR</option><option>Khordha Town</option>
+          <option>Jatni</option><option>Balipatna</option>
+        </select>
+      </div>
+      <textarea class="n-textarea" id="nomReason"
+        placeholder="What makes their Odia Thali special? (Dalma, Pakhala, items served, price...)"></textarea>
+    </div>
+    <button class="btn-nominate" onclick="submitNomination()">Nominate This Spot 🙌</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+  const VOTE_KEY = 'fr_thali_vote_' + getCurrentWeekKey();
+
+  function getCurrentWeekKey() {
+    const d = new Date();
+    const jan1 = new Date(d.getFullYear(), 0, 1);
+    const week = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+    return d.getFullYear() + '_W' + week;
+  }
+
+  function getMyThaliVote() { return LS.get(VOTE_KEY); }
+  function setMyThaliVote(id) { LS.set(VOTE_KEY, id); }
+
+  // Seed data (replace with Supabase query)
+  const nominees = [
+    {id:'t1', name:'Raghunath Odia Thali', area:'Old Town, BBSR', emoji:'🍲',
+     specialty:'7-item thali with fresh dalma, pakhala, saga, machha besara & chhena poda',
+     items:['Dalma','Pakhala','Machha','Saga','Ghee Rice','Papad','Chhena Poda'],
+     price:'₹120', votes:312},
+    {id:'t2', name:'Maa Tarini Dhaba',     area:'Khordha Town',   emoji:'🫕',
+     specialty:'NH-16 highway thali — generous portions, ghee-soaked rice, authentic taste',
+     items:['Rice','Dal','Dalma','Aloo Bhaja','Roti','Dahi'],
+     price:'₹90', votes:241},
+    {id:'t3', name:'Jagannath Bhog Thali', area:'Old Town, BBSR', emoji:'🍛',
+     specialty:'Mahaprasad-inspired thali — no onion, no garlic, purely traditional',
+     items:['Khechudi','Dalma','Mahura','Saga','Kanika','Ghee'],
+     price:'₹150', votes:198},
+    {id:'t4', name:'Hotel Mayfair Kitchen',area:'Nayapalli, BBSR',emoji:'🥘',
+     specialty:'Clay-pot Dalma with drumstick & banana flower, served with cold pakhala in summer',
+     items:['Pakhala','Clay-pot Dalma','Bhindi Besara','Tomato Chutney','Dessert'],
+     price:'₹180', votes:143},
+    {id:'t5', name:'Mahesh Tiffin Centre', area:'Saheed Nagar',   emoji:'🍱',
+     specialty:'Budget champion — full Odia thali under ₹80 with dal, sabji & rice',
+     items:['Rice','Dal','Sabji','Papad','Pickle'],
+     price:'₹75', votes:89},
+    {id:'t6', name:'Unit 4 Thali House',   area:'Unit 4, BBSR',   emoji:'🍽️',
+     specialty:'Working-class hero — no-frills thali, unlimited rice refill, since 1995',
+     items:['Unlimited Rice','Dal','Dalma','Aloo','Papad'],
+     price:'₹70', votes:67},
+  ];
+
+  const totalVotes = nominees.reduce((a,n) => a + n.votes, 0);
+  const ranked     = [...nominees].sort((a,b) => b.votes - a.votes);
+
+  function renderWinner() {
+    const w = ranked[0];
+    const myVote = getMyThaliVote();
+    const pct    = Math.round((w.votes / totalVotes) * 100);
+
+    document.getElementById('winnerBody').innerHTML = `
+      <div class="winner-thali-visual">
+        <div class="thali-ring">${w.emoji}</div>
+        <div class="winner-spot-name">${w.name}</div>
+        <div class="winner-spot-area">📍 ${w.area}</div>
+        <div class="winner-votes-badge">🗳️ ${w.votes.toLocaleString()} votes · ${pct}% of total</div>
+      </div>
+      <div class="winner-info">
+        <div class="week-label">Week of ${getWeekLabel()}</div>
+        <div class="winner-title">${w.name}</div>
+        <div class="winner-desc">${w.specialty}</div>
+        <div class="thali-items">
+          ${w.items.map(i => `<span class="thali-item">🍽 ${i}</span>`).join('')}
+        </div>
+        <div class="winner-price">${w.price} <span>per person</span></div>
+        <div>
+          <button class="btn-vote-thali ${myVote === w.id ? 'voted' : ''}"
+            id="winnerVoteBtn"
+            onclick="castThaliVote('${w.id}')"
+            ${myVote ? 'disabled' : ''}>
+            ${myVote === w.id ? '✓ You voted for this' : myVote ? 'Already voted' : '🗳️ Vote for this Thali'}
+          </button>
+        </div>
+        <div class="vote-progress">
+          <div class="vp-label"><span>This week's lead</span><span>${pct}%</span></div>
+          <div class="vp-track"><div class="vp-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+  }
+
+  function renderNominees() {
+    const myVote = getMyThaliVote();
+    document.getElementById('voteStatus').textContent =
+      myVote ? '✓ Your vote is counted for this week' : 'Vote for your favourite — resets every Monday';
+    document.getElementById('totalVoteDisplay').textContent =
+      totalVotes.toLocaleString() + ' total votes';
+
+    document.getElementById('nomineesGrid').innerHTML = ranked.map((n, idx) => {
+      const pct     = Math.round((n.votes / totalVotes) * 100);
+      const rankNum = idx + 1;
+      const isMyVote= myVote === n.id;
+      const voted   = !!myVote;
+      const rankCl  = rankNum <= 3 ? 'rank-' + rankNum : 'rank-other';
+
+      return `
+        <div class="nominee-card ${rankNum === 1 ? 'current-winner' : ''}">
+          <div class="nominee-rank ${rankCl}">${rankNum}</div>
+          <span class="nominee-emoji">${n.emoji}</span>
+          <div class="nominee-name">${n.name}</div>
+          <div class="nominee-area">📍 ${n.area}</div>
+          <div class="nominee-specialty">"${n.specialty}"</div>
+          <div class="nominee-bar-wrap">
+            <div class="nominee-bar-top">
+              <span>${n.votes.toLocaleString()} votes</span><span>${pct}%</span>
+            </div>
+            <div class="nominee-bar">
+              <div class="nominee-bar-fill" style="width:${voted ? pct : 0}%"></div>
+            </div>
+          </div>
+          <button class="btn-vote-nominee ${isMyVote ? 'my-pick' : ''}"
+            onclick="castThaliVote('${n.id}')"
+            ${voted ? 'disabled' : ''}>
+            ${isMyVote ? '✓ Your Pick' : voted ? 'Voted' : '🗳️ Vote'}
+          </button>
+        </div>`;
+    }).join('');
+  }
+
+  function castThaliVote(id) {
+    if (getMyThaliVote()) { showToast('You already voted this week! Resets Monday.'); return; }
+    setMyThaliVote(id);
+    const n = nominees.find(n => n.id === id);
+    if (n) n.votes++;
+    renderWinner();
+    renderNominees();
+    showToast('🍛 Vote cast for ' + (nominees.find(n=>n.id===id)?.name || 'this thali') + '!');
+  }
+
+  function submitNomination() {
+    const name = document.getElementById('nomName').value.trim();
+    const area = document.getElementById('nomArea').value;
+    if (!name || !area) { showToast('⚠ Please fill in name and area'); return; }
+    showToast('🙌 Nominated "' + name + '"! We\'ll add them to next week\'s vote.');
+    document.getElementById('nomName').value = '';
+    document.getElementById('nomArea').value = '';
+    document.getElementById('nomReason').value = '';
+  }
+
+  function getWeekLabel() {
+    const d    = new Date();
+    const mon  = new Date(d); mon.setDate(d.getDate() - d.getDay() + 1);
+    const sun  = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const fmt  = d => d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+    return fmt(mon) + ' – ' + fmt(sun);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  renderWinner();
+  renderNominees();
+</script>
+</body>
+</html>
