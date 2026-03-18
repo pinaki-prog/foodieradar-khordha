@@ -621,10 +621,7 @@
 
   // ── SEED DATA ────────────────────────────────────────────────────────────────
   const SEED_EVENTS = [
-    { name:'Ekamra Haat Food Mela',          event_type:'Food Festival', location:'Ekamra Haat, Bhubaneswar',  area:'Old Town',          event_date:'2026-03-15', is_free:true,  description:'Annual street food mela with 80+ stalls of Odia cuisine, live cultural shows.' },
-    { name:'Best Dalma Cook-Off',             event_type:'Cook-Off',      location:'Unit 4 Community Hall',     area:'Unit 4, BBSR',       event_date:'2026-03-18', is_free:true,  description:'Who cooks the best Dalma in Khordha? 15 home cooks compete live.' },
-    { name:'Balipatna Farmers Market',        event_type:'Weekly Haat',   location:'Balipatna',                 area:'Balipatna',          event_date:'2026-03-21', is_free:true  },
-    { name:'Ekamra Haat Weekly',              event_type:'Weekly Haat',   location:'Ekamra Haat, BBSR',         area:'Old Town, BBSR',     event_date:'2026-03-22', is_free:true  },
+    { name:'Odisha Street Food Pop-Up',       event_type:'Pop-Up',       location:'Saheed Nagar Park',         area:'Saheed Nagar, BBSR', event_date:'2026-04-01', is_free:true,  description:'20 local vendors, live music, evening street food pop-up.' },
     { name:'Odisha Street Food Pop-Up',       event_type:'Pop-Up',        location:'Saheed Nagar Park',         area:'Saheed Nagar, BBSR', event_date:'2026-04-01', is_free:true,  description:'20 local vendors, live music, evening street food pop-up.' },
     { name:'Traditional Odia Cooking Class',  event_type:'Workshop',      location:'Old Town Cultural Centre',  area:'Old Town, BBSR',     event_date:'2026-04-05', is_free:false, description:'Learn Dalma, Pakhala, Chhena Poda from local grandmothers.' },
     { name:'Pana Sankranti Food Trail',       event_type:'Food Festival', location:'Old Town, Bhubaneswar',     area:'Old Town, BBSR',     event_date:'2026-04-14', is_free:true,  description:'New Year food trail across old town temples and street stalls.' },
@@ -642,11 +639,30 @@
         .gte('event_date', today)
         .order('event_date', { ascending: true });
       if (error) throw error;
-      allEvents = (data && data.length > 0) ? data : SEED_EVENTS;
+      const _rawEvData = (data && data.length > 0) ? data : SEED_EVENTS;
+      // Deduplicate by name+date — handles DB duplicates and seed overlap
+      const _evDedup = new Set();
+      const _todayEvStr = new Date().toISOString().split('T')[0];
+      allEvents = _rawEvData.filter(e => {
+        if (e.event_date && e.event_date < _todayEvStr) return false; // past events gone
+        const key = (e.name + e.event_date).toLowerCase().trim();
+        if (_evDedup.has(key)) return false;
+        _evDedup.add(key); return true;
+      });
     } catch {
       // Supabase unavailable — use seeds filtered to future only
       const today = new Date(); today.setHours(0,0,0,0);
-      allEvents = SEED_EVENTS.filter(e => new Date(e.event_date + 'T00:00:00') >= today);
+      // Filter out past events from seed data at runtime
+      const _nowTs = new Date();
+      _nowTs.setHours(0,0,0,0);
+      const _seenSeed = new Set();
+      allEvents = SEED_EVENTS
+        .filter(e => new Date(e.event_date + 'T00:00:00') >= _nowTs)
+        .filter(e => {
+          const key = (e.name + e.event_date).toLowerCase().trim();
+          if (_seenSeed.has(key)) return false;
+          _seenSeed.add(key); return true;
+        });
     }
     renderEvents(allEvents);
     updateStats();

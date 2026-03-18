@@ -670,14 +670,24 @@
       {id:'s16',name:'Kanak Durga Sweets',          category:'Sweet Shop',   area:'Rasulgarh, BBSR',       rating:4.5,review_count:234,food_type:'veg',   price_range:'₹',  avg_price:45,  tags:['Rasgulla','Chhena Poda','Pantua'],is_open:true, is_gem:true,  latitude:20.2862,longitude:85.8561},
     ];
 
-    const SEED_EVENTS = [
-      {day:'20',month:'Mar',event_type:'Weekly Haat',  name:'Balipatna Farmers Market', location:'Balipatna, Khordha'},
-      {day:'22',month:'Mar',event_type:'Weekly Haat',  name:'Ekamra Haat Weekly Market',location:'Ekamra Haat, BBSR'},
-      {day:'01',month:'Apr',event_type:'Pop-Up',       name:'Street Food Pop-Up Night', location:'Saheed Nagar, BBSR'},
-      {day:'05',month:'Apr',event_type:'Workshop',     name:'Odia Cooking Class',       location:'Old Town Cultural Centre'},
-      {day:'14',month:'Apr',event_type:'Festival',     name:'Pana Sankranti Food Trail',location:'Old Town, BBSR'},
-      {day:'20',month:'Apr',event_type:'Food Festival',name:'Jatni Chhena Gaja Utsav',  location:'Jatni Town Square'},
+    // SEED_EVENTS: future-dated, filtered at runtime so past ones never show
+    const _RAW_SEED_EVENTS = [
+      {event_date:'2026-04-01',event_type:'Pop-Up',       name:'Street Food Pop-Up Night',    location:'Saheed Nagar, BBSR',      is_free:true},
+      {event_date:'2026-04-05',event_type:'Workshop',     name:'Traditional Odia Cooking Class',location:'Old Town Cultural Centre',is_free:false},
+      {event_date:'2026-04-14',event_type:'Festival',     name:'Pana Sankranti Food Trail',   location:'Old Town, BBSR',          is_free:true},
+      {event_date:'2026-04-20',event_type:'Food Festival',name:'Jatni Chhena Gaja Utsav',     location:'Jatni Town Square',       is_free:true},
+      {event_date:'2026-05-03',event_type:'Cook-Off',     name:'Khordha Biryani Battle',       location:'Master Canteen, BBSR',    is_free:true},
+      {event_date:'2026-05-10',event_type:'Pop-Up',       name:'KIIT Campus Street Food Night',location:'KIIT Square, Patia',      is_free:true},
     ];
+    // Filter past events at runtime — no more hardcoded stale dates
+    const _todaySeed = new Date().toISOString().split('T')[0];
+    const SEED_EVENTS = _RAW_SEED_EVENTS
+      .filter(e => e.event_date >= _todaySeed)
+      .map(e => {
+        const d = new Date(e.event_date + 'T00:00:00');
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return { ...e, day: d.getDate(), month: months[d.getMonth()] };
+      });
 
     const ZONES = [
       {num:'01',name:'Master Canteen Area',  desc:'BBSR\'s legendary street food cluster',spots:'5 spots'},
@@ -753,14 +763,23 @@
           } catch(e) {}
         }
 
+        const todayDate = new Date().toISOString().split('T')[0];
         const { data: events } = await db
           .from('events').select('*')
           .in('status',['upcoming','ongoing'])
+          .gte('event_date', todayDate)
           .order('event_date', { ascending: true })
           .limit(6);
 
         if (events && events.length > 0) {
-          renderEvents(events.map(e => {
+          // Deduplicate by name+date in case of duplicate DB entries
+          const seenEv = new Set();
+          const uniqueEv = events.filter(e => {
+            const key = (e.name + e.event_date).toLowerCase().trim();
+            if (seenEv.has(key)) return false;
+            seenEv.add(key); return true;
+          });
+          renderEvents(uniqueEv.map(e => {
             const d = new Date(e.event_date + 'T00:00:00');
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
             return { ...e, day: d.getDate(), month: months[d.getMonth()] };
@@ -1572,20 +1591,9 @@
     renderSpots(SEED_SPOTS);
     renderEvents(SEED_EVENTS);
     renderZones();
+    initMaps();
     renderFlashBoard();
     initSmartToolbar();
-    
-    // ── LAZY MAP INIT (only when map section scrolls into view) ──────────────
-    let _mapsInitialized = false;
-    const _mapObserver = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && !_mapsInitialized) {
-        _mapsInitialized = true;
-        initMaps();
-        updateMapMarkers(liveSpots);
-        _mapObserver.disconnect();
-      }
-    }, { threshold: 0.1 });
-    _mapObserver.observe(document.getElementById('map-section'));
     loadLiveData();
     initSpotOfDay();
     setTimeout(startOnboarding, 800);
