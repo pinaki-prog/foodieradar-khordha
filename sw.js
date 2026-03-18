@@ -46,6 +46,9 @@ self.addEventListener('fetch', e => {
   if (url.hostname.includes('supabase.co')) return;
   if (url.hostname.includes('openstreetmap.org')) return;
   if (url.hostname.includes('nominatim')) return;
+  if (url.hostname.includes('overpass-api.de')) return;
+  if (url.hostname.includes('kumi.systems')) return;
+  if (url.hostname.includes('mail.ru')) return;
   if (url.hostname.includes('fonts.googleapis') || url.hostname.includes('fonts.gstatic')) return;
 
   // Cache-first for our own files
