@@ -177,6 +177,9 @@
       display:flex;align-items:center;gap:12px}
     .nav-drawer a:last-child{border-bottom:none}
     @media(max-width:860px){.nav-links{display:none}.nav-hamburger{display:flex}}
+  
+    .stop-done { opacity: .7; }
+    .stop-done .stop-name { text-decoration: line-through; }
   </style>
 </head>
 <body>
@@ -367,15 +370,25 @@ function renderTrailList() {
         <span class="trail-meta-item">💰 ${t.budget}</span>
       </div>
       ${t.tags.length ? `<div class="trail-tags">${t.tags.map(tag=>`<span class="trail-tag ${tag}">${tagLabel(tag)}</span>`).join('')}</div>` : ''}
+      <div id="progress-${t.id}" style="margin:10px 0 12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:.7rem;font-weight:700;color:var(--subtext);text-transform:uppercase;letter-spacing:.05em">Progress</span>
+          <span id="prog-count-${t.id}" style="font-size:.7rem;font-weight:700;color:var(--leaf)"></span>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div id="prog-bar-${t.id}" style="height:100%;background:var(--leaf);border-radius:3px;transition:width .4s;width:0%"></div>
+        </div>
+      </div>
       <div class="stops-list">
         ${t.stops.map((s,i)=>`
-          <div class="stop-item">
-            <div class="stop-num" style="background:${t.color}">${i+1}</div>
-            <div class="stop-info">
-              <div class="stop-name">${s.name}</div>
+          <div class="stop-item ${isVisited(t.id,i)?'stop-done':''}" id="stop-${t.id}-${i}" style="cursor:pointer;${isVisited(t.id,i)?'opacity:.65;':''}">
+            <div class="stop-num" style="background:${isVisited(t.id,i)?'#2E7D32':t.color}">${isVisited(t.id,i)?'✓':(i+1)}</div>
+            <div class="stop-info" style="flex:1">
+              <div class="stop-name" style="${isVisited(t.id,i)?'text-decoration:line-through;color:var(--subtext)':''}">${s.name}</div>
               <div class="stop-detail">${s.detail}</div>
               <div class="stop-price">${s.price}</div>
             </div>
+            <button onclick="event.stopPropagation();toggleStopVisited('${t.id}',${i})" style="padding:4px 10px;border-radius:8px;border:1.5px solid ${isVisited(t.id,i)?'#2E7D32':'var(--border)'};background:${isVisited(t.id,i)?'#E8F5E9':'transparent'};font-size:.68rem;font-weight:700;cursor:pointer;color:${isVisited(t.id,i)?'#2E7D32':'var(--subtext)'};font-family:'DM Sans',sans-serif;white-space:nowrap">${isVisited(t.id,i)?'✓ Done':'Mark done'}</button>
           </div>`).join('')}
       </div>
       <button class="btn-open-trail" style="background:${t.color}"
@@ -395,7 +408,7 @@ function filterTrails(filter, btn) {
   activeFilter = filter;
   document.querySelectorAll('.trail-filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  renderTrailList();
+  renderTrailList(); updateProgressBars();
 }
 
 function selectTrail(id) {
@@ -445,6 +458,40 @@ function openMapTrail(trailId) {
 }
 
 // Init map
+function shareTrail() {
+  const t = TRAILS.find(tr => tr.id === activeTrailId);
+  if (!t) return;
+  const text = encodeURIComponent('🥾 ' + t.name + '\n' + t.desc + '\n⏱ ' + t.duration + ' · ' + t.distance + '\n\nFoodieRadar Khordha → https://foodieradar-khordha.vercel.app/food-trails.html');
+  window.open('https://wa.me/?text=' + text, '_blank');
+}
+
+
+  const _visitedStops = JSON.parse(localStorage.getItem('fr_trail_progress') || '{}');
+
+  function isVisited(trailId, stopIdx) {
+    return !!(_visitedStops[trailId] && _visitedStops[trailId][stopIdx]);
+  }
+
+  function toggleStopVisited(trailId, stopIdx) {
+    if (!_visitedStops[trailId]) _visitedStops[trailId] = {};
+    _visitedStops[trailId][stopIdx] = !_visitedStops[trailId][stopIdx];
+    localStorage.setItem('fr_trail_progress', JSON.stringify(_visitedStops));
+    renderTrailList();
+    updateProgressBars();
+  }
+
+  function updateProgressBars() {
+    TRAILS.forEach(t => {
+      const done = t.stops.filter((_,i) => isVisited(t.id, i)).length;
+      const total = t.stops.length;
+      const pct = total > 0 ? Math.round(done/total*100) : 0;
+      const bar = document.getElementById('prog-bar-' + t.id);
+      const cnt = document.getElementById('prog-count-' + t.id);
+      if (bar) bar.style.width = pct + '%';
+      if (cnt) cnt.textContent = done + '/' + total + ' stops';
+    });
+  }
+
 window.addEventListener('DOMContentLoaded', () => {
   map = L.map('trailMap',{zoomControl:true}).setView([20.296,85.824],13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{

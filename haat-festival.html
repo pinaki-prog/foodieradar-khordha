@@ -654,6 +654,16 @@
   // ── INIT ──────────────────────────────────────────────────────────────────────
   buildDayStrip();
   renderHaats();
+
+  function shareHaat(name, area, schedule) {
+    const text = encodeURIComponent('🛒 ' + name + '\n📍 ' + area + '\n🗓 ' + schedule + '\n\nFind local haats on FoodieRadar → https://foodieradar-khordha.vercel.app/haat-festival.html');
+    window.open('https://wa.me/?text=' + text, '_blank');
+  }
+  function setHaatReminder(name, area) {
+    showToast('🔔 Reminder: ' + name + ' — share on WhatsApp to get notified!');
+    const text = encodeURIComponent('📅 Remind me: ' + name + ' at ' + area + '\n\nFoodieRadar Haat Tracker → https://foodieradar-khordha.vercel.app/haat-festival.html');
+    setTimeout(() => window.open('https://wa.me/?text=' + text, '_blank'), 800);
+  }
 </script>
 </body>
 </html>

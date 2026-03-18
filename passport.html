@@ -340,7 +340,8 @@
   <div class="section-title">📍 Spots Visited</div>
   <div class="visited-list" id="visitedList"></div>
 
-  <p class="reset-link" onclick="resetPassport()">Reset my passport (clears all data)</p>
+  <div style="text-align:center;margin-bottom:10px"><button onclick="sharePassport()" style="padding:8px 20px;background:#25D366;color:#fff;border:none;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer">📲 Share My Passport</button></div>
+<p class="reset-link" onclick="resetPassport()">Reset my passport (clears all data)</p>
 </div>
 
 <script>
@@ -429,13 +430,41 @@ function showPassport(p) {
   document.getElementById('badgeCount').textContent = earnedCount;
   renderBadges(p);
   renderVisited(p);
+
+  // Streak
+  const streak = calcStreak(p.visited);
+  const streakEl = document.getElementById('streakCount');
+  if (streakEl) {
+    streakEl.textContent = streak;
+    const streakLabel = document.getElementById('streakLabel');
+    if (streakLabel) streakLabel.textContent = streak >= 3 ? '🔥 Day streak!' : 'Day streak';
+  }
 }
 
+
+// ── STREAK ─────────────────────────────────────────────────────────────────────
+function calcStreak(visited) {
+  if (!visited || visited.length === 0) return 0;
+  const days = [...new Set(visited.map(v => v.date ? v.date.split('T')[0] : null).filter(Boolean))].sort().reverse();
+  if (!days.length) return 0;
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  if (days[0] !== today && days[0] !== yesterday) return 0;
+  let streak = 1;
+  for (let i = 1; i < days.length; i++) {
+    const prev = new Date(days[i-1]);
+    const curr = new Date(days[i]);
+    const diff = (prev - curr) / 86400000;
+    if (diff === 1) streak++;
+    else break;
+  }
+  return streak;
+}
 // ── BADGES ─────────────────────────────────────────────────────────────────────
 function checkAndAwardBadges(p) {
   const v = p.visited;
   const streetVisits = v.filter(s => s.category === 'Street Food').length;
-  const thaliVisits  = v.filter(s => s.category === 'Odia Thali').length;
+  const thaliVisits  = v.filter(s => s.category === 'Odia Thali' || s.category === 'Dhaba').length;
   const sweetVisits  = v.filter(s => s.category === 'Sweet Shop').length;
   const uniqueAreas  = new Set(v.map(s => s.area)).size;
   const gemVisits    = v.filter(s => s.isGem).length;
@@ -520,34 +549,77 @@ function markVisited(spotId, spotName, category, area, isGem, priceRange) {
   showToast('📍 Marked visited! +' + (isGem ? '20' : '10') + ' XP');
 }
 
+
+function launchConfetti() {
+  const colors = ['#E8670A','#F5A623','#2E7D32','#C04A1B','#1565C0'];
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden';
+  document.body.appendChild(container);
+  for (let i = 0; i < 60; i++) {
+    const p = document.createElement('div');
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const size = 6 + Math.random() * 8;
+    const left = Math.random() * 100;
+    const dur = 2.5 + Math.random() * 2;
+    const delay = Math.random() * 0.8;
+    p.style.cssText = `position:absolute;top:-10px;left:${left}%;width:${size}px;height:${size}px;background:${color};border-radius:${Math.random()>.5?'50%':'2px'};animation:confettiFall ${dur}s ${delay}s ease-in forwards`;
+    container.appendChild(p);
+  }
+  const style = document.createElement('style');
+  style.textContent = '@keyframes confettiFall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}';
+  document.head.appendChild(style);
+  setTimeout(() => { container.remove(); style.remove(); }, 4000);
+}
+// ── SHARE ─────────────────────────────────────────────────────────────────────
+function sharePassport() {
+  const p = loadPassport();
+  if (!p) return;
+  const level = LEVELS.find(l => p.xp >= l.min && p.xp < l.max) || LEVELS[LEVELS.length-1];
+  const text = encodeURIComponent('🏅 My FoodieRadar Passport\n👤 ' + p.name + ' (' + p.id + ')\n' + level.icon + ' ' + level.name + ' — ' + p.xp + ' XP\n📍 ' + p.visited.length + ' spots · 🏅 ' + p.badges.length + ' badges\n\nTrack your food adventures → https://foodieradar-khordha.vercel.app/passport.html');
+  window.open('https://wa.me/?text=' + text, '_blank');
+}
+
 // ── RESET ─────────────────────────────────────────────────────────────────────
 function resetPassport() {
-  if (!confirm('This will delete all your passport data. Are you sure?')) return;
-  try { LS.remove('fr_passport'); } catch(e) {}
-  location.reload();
+  // Show inline confirmation instead of browser confirm()
+  const link = document.querySelector('.reset-link');
+  if (!link) return;
+  if (link.dataset.confirming === '1') {
+    try { LS.remove('fr_passport'); } catch(e) {}
+    location.reload();
+  } else {
+    link.dataset.confirming = '1';
+    link.textContent = '⚠ Tap again to confirm — this deletes ALL your data';
+    link.style.color = '#B71C1C';
+    // Reset after 5 seconds
+    setTimeout(() => {
+      link.dataset.confirming = '0';
+      link.textContent = 'Reset my passport (clears all data)';
+      link.style.color = '';
+    }, 5000);
+  }
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
 function showToast(msg) {
-  let t = document.getElementById('passportToast');
+  // Use existing toast element if present, otherwise create
+  let t = document.getElementById('passportToast') || document.getElementById('toast');
   if (!t) {
     t = document.createElement('div');
     t.id = 'passportToast';
-    t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;
-      background:var(--soil);color:#fff;padding:12px 20px;border-radius:10px;
-      font-size:.88rem;font-weight:500;border-left:3px solid var(--saffron);
-      box-shadow:0 8px 24px rgba(0,0,0,.25);transition:all .3s;
-      opacity:0;transform:translateY(20px);pointer-events:none;`;
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--soil);color:#fff;padding:12px 20px;border-radius:10px;font-size:.88rem;font-weight:500;border-left:3px solid var(--saffron);box-shadow:0 8px 24px rgba(0,0,0,.25);transition:all .3s;opacity:0;transform:translateY(20px);pointer-events:none;';
     document.body.appendChild(t);
   }
   t.textContent = msg;
   t.style.opacity = '1'; t.style.transform = 'translateY(0)';
-  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px)'; }, 3000);
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(20px)'; }, 3500);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 const passport = loadPassport();
 if (passport) showPassport(passport);
 </script>
+<div class="toast" id="toast" style="position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--soil);color:#fff;padding:12px 20px;border-radius:10px;font-size:.88rem;font-weight:500;border-left:3px solid var(--saffron);box-shadow:0 8px 24px rgba(0,0,0,.25);transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none"></div>
 </body>
 </html>

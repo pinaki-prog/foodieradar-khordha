@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
+    <meta name="robots" content="noindex, nofollow"/>
+  <meta name="description" content="FoodieRadar Admin Panel — restricted access"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FoodieRadar Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -259,7 +261,20 @@
     <button class="tab-btn" onclick="switchTab('all',this)">📋 All</button>
   </div>
 
-  <div id="spotListContainer">
+  <div style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div style="flex:1;min-width:200px;display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:8px 14px">
+        <span>🔍</span>
+        <input id="adminSearch" type="text" placeholder="Search by name, area, category..." 
+          style="border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:.88rem;width:100%;color:var(--soil)" 
+          oninput="filterAdminSpots()" />
+      </div>
+      <select id="adminCatFilter" onchange="filterAdminSpots()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.84rem;background:#fff;cursor:pointer">
+        <option value="">All categories</option>
+        <option>Odia Thali</option><option>Street Food</option><option>Sweet Shop</option>
+        <option>Tiffin Centre</option><option>Chai & Snacks</option><option>Dhaba</option><option>Organic Store</option>
+      </select>
+    </div>
+    <div id="spotListContainer">
     <div class="empty-state"><div class="spinner"></div>Loading...</div>
   </div>
 
@@ -417,6 +432,21 @@
     c.innerHTML = `<div class="spot-list">${filtered.map(buildSpotCard).join('')}</div>`;
   }
 
+
+  function filterAdminSpots() {
+    const q   = (document.getElementById('adminSearch')?.value || '').toLowerCase();
+    const cat = document.getElementById('adminCatFilter')?.value || '';
+    const c   = document.getElementById('spotListContainer');
+    let pool  = currentTab === 'all' ? allSpots : allSpots.filter(s => s.status === currentTab);
+    if (q)   pool = pool.filter(s => (s.name+s.area+s.category+s.submitted_by).toLowerCase().includes(q));
+    if (cat) pool = pool.filter(s => s.category === cat);
+    if (!pool.length) {
+      c.innerHTML = '<div class="empty-state"><div style="font-size:2rem;margin-bottom:8px">🔍</div>No matching spots.</div>';
+    } else {
+      c.innerHTML = '<div class="spot-list">' + pool.map(buildSpotCard).join('') + '</div>';
+    }
+  }
+
   function buildSpotCard(s) {
     const date   = new Date(s.created_at).toLocaleDateString('en-IN',
       { day:'numeric', month:'short', year:'numeric' });
@@ -496,6 +526,8 @@
 
   // ── SPOT ACTIONS ───────────────────────────────────────────────────────────
   async function setSpotStatus(id, status) {
+    // Disable all buttons on this card during update
+    document.querySelectorAll(`[onclick*="${id}"]`).forEach(b => { b.disabled = true; b.style.opacity='.5'; });
     const { error } = await db.from('spots').update({ status }).eq('id', id);
     if (error) { showToast('❌ Failed: ' + error.message); return; }
     const s = allSpots.find(s => s.id === id);
@@ -537,7 +569,7 @@
     currentTab = tab;
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    renderSpots(tab);
+    renderSpots(tab); document.getElementById("adminSearch").value = ""; document.getElementById("adminCatFilter").value = "";
   }
 
   // Prevent XSS from user-submitted content

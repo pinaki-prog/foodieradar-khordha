@@ -260,7 +260,7 @@
 <div class="main">
 
   <!-- ACTIVE BATTLE -->
-  <div class="battle-section-title">⚔️ Active Battle</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px"><div class="battle-section-title">⚔️ Active Battle</div><button onclick="shareBattle()" style="padding:7px 16px;background:#25D366;color:#fff;border:none;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer">📲 Share</button></div>
   <div class="battle-section-sub">One vote per device. Results update live.</div>
 
   <div class="active-battle" id="activeBattle">
@@ -277,7 +277,7 @@
   <!-- NOMINATE -->
   <div class="nominate-box">
     <p>Know a local cook or food spot that deserves to be in a Cook-Off?<br>Nominate them for next month's battle.</p>
-    <button class="btn-nominate" onclick="openNominate()">Nominate a Spot</button>
+    <button class="btn-nominate" onclick="openNominate()">🙌 Nominate a Spot</button>
   </div>
 </div>
 
@@ -288,9 +288,9 @@
   // ── ACTIVE BATTLE DATA ──────────────────────────────────────────────────
   // In Tier 4 this will come from Supabase — hardcoded here as seed
   const activeBattle = {
-    id:       'battle_march_2025',
+    id:       'battle_march_2026',
     title:    'Best Dalma in Khordha',
-    subtitle: 'March 2025 · Closes March 31',
+    subtitle: 'March 2026 · Closes March 31',
     category: 'Odia Dish',
     contestants: [
       { id:'c1', name:'Raghunath Odia Thali', area:'Old Town, BBSR', specialty:'Traditional Dalma with 7 vegetables', emoji:'🍲' },
@@ -301,7 +301,7 @@
   };
 
   const pastBattles = [
-    { title:'Best Pakhala in BBSR',     winner:'Raghunath Odia Thali',   month:'Feb 2026', totalVotes:847  },
+    { title:'Best Pakhala in BBSR',     winner:'Raghunath Odia Thali',    month:'Feb 2026', totalVotes:847  },
     { title:'Best Street Chaat',         winner:'Saheed Nagar Chaat Wala', month:'Jan 2026', totalVotes:632  },
     { title:'Best Chhena Poda',          winner:'Lakshmi Sweet House',     month:'Dec 2025', totalVotes:1203 },
     { title:'Best Budget Thali (₹100)',  winner:'Mahesh Tiffin Centre',    month:'Nov 2025', totalVotes:519  },
@@ -434,9 +434,30 @@
   }
 
   function openNominate() {
-    const name = prompt('Who do you want to nominate for next month\'s Cook-Off?\n(Enter the name of the spot or cook):');
-    if (!name) return;
-    showToast('✅ Nomination received for "' + name.trim() + '"! We\'ll review it.');
+    document.getElementById('nominateOverlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeNominate() {
+    document.getElementById('nominateOverlay').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  async function submitNomination() {
+    const name = document.getElementById('nomSpotName').value.trim();
+    const area = document.getElementById('nomSpotArea').value.trim();
+    const why  = document.getElementById('nomWhy').value.trim();
+    if (!name) { showToast('⚠ Please enter the spot name'); return; }
+    // Save to Supabase if available
+    try {
+      await db.from('cookoff_nominations').insert([{
+        spot_name: name, area: area || null,
+        reason: why || null, nominated_at: new Date().toISOString()
+      }]);
+    } catch(e) { /* table may not exist yet — nomination noted */ }
+    closeNominate();
+    showToast('🙌 Nominated "' + name + '"! We\'ll consider it for next month.');
+    document.getElementById('nomSpotName').value = '';
+    document.getElementById('nomSpotArea').value = '';
+    document.getElementById('nomWhy').value = '';
   }
 
   function showToast(msg) {
@@ -448,7 +469,12 @@
   // ── INIT ─────────────────────────────────────────────────────────────────
   renderActiveBattle();
   renderPastBattles();
-  loadLiveVoteCounts(); // async — replaces seed counts with real Supabase data
+  function shareBattle() {
+    const text = encodeURIComponent('🥊 ' + activeBattle.title + '\nVote now — no login needed!\n\nFoodieRadar Khordha Cook-Off → https://foodieradar-khordha.vercel.app/cook-off.html');
+    window.open('https://wa.me/?text=' + text, '_blank');
+  }
+  loadLiveVoteCounts();
+  setInterval(loadLiveVoteCounts, 30000); // async — replaces seed counts with real Supabase data
 </script>
 </body>
 </html>

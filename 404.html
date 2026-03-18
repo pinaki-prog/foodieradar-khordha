@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Page Not Found — FoodieRadar Khordha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    body{font-family:'DM Sans',sans-serif;background:#FDF6EC;color:#1C0F06;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+    h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.5rem);color:#1C0F06;margin-bottom:12px}
+    h1 em{color:#E8670A;font-style:normal}
+    p{font-size:1rem;color:#6B4C35;max-width:420px;margin:0 auto 28px;line-height:1.7}
+    .emoji{font-size:5rem;margin-bottom:20px;display:block}
+    .btn{display:inline-block;padding:13px 32px;background:#E8670A;color:#fff;border-radius:50px;text-decoration:none;font-weight:700;font-size:.95rem;box-shadow:0 4px 16px rgba(232,103,10,.35);transition:all .2s}
+    .btn:hover{background:#C04A1B;transform:translateY(-2px)}
+    .links{margin-top:20px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+    .links a{color:#E8670A;text-decoration:none;font-size:.88rem;font-weight:600}
+    .links a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <div>
+    <span class="emoji">🍛</span>
+    <h1>Oops! This <em>spot</em> doesn't exist</h1>
+    <p>The page you're looking for may have moved or been removed. Let's get you back to discovering real food in Khordha.</p>
+    <a href="index.html" class="btn">🔍 Back to FoodieRadar</a>
+    <div class="links">
+      <a href="events.html">🎪 Events</a>
+      <a href="food-trails.html">🥾 Food Trails</a>
+      <a href="food-dictionary.html">📖 Food Dictionary</a>
+      <a href="passport.html">🏅 My Passport</a>
+    </div>
+  </div>
+  <script>
+    // If arrived via a broken spot link, try to show a helpful message
+    const params = new URLSearchParams(window.location.search);
+    const spotId = params.get('id');
+    if (spotId) {
+      document.querySelector('p').textContent = 'The food spot "' + spotId + '" couldn\'t be found. It may have been removed or the link is broken.';
+    }
+  </script>
+</body>
+</html>

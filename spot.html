@@ -213,7 +213,23 @@
       nav{padding:0 4%}
       .quick-stats{grid-template-columns:repeat(2,1fr)}
     }
-  </style>
+  
+  /* LIGHTBOX */
+  #lightbox{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .25s;cursor:zoom-out}
+  #lightbox.show{opacity:1;pointer-events:all}
+  #lightbox img{max-width:95vw;max-height:90vh;border-radius:8px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);transform:scale(.95);transition:transform .25s}
+  #lightbox.show img{transform:scale(1)}
+  #lightbox-close{position:absolute;top:20px;right:24px;color:#fff;font-size:2rem;
+    cursor:pointer;line-height:1;opacity:.7;transition:opacity .18s;background:none;border:none}
+  #lightbox-close:hover{opacity:1}
+  .spot-hero-img{cursor:zoom-in}
+  
+  .odia-glossary-link { color: var(--saffron); text-decoration: underline dotted; cursor: pointer; font-weight: 600; }
+  .odia-glossary-link:hover { text-decoration: underline; }
+</style>
 </head>
 <body>
 
@@ -252,6 +268,52 @@ let currentSpot = null;
 let reviewRating = 0;
 let spotMap = null;
 
+// ── SEED FALLBACK ────────────────────────────────────────────────────────────
+// Enables spot detail page without Supabase or sessionStorage (direct navigation)
+const SEED_SPOTS = [
+      {id:'s1', name:'Old Town Dahibara King',      category:'Street Food',  area:'Old Town, BBSR',        rating:4.8,review_count:412,food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Dahibara','Aloodum','Gupchup'],    is_open:true, is_gem:true,  latitude:20.2383,longitude:85.8330},
+      {id:'s2', name:'Lingaraj Chhena Shop',        category:'Sweet Shop',   area:'Old Town, BBSR',        rating:4.9,review_count:289,food_type:'veg',   price_range:'₹',  avg_price:40,  tags:['Chhena Poda','Rasgulla'],          is_open:true, is_gem:true,  latitude:20.2395,longitude:85.8320},
+      {id:'s3', name:'Raghunath Odia Thali',        category:'Odia Thali',   area:'Old Town, BBSR',        rating:4.7,review_count:183,food_type:'veg',   price_range:'₹₹', avg_price:120, tags:['Dalma','Pakhala','Thali'],         is_open:true, is_gem:false, latitude:20.2375,longitude:85.8310},
+      {id:'s10',name:'Mudhi Mansa Corner',          category:'Street Food',  area:'Old Town, BBSR',        rating:4.7,review_count:189,food_type:'nonveg',price_range:'₹',  avg_price:50,  tags:['Mudhi Mansa','Mutton'],            is_open:true, is_gem:true,  latitude:20.2390,longitude:85.8315},
+      {id:'s14',name:'Abadha Bhoga Counter',        category:'Odia Thali',   area:'Old Town, BBSR',        rating:4.8,review_count:223,food_type:'veg',   price_range:'₹',  avg_price:50,  tags:['Mahaprasad','Temple Food'],        is_open:true, is_gem:true,  latitude:20.2380,longitude:85.8325},
+      {id:'s15',name:'Tanka Torani Stall',          category:'Chai & Snacks',area:'Old Town, BBSR',        rating:4.7,review_count:134,food_type:'veg',   price_range:'₹',  avg_price:15,  tags:['Tanka Torani','Summer'],           is_open:true, is_gem:true,  latitude:20.2370,longitude:85.8318},
+      {id:'s31',name:'Lingaraj Puri Sabzi',         category:'Street Food',  area:'Old Town, BBSR',        rating:4.6,review_count:145,food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Puri','Sabzi','Breakfast'],        is_open:true, is_gem:false, latitude:20.2400,longitude:85.8328},
+      {id:'s32',name:'Old Town Lassi Corner',       category:'Chai & Snacks',area:'Old Town, BBSR',        rating:4.5,review_count:98, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Lassi','Chaas','Mango'],           is_open:true, is_gem:false, latitude:20.2385,longitude:85.8335},
+      {id:'s4', name:'Mahesh Tiffin Centre',        category:'Tiffin Centre',area:'Saheed Nagar, BBSR',    rating:4.5,review_count:94, food_type:'veg',   price_range:'₹',  avg_price:60,  tags:['Idli','Upma','Dosa'],             is_open:true, is_gem:true,  latitude:20.3070,longitude:85.8160},
+      {id:'s20',name:'The Biryani Pot',             category:'Dhaba',        area:'Saheed Nagar, BBSR',    rating:4.4,review_count:198,food_type:'nonveg',price_range:'₹₹', avg_price:160, tags:['Biryani','Chicken','Mutton'],     is_open:true, is_gem:false, latitude:20.3080,longitude:85.8165},
+      {id:'s33',name:'Saheed Nagar Chaat House',    category:'Street Food',  area:'Saheed Nagar, BBSR',    rating:4.3,review_count:112,food_type:'veg',   price_range:'₹',  avg_price:35,  tags:['Gupchup','Bhelpuri','Chaat'],     is_open:true, is_gem:false, latitude:20.3060,longitude:85.8155},
+      {id:'s34',name:'Maa Kitchen Odia Thali',      category:'Odia Thali',   area:'Saheed Nagar, BBSR',    rating:4.6,review_count:167,food_type:'veg',   price_range:'₹',  avg_price:100, tags:['Dalma','Sukhua','Thali'],         is_open:true, is_gem:true,  latitude:20.3075,longitude:85.8170},
+      {id:'s35',name:'Bhai Bhai Chai Stall',        category:'Chai & Snacks',area:'Saheed Nagar, BBSR',    rating:4.2,review_count:78, food_type:'veg',   price_range:'₹',  avg_price:20,  tags:['Chai','Pakoda','Evening'],        is_open:true, is_gem:false, latitude:20.3065,longitude:85.8148},
+      {id:'s5', name:'Lakshmi Sweet House',         category:'Sweet Shop',   area:'Unit 4, BBSR',          rating:4.8,review_count:327,food_type:'veg',   price_range:'₹',  avg_price:50,  tags:['Chhena Poda','Rasgulla'],         is_open:true, is_gem:false, latitude:20.3050,longitude:85.8400},
+      {id:'s17',name:'Unit 4 Ghuguni Stall',        category:'Street Food',  area:'Unit 4, BBSR',          rating:4.4,review_count:201,food_type:'veg',   price_range:'₹',  avg_price:20,  tags:['Ghuguni','Bara','Mudhi'],         is_open:true, is_gem:true,  latitude:20.3045,longitude:85.8395},
+      {id:'s36',name:'Unit 4 Market Tiffin',        category:'Tiffin Centre',area:'Unit 4, BBSR',          rating:4.3,review_count:89, food_type:'veg',   price_range:'₹',  avg_price:55,  tags:['Puri','Chhena','Breakfast'],      is_open:true, is_gem:false, latitude:20.3055,longitude:85.8405},
+      {id:'s37',name:'Santosh Dosa Centre',         category:'Tiffin Centre',area:'Unit 4, BBSR',          rating:4.5,review_count:134,food_type:'veg',   price_range:'₹',  avg_price:70,  tags:['Dosa','Idli','Vada'],             is_open:true, is_gem:false, latitude:20.3040,longitude:85.8392},
+      {id:'s38',name:'Unit 4 Evening Snacks',       category:'Street Food',  area:'Unit 4, BBSR',          rating:4.3,review_count:76, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Pakoda','Samosa','Tea'],          is_open:true, is_gem:false, latitude:20.3048,longitude:85.8410},
+      {id:'s6', name:'Master Canteen Chicken',      category:'Dhaba',        area:'Master Canteen, BBSR',  rating:4.4,review_count:210,food_type:'nonveg',price_range:'₹₹', avg_price:180, tags:['Chicken','Biryani','Mutton'],     is_open:true, is_gem:false, latitude:20.2980,longitude:85.8170},
+      {id:'s39',name:'Shree Ram Chaat',             category:'Street Food',  area:'Master Canteen, BBSR',  rating:4.5,review_count:321,food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Dahibara','Gupchup','Aloodum'],   is_open:true, is_gem:true,  latitude:20.2975,longitude:85.8165},
+      {id:'s40',name:'Master Canteen Sweets',       category:'Sweet Shop',   area:'Master Canteen, BBSR',  rating:4.6,review_count:187,food_type:'veg',   price_range:'₹',  avg_price:45,  tags:['Chhena Poda','Kheer','Ladoo'],    is_open:true, is_gem:false, latitude:20.2985,longitude:85.8175},
+      {id:'s41',name:'Suresh Tiffin House',         category:'Tiffin Centre',area:'Master Canteen, BBSR',  rating:4.4,review_count:143,food_type:'veg',   price_range:'₹',  avg_price:65,  tags:['Tiffin','Idli','Poha'],           is_open:true, is_gem:false, latitude:20.2990,longitude:85.8180},
+      {id:'s42',name:'MC Road Evening Pakoda',      category:'Chai & Snacks',area:'Master Canteen, BBSR',  rating:4.3,review_count:98, food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Pakoda','Chai','Evening'],        is_open:true, is_gem:false, latitude:20.2970,longitude:85.8160},
+      {id:'s7', name:'Pakhala Special House',       category:'Odia Thali',   area:'Nayapalli, BBSR',       rating:4.9,review_count:156,food_type:'veg',   price_range:'₹',  avg_price:60,  tags:['Pakhala','Summer','Traditional'], is_open:true, is_gem:true,  latitude:20.2980,longitude:85.8040},
+      {id:'s11',name:'Nayapalli Chai Adda',         category:'Chai & Snacks',area:'Nayapalli, BBSR',       rating:4.2,review_count:55, food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Chai','Samosa','Pakoda'],         is_open:true, is_gem:true,  latitude:20.2985,longitude:85.8035},
+      {id:'s43',name:'Nayapalli Mutton Curry',      category:'Dhaba',        area:'Nayapalli, BBSR',       rating:4.6,review_count:145,food_type:'nonveg',price_range:'₹₹', avg_price:170, tags:['Mutton','Curry','Nayapalli'],     is_open:true, is_gem:true,  latitude:20.2975,longitude:85.8045},
+      {id:'s44',name:'Tulsi Sweets Nayapalli',      category:'Sweet Shop',   area:'Nayapalli, BBSR',       rating:4.4,review_count:122,food_type:'veg',   price_range:'₹',  avg_price:40,  tags:['Rasgulla','Gulab Jamun','Sweets'],is_open:true, is_gem:false, latitude:20.2990,longitude:85.8030},
+      {id:'s45',name:'Satyanarayan Street Food',    category:'Street Food',  area:'Nayapalli, BBSR',       rating:4.3,review_count:89, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Gupchup','Chaat','Bhelpuri'],     is_open:true, is_gem:false, latitude:20.2970,longitude:85.8050},
+      {id:'s46',name:'Nayapalli Organic Kitchen',   category:'Organic Store',area:'Nayapalli, BBSR',       rating:4.2,review_count:34, food_type:'veg',   price_range:'₹₹₹',avg_price:180, tags:['Organic','Millets','Healthy'],    is_open:true, is_gem:false, latitude:20.2965,longitude:85.8038},
+      {id:'s12',name:'KIIT Road Maggi Stall',       category:'Street Food',  area:'Patia, BBSR',           rating:4.2,review_count:234,food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Maggi','Egg','Late Night'],       is_open:true, is_gem:true,  latitude:20.3524,longitude:85.8172},
+      {id:'s13',name:'Student Adda Chai',           category:'Chai & Snacks',area:'Patia, BBSR',           rating:4.3,review_count:456,food_type:'veg',   price_range:'₹',  avg_price:12,  tags:['Chai','24hr','Student','Late Night'],is_open:true,is_gem:true, latitude:20.3530,longitude:85.8178},
+      {id:'s19',name:'Green Bowl Organic',          category:'Organic Store',area:'Patia, BBSR',           rating:4.3,review_count:42, food_type:'veg',   price_range:'₹₹₹',avg_price:200, tags:['Organic','Millets','Healthy'],    is_open:true, is_gem:false, latitude:20.3518,longitude:85.8165},
+      {id:'s47',name:'Patia Fish Curry Corner',     category:'Dhaba',        area:'Patia, BBSR',           rating:4.5,review_count:178,food_type:'nonveg',price_range:'₹₹', avg_price:150, tags:['Fish','Rohu','Prawns','Seafood'],  is_open:true, is_gem:true,  latitude:20.3535,longitude:85.8180},
+      {id:'s48',name:'Techie Tiffin Patia',         category:'Tiffin Centre',area:'Patia, BBSR',           rating:4.4,review_count:201,food_type:'veg',   price_range:'₹',  avg_price:80,  tags:['Tiffin','Healthy','Lunch'],       is_open:true, is_gem:false, latitude:20.3520,longitude:85.8170},
+      {id:'s9', name:'Jatni Chhena Gaja Shop',      category:'Sweet Shop',   area:'Jatni',                 rating:4.7,review_count:88, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Chhena Gaja','Traditional'],      is_open:true, is_gem:true,  latitude:20.1680,longitude:85.7060},
+      {id:'s18',name:'Jatni Chaat Corner',          category:'Street Food',  area:'Jatni',                 rating:4.6,review_count:61, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Gupchup','Chaat','Dahibara'],     is_open:true, is_gem:true,  latitude:20.1690,longitude:85.7065},
+      {id:'s49',name:'Jatni Odia Thali House',      category:'Odia Thali',   area:'Jatni',                 rating:4.5,review_count:134,food_type:'veg',   price_range:'₹',  avg_price:90,  tags:['Dalma','Thali','Pakhala'],        is_open:true, is_gem:false, latitude:20.1685,longitude:85.7055},
+      {id:'s50',name:'Jatni Chai Tapri',            category:'Chai & Snacks',area:'Jatni',                 rating:4.3,review_count:56, food_type:'veg',   price_range:'₹',  avg_price:15,  tags:['Chai','Pakoda','Evening'],        is_open:true, is_gem:false, latitude:20.1675,longitude:85.7070},
+      {id:'s51',name:'Jatni Mutton Stall',          category:'Street Food',  area:'Jatni',                 rating:4.6,review_count:112,food_type:'nonveg',price_range:'₹',  avg_price:60,  tags:['Mutton','Kheeri','Street'],       is_open:true, is_gem:true,  latitude:20.1695,longitude:85.7058},
+      {id:'s8', name:'Mati Handi Mutton Point',     category:'Dhaba',        area:'Khordha Outskirts',     rating:4.8,review_count:67, food_type:'nonveg',price_range:'₹₹', avg_price:200, tags:['Mati Handi','Mutton','Clay Pot'], is_open:true, is_gem:true,  latitude:20.1820,longitude:85.6250},
+      {id:'s16',name:'Kanak Durga Sweets',          category:'Sweet Shop',   area:'Rasulgarh, BBSR',       rating:4.5,review_count:234,food_type:'veg',   price_range:'₹',  avg_price:45,  tags:['Rasgulla','Chhena Poda','Pantua'],is_open:true, is_gem:true,  latitude:20.2862,longitude:85.8561},
+    ];
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 async function init() {
   const params = new URLSearchParams(window.location.search);
@@ -267,10 +329,23 @@ async function init() {
     }
   } catch(e) {}
 
-  // Fallback: check OSM ID pattern
+  // Fallback: OSM spots have no detail page
   if (id.startsWith('osm-')) {
     showNotFound();
     return;
+  }
+
+  // Fallback 1: sessionStorage (most recent liveSpots from index.html)
+  try {
+    const seeds = JSON.parse(sessionStorage.getItem('fr_seed_spots') || '[]');
+    const seed = seeds.find(s => s.id === id);
+    if (seed) { renderSpot(seed); return; }
+  } catch(e) {}
+
+  // Fallback 2: embedded SEED_SPOTS (always works, even on direct navigation)
+  if (typeof SEED_SPOTS !== 'undefined') {
+    const embedded = SEED_SPOTS.find(s => s.id === id);
+    if (embedded) { renderSpot(embedded); return; }
   }
 
   showNotFound();
@@ -307,7 +382,7 @@ async function renderSpot(spot) {
     <!-- HERO -->
     <div class="spot-hero">
       ${spot.image_url
-        ? `<img class="spot-hero-img" src="${esc(spot.image_url)}" alt="${esc(spot.name)}"/>`
+        ? `<img class="spot-hero-img" src="${esc(spot.image_url)}" alt="${esc(spot.name)}" onclick="openLightbox('${esc(spot.image_url)}')"/>`
         : `<div class="spot-hero-bg" style="background:${catBg}">${catEmoji}</div>`}
       <div class="spot-hero-overlay"></div>
       <div class="spot-hero-content">
@@ -491,8 +566,10 @@ async function renderSpot(spot) {
         <div class="section-card" style="padding:16px">
           <div class="section-title" style="margin-bottom:12px">📍 Location</div>
           <div id="spotMap"></div>
-          <div style="font-size:.78rem;color:var(--subtext);margin-top:10px">
-            📍 ${esc(spot.address||spot.area||'')}
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+            <span style="font-size:.78rem;color:var(--subtext)">📍 ${esc(spot.address||spot.area||'')}</span>
+            <button onclick="copyAddress('${esc(spot.address||spot.area||'')}','${esc(spot.name)}')" title="Copy address"
+              style="font-size:.7rem;padding:2px 8px;border:1px solid var(--border);border-radius:6px;background:var(--mist);cursor:pointer;color:var(--subtext);flex-shrink:0">Copy</button>
           </div>
         </div>` : ''}
 
@@ -507,7 +584,7 @@ async function renderSpot(spot) {
             <button class="queue-btn ${getQueue(spot.id)==='high'?'active-high':''}"
               onclick="reportQueue('${spot.id}','high')">🔴<br>Long</button>
           </div>
-          ${getQueue(spot.id) ? `<p style="font-size:.72rem;color:var(--subtext);margin-top:8px;text-align:center">Expires in ${SmartMode.flashSaleExpiryMins ? '' : ''}2 hours</p>` : ''}
+          ${getQueue(spot.id) ? `<p style="font-size:.72rem;color:var(--subtext);margin-top:8px;text-align:center">⏱ ${queueExpiryLabel(spot.id)}</p>` : ''}
         </div>
 
         <!-- SPOT INFO -->
@@ -544,11 +621,20 @@ async function renderSpot(spot) {
             ← Browse more spots
           </a>
           &nbsp;·&nbsp;
-          <a href="#" onclick="suggestEdit();return false" style="color:var(--subtext);font-size:.76rem">
-            Suggest an edit
-          </a>
+          <a href="#" onclick="suggestEdit();return false" style="color:var(--subtext);font-size:.76rem">Suggest an edit</a>
+          &nbsp;·&nbsp;
+          <a href="#" onclick="reportInfo();return false" style="color:var(--subtext);font-size:.76rem">Report wrong info</a>
+          &nbsp;·&nbsp;
+          <a href="#" onclick="showQR();return false" style="color:var(--subtext);font-size:.76rem">📱 QR Code</a>
         </div>
 
+      <!-- GLOSSARY CTA -->
+      <div style="background:var(--petal);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;margin-bottom:16px;text-align:center">
+        <div style="font-size:1.5rem;margin-bottom:6px">📖</div>
+        <div style="font-weight:700;color:var(--soil);font-size:.88rem;margin-bottom:4px">Don't know an Odia dish?</div>
+        <p style="font-size:.76rem;color:var(--subtext);margin-bottom:10px;line-height:1.5">Explore our full Odia Food Dictionary — pronunciation, history, where to find it.</p>
+        <a href="food-dictionary.html" style="display:inline-block;padding:8px 18px;background:var(--saffron);color:#fff;border-radius:50px;font-size:.78rem;font-weight:700;text-decoration:none">🍛 Open Dictionary →</a>
+      </div>
       </div><!-- end sidebar -->
     </div><!-- end layout -->
   `;
@@ -626,6 +712,17 @@ function getQueue(spotId) {
     return status;
   } catch { return null; }
 }
+function queueExpiryLabel(spotId) {
+  try {
+    const data = LS.get('fr_queue_' + spotId);
+    if (!data) return '';
+    const minsLeft = Math.max(0, Math.floor((7200000 - (Date.now() - data.ts)) / 60000));
+    if (minsLeft <= 0) return 'Expiring soon';
+    if (minsLeft < 60) return 'Expires in ' + minsLeft + ' min';
+    return 'Expires in ' + Math.floor(minsLeft/60) + 'h ' + (minsLeft%60) + 'min';
+  } catch { return 'Expires in ~2 hours'; }
+}
+
 function reportQueue(spotId, status) {
   LS.set('fr_queue_' + spotId, {status, ts: Date.now()});
   const labels = {low:'🟢 No queue reported',medium:'🟡 Queue reported',high:'🔴 Long queue reported'};
@@ -769,11 +866,26 @@ function shareOnWhatsApp() {
 }
 
 // ── SUGGEST EDIT ──────────────────────────────────────────────────────────────
+function copyAddress(addr, name) {
+  const text = name + ', ' + addr;
+  navigator.clipboard.writeText(text).then(() => showToast('📋 Address copied!')).catch(() => {
+    // Fallback for older browsers
+    const el = document.createElement('textarea');
+    el.value = text; document.body.appendChild(el);
+    el.select(); document.execCommand('copy'); document.body.removeChild(el);
+    showToast('📋 Address copied!');
+  });
+}
+
 function suggestEdit() {
   if (!currentSpot) return;
-  const url = encodeURIComponent(window.location.href);
-  const text = encodeURIComponent(`Hi! I want to suggest an edit for: ${currentSpot.name} (${currentSpot.area})\n\nWhat needs to be updated:\n`);
-  window.open(`https://wa.me/?text=${text}`, '_blank');
+  const text = encodeURIComponent(
+    'Hi FoodieRadar! I want to suggest an edit for:\n' +
+    '*' + currentSpot.name + '* (' + currentSpot.area + ')\n\n' +
+    'What needs updating:\n[ ] Name\n[ ] Address\n[ ] Hours\n[ ] Phone\n[ ] Other:\n\n' +
+    'Correct info: '
+  );
+  window.open('https://wa.me/?text=' + text, '_blank');
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
@@ -790,6 +902,87 @@ function showNotFound() {
 
 // ── START ─────────────────────────────────────────────────────────────────────
 init();
+
+
+  function renderNearbySpots(currentSpot) {
+    const seeds = (typeof SEED_SPOTS !== 'undefined' ? SEED_SPOTS : []);
+    const area = (currentSpot.area||'').split(',')[0].trim().toLowerCase();
+    const nearby = seeds
+      .filter(s => s.id !== currentSpot.id && (s.area||'').toLowerCase().includes(area))
+      .slice(0, 4);
+    const grid = document.getElementById('nearbyGrid');
+    if (!grid || !nearby.length) { if(grid) grid.parentElement.style.display='none'; return; }
+    const catEmoji = {'Odia Thali':'🍛','Tiffin Centre':'🥞','Street Food':'🍢','Dhaba':'🍖','Sweet Shop':'🍮','Chai & Snacks':'☕','Organic Store':'🥗'};
+    grid.innerHTML = nearby.map(s => `
+      <a href="spot.html?id=${s.id}" style="display:block;background:var(--card-bg);border-radius:12px;padding:14px;border:1px solid var(--border);text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--saffron)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
+        <div style="font-size:1.5rem;margin-bottom:6px">${catEmoji[s.category]||'🍴'}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:.92rem;font-weight:700;color:var(--soil);margin-bottom:4px;line-height:1.3">${s.name}</div>
+        <div style="font-size:.72rem;color:var(--subtext)">${s.category}</div>
+        ${s.rating ? `<div style="font-size:.72rem;color:#9B6F00;margin-top:4px;font-weight:600">⭐ ${s.rating}</div>` : ''}
+      </a>`).join('');
+  }
+
+  function toggleDrawer() {
+    const d = document.getElementById('navDrawer');
+    const b = document.getElementById('navHamburger');
+    const open = d.classList.toggle('open');
+    b.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  function closeDrawer() {
+    document.getElementById('navDrawer').classList.remove('open');
+    document.getElementById('navHamburger').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function openLightbox(src) {
+    const lb = document.getElementById('lightbox');
+    document.getElementById('lightboxImg').src = src;
+    lb.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 </script>
+
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt=""/>
+</div>
+
+<!-- QR CODE MODAL -->
+<div class="modal-overlay" id="qrOverlay" onclick="if(event.target===this)closeQR()" style="display:none">
+  <div class="modal" style="max-width:340px;text-align:center">
+    <div class="modal-header" style="justify-content:flex-end;margin-bottom:0">
+      <button class="modal-close" onclick="closeQR()">✕</button>
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--soil);margin-bottom:8px">📱 Scan to Visit</div>
+    <p style="font-size:.82rem;color:var(--subtext);margin-bottom:18px">Stall owners — print this QR and stick it at your stall so customers can find you on FoodieRadar!</p>
+    <div id="qrCanvas" style="display:flex;justify-content:center;margin-bottom:18px"></div>
+    <button onclick="downloadQR()" style="width:100%;padding:12px;background:var(--saffron);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer">⬇ Download QR Code</button>
+  </div>
+</div>
+
+<!-- REPORT INFO MODAL -->
+<div class="modal-overlay" id="reportOverlay" onclick="if(event.target===this)closeReport()" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div><div class="modal-title">⚠️ Report Wrong Info</div><p style="font-size:.82rem;color:var(--subtext);margin-top:4px">Help us keep FoodieRadar accurate</p></div>
+      <button class="modal-close" onclick="closeReport()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px;border-radius:10px;border:1.5px solid var(--border)"><input type="radio" name="reportType" value="Spot is permanently closed"> Spot is permanently closed</label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px;border-radius:10px;border:1.5px solid var(--border)"><input type="radio" name="reportType" value="Wrong address or location"> Wrong address or location</label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px;border-radius:10px;border:1.5px solid var(--border)"><input type="radio" name="reportType" value="Wrong phone number"> Wrong phone number</label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px;border-radius:10px;border:1.5px solid var(--border)"><input type="radio" name="reportType" value="Wrong category or food type"> Wrong category or food type</label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px;border-radius:10px;border:1.5px solid var(--border)"><input type="radio" name="reportType" value="Other"> Other</label>
+    </div>
+    <textarea id="reportNote" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;resize:vertical;min-height:80px;outline:none" placeholder="Any extra details? (optional)"></textarea>
+    <button onclick="submitReport()" style="width:100%;margin-top:14px;padding:13px;background:var(--clay);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer">Submit Report</button>
+  </div>
+</div>
 </body>
 </html>

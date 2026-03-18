@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+function shareDish(name, odia, where) {
+  const text = encodeURIComponent('🍛 ' + name + (odia ? ' (' + odia + ')' : '') + '\nFind it at: ' + where + '\n\nDiscover Odia food culture → https://foodieradar-khordha.vercel.app/food-dictionary.html');
+  window.open('https://wa.me/?text=' + text, '_blank');
+}
+</script>
   <script src="config.js"></script>
   <script src="smart-mode.js"></script>
   <meta charset="UTF-8"/>
@@ -401,6 +406,9 @@ function renderDictionary() {
             <span class="dict-tag">${catLabel(d.cat)}</span>
           </div>
           <div class="dict-where">📍 <em>${d.where}</em></div>
+          <div style="margin-top:10px">
+            <button onclick="shareDish('${d.name}','${d.odia}','${d.where}')" style="padding:5px 13px;background:#25D366;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">📲 Share</button>
+          </div>
         </div>
       </div>`).join('');
 }
@@ -434,7 +442,13 @@ function switchCat(cat, btn) {
   renderDictionary();
 }
 
+// Debounce so search doesn't fire on every single keystroke
+let _dictDebounce;
 function filterDict() {
+  clearTimeout(_dictDebounce);
+  _dictDebounce = setTimeout(_doFilterDict, 200);
+}
+function _doFilterDict() {
   searchQuery = document.getElementById('dictSearch').value.trim();
   renderDictionary();
 }

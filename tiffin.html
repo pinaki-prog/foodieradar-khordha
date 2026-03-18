@@ -472,13 +472,24 @@
           </div>
           <div class="tiffin-footer">
             <div class="tiffin-price">${t.price} <span>/ meal</span></div>
-            <button class="btn-contact" onclick="openContact('${t.id}')">
-              💬 Contact
-            </button>
+            <div style="display:flex;gap:7px">
+              ${t.phone.includes('XXXXXX') ? '' : `<button class="btn-contact" style="background:#25D366;border-color:#25D366" onclick="quickOrder('${t.id}')">🛵 Order</button>`}
+              <button class="btn-contact" onclick="openContact('${t.id}')">💬 Info</button>
+            </div>
           </div>
         </div>
       </div>`
     ).join('');
+  }
+
+
+  function quickOrder(id) {
+    const t = TIFFINS.find(t => t.id === id);
+    if (!t) return;
+    if (t.phone.includes('XXXXXX')) { showToast('Phone number not yet available'); return; }
+    const phoneClean = t.phone.replace(/[^0-9]/g, '');
+    const msg = encodeURIComponent("Hi! I'd like to order " + t.highlight + " tiffin (found on FoodieRadar Khordha). Price: " + t.price + ". Timing: " + t.timing + ". Please confirm!");
+    window.open('https://wa.me/91' + phoneClean + '?text=' + msg, '_blank');
   }
 
   function filterTiffins() {
@@ -494,6 +505,7 @@
       const matchType = type === 'all' || t.type === type;
       return matchQ && matchArea && matchType;
     });
+    filtered.sort((a,b) => (b.verified?1:0) - (a.verified?1:0));
     renderTiffins(filtered);
   }
 
@@ -505,8 +517,16 @@
     document.getElementById('contactEmoji').textContent = t.emoji;
     document.getElementById('contactName').textContent  = t.name;
     document.getElementById('contactArea').textContent  = '📍 ' + t.area + ' · ' + t.timing;
-    const msg = encodeURIComponent(`Hi, I found you on FoodieRadar Khordha! I'd like to know more about your tiffin service.`);
-    document.getElementById('contactWhatsapp').href = `https://wa.me/91${t.phone}?text=${msg}`;
+    const msg = encodeURIComponent("Hi, I found you on FoodieRadar Khordha! I'd like to know more about your tiffin service.");
+    const phoneClean = t.phone.replace(/[^0-9]/g,'');
+    const btn = document.getElementById('contactWhatsapp');
+    if (phoneClean.includes('X') || phoneClean.length < 10) {
+      btn.href = '#';
+      btn.onclick = () => { showToast('Phone number not yet listed — check back soon'); return false; };
+    } else {
+      btn.href = 'https://wa.me/91' + phoneClean + '?text=' + msg;
+      btn.onclick = null;
+    }
     document.getElementById('contactOverlay').classList.add('show');
     document.body.style.overflow = 'hidden';
   }

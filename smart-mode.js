@@ -74,7 +74,7 @@ const SmartMode = (() => {
   }
 
   // ── SEASON HELPERS ─────────────────────────────────────────
-  function isPakhalaSeaon() {
+  function isPakhalaSeason() {
     const m = new Date().getMonth();
     return m >= PAKHALA_START_MONTH && m <= PAKHALA_END_MONTH;
   }
@@ -130,7 +130,7 @@ const SmartMode = (() => {
       ) || ['Chai & Snacks','Street Food'].includes(s.category),
     });
 
-    if (isPakhalaSeaon()) modes.push({
+    if (isPakhalaSeason()) modes.push({
       id: 'pakhala', icon: '🌿', label: 'Pakhala Season',
       desc: 'March–July: showing spots that serve Pakhala',
       color: '#1B5E20', bg: 'rgba(27,94,32,.1)',
@@ -264,7 +264,8 @@ const SmartMode = (() => {
     dismissBanner,
     isMidnightHours,
     isAfternoonLull,
-    isPakhalaSeaon,
+    isPakhalaSeason,
+    isPakhalaSeaon: isPakhalaSeason, // backward-compat alias
     isStudentMode,
     setStudentMode,
     toggleStudentMode,

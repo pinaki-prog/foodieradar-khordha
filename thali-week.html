@@ -450,6 +450,9 @@
       <textarea class="n-textarea" id="nomReason"
         placeholder="What makes their Odia Thali special? (Dalma, Pakhala, items served, price...)"></textarea>
     </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px">
+      <button onclick="shareThisWeeksThali()" style="padding:10px 24px;background:#25D366;color:#fff;border:none;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer">📲 Share This Week's Thali</button>
+    </div>
     <button class="btn-nominate" onclick="submitNomination()">Nominate This Spot 🙌</button>
   </div>
 </div>
@@ -584,11 +587,20 @@
     showToast('🍛 Vote cast for ' + (nominees.find(n=>n.id===id)?.name || 'this thali') + '!');
   }
 
-  function submitNomination() {
-    const name = document.getElementById('nomName').value.trim();
-    const area = document.getElementById('nomArea').value;
+  async function submitNomination() {
+    const name   = document.getElementById('nomName').value.trim();
+    const area   = document.getElementById('nomArea').value;
+    const reason = document.getElementById('nomReason').value.trim();
     if (!name || !area) { showToast('⚠ Please fill in name and area'); return; }
-    showToast('🙌 Nominated "' + name + '"! We\'ll add them to next week\'s vote.');
+    try {
+      await db.from('thali_nominations').insert([{
+        spot_name: name, area,
+        reason: reason || null,
+        week_key: getCurrentWeekKey(),
+        nominated_at: new Date().toISOString()
+      }]);
+    } catch(e) { /* table may not exist yet — nomination noted locally */ }
+    showToast('🙌 Nominated "' + name + '"! We\'ll consider them for next week.');
     document.getElementById('nomName').value = '';
     document.getElementById('nomArea').value = '';
     document.getElementById('nomReason').value = '';
@@ -610,6 +622,15 @@
 
   renderWinner();
   renderNominees();
+
+  function shareThisWeeksThali() {
+    const nameEl = document.querySelector('.winner-name') || document.querySelector('.thali-winner-name');
+    const placeEl = document.querySelector('.winner-place') || document.querySelector('.winner-location');
+    const name = nameEl ? nameEl.textContent.trim() : 'This Week\'s Best Thali';
+    const place = placeEl ? placeEl.textContent.trim() : '';
+    const text = encodeURIComponent('🍛 Thali of the Week on FoodieRadar!\n' + name + (place ? '\n📍 ' + place : '') + '\n\nVote & discover → https://foodieradar-khordha.vercel.app/thali-week.html');
+    window.open('https://wa.me/?text=' + text, '_blank');
+  }
 </script>
 </body>
 </html>

@@ -636,12 +636,18 @@
   // ── LOAD ─────────────────────────────────────────────────────────────────────
   async function loadEvents() {
     try {
+      const today = new Date().toISOString().split('T')[0];
       const { data, error } = await db.from('events').select('*')
         .in('status', ['upcoming','ongoing'])
+        .gte('event_date', today)
         .order('event_date', { ascending: true });
       if (error) throw error;
       allEvents = (data && data.length > 0) ? data : SEED_EVENTS;
-    } catch { allEvents = SEED_EVENTS; }
+    } catch {
+      // Supabase unavailable — use seeds filtered to future only
+      const today = new Date(); today.setHours(0,0,0,0);
+      allEvents = SEED_EVENTS.filter(e => new Date(e.event_date + 'T00:00:00') >= today);
+    }
     renderEvents(allEvents);
     updateStats();
   }
@@ -651,10 +657,12 @@
     activeTypeFilter = type;
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
-    const filtered = type === 'all'  ? allEvents
-      : type === 'free' ? allEvents.filter(e => e.is_free)
-      : allEvents.filter(e => (e.event_type || '').toLowerCase().includes(type));
-    renderEvents(filtered);
+    // Always exclude past events
+    const today = new Date(); today.setHours(0,0,0,0);
+    let pool = allEvents.filter(e => new Date(e.event_date + 'T00:00:00') >= today);
+    if (type === 'free')     pool = pool.filter(e => e.is_free);
+    else if (type !== 'all') pool = pool.filter(e => (e.event_type||'').toLowerCase().includes(type));
+    renderEvents(pool);
   }
 
   // ── STATS ─────────────────────────────────────────────────────────────────────
@@ -678,6 +686,7 @@
 
     // Group by Month Year
     const groups = {};
+    _evPool.length = 0;
     events.forEach(e => {
       const d = new Date(e.event_date + 'T00:00:00');
       const key = MONTHS_S[d.getMonth()] + ' ' + d.getFullYear();
@@ -704,8 +713,9 @@
         const time    = e.start_time ? e.start_time.slice(0, 5) : '';
         const timeEnd = e.end_time   ? ' – ' + e.end_time.slice(0, 5) : '';
 
+        const evIdx = _evPool.push(e) - 1;
         html += `
-        <div class="ev-card ${isToday ? 'is-today' : ''}">
+        <div class="ev-card ${isToday ? 'is-today' : ''}" onclick="showEventDetail(${evIdx})" style="cursor:pointer">
           <div class="ev-date-col">
             <div class="ev-day">${d.getDate()}</div>
             <div class="ev-mon">${MONTHS_S[d.getMonth()]}</div>
@@ -725,6 +735,7 @@
               ${e.area ? `<span>· ${e.area}</span>` : ''}
             </div>
             ${e.description ? `<div class="ev-desc">${e.description}</div>` : ''}
+            <div style="margin-top:8px;font-size:.72rem;color:var(--saffron);font-weight:600">Tap for details →</div>
           </div>
         </div>`;
       });
@@ -741,6 +752,10 @@
     if (subs.includes(val)) { showToast('Already subscribed! ✓'); return; }
     subs.push(val);
     LS.set('fr_alert_subs', subs);
+    // Try to persist in Supabase too
+    try {
+      await db.from('event_subscribers').insert([{ contact: val, subscribed_at: new Date().toISOString() }]);
+    } catch(e) { /* table may not exist yet — localStorage save is enough */ }
     showToast("🔔 Subscribed! We'll notify you of new events.");
     document.getElementById('alertEmail').value = '';
   }
@@ -782,6 +797,75 @@
   }
 
   loadEvents();
+
+  let _currentEvent = null;
+  const _evPool = [];
+
+  function showEventDetail(evRaw) {
+    const ev = (typeof evRaw === 'number') ? _evPool[evRaw] : (typeof evRaw === 'string' ? JSON.parse(evRaw) : evRaw);
+    if (!ev) return;
+    _currentEvent = ev;
+    const d = new Date(ev.event_date + 'T00:00:00');
+    const DAYS_LONG = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('evdTitle').textContent  = ev.name;
+    document.getElementById('evdType').textContent   = (ev.event_type||'Event') + (ev.is_free?' · Free':'');
+    document.getElementById('evdDate').textContent   = DAYS_LONG[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS_LONG[d.getMonth()] + ' ' + d.getFullYear();
+    document.getElementById('evdTime').textContent   = ev.start_time ? '🕐 ' + ev.start_time.slice(0,5) + (ev.end_time?' – '+ev.end_time.slice(0,5):'') : '⏰ Time TBC';
+    document.getElementById('evdLoc').textContent    = '📍 ' + ev.location + (ev.area?' · '+ev.area:'');
+    const descEl = document.getElementById('evdDesc');
+    descEl.textContent = ev.description||'';
+    descEl.style.display = ev.description ? 'block' : 'none';
+    document.getElementById('evDetailOverlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeEventDetail() {
+    document.getElementById('evDetailOverlay').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  function shareEvent() {
+    if (!_currentEvent) return;
+    const e = _currentEvent;
+    const text = encodeURIComponent('🎪 ' + e.name + '\n📅 ' + e.event_date + '\n📍 ' + e.location + (e.is_free?'\n🆓 Free entry':'') + '\n\nFoodieRadar Khordha → https://foodieradar-khordha.vercel.app/events.html');
+    window.open('https://wa.me/?text=' + text, '_blank');
+  }
+  function addToCalendar() {
+    if (!_currentEvent) return;
+    const d = _currentEvent.event_date.replace(/-/g,'');
+    window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(_currentEvent.name) + '&dates=' + d + '/' + d + '&location=' + encodeURIComponent(_currentEvent.location), '_blank');
+    showToast('📅 Opening Google Calendar...');
+  }
 </script>
+
+<div class="overlay" id="evDetailOverlay" onclick="if(event.target.id==='evDetailOverlay')closeEventDetail()" style="position:fixed;inset:0;z-index:9999;background:rgba(28,15,6,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;padding:0;opacity:0;pointer-events:none;transition:opacity .25s">
+  <div id="evDetailBox" style="background:var(--cream);border-radius:24px 24px 0 0;padding:24px 20px 32px;max-width:560px;width:100%;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -20px 60px rgba(0,0,0,.25)">
+    <div style="width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div style="flex:1;padding-right:12px">
+        <div id="evdType" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--saffron);margin-bottom:5px"></div>
+        <div id="evdTitle" style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--soil);line-height:1.3"></div>
+      </div>
+      <button onclick="closeEventDetail()" style="width:30px;height:30px;border:1.5px solid var(--border);border-radius:8px;background:transparent;cursor:pointer;font-size:.9rem;flex-shrink:0">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:.86rem;margin-bottom:14px">
+      <div id="evdDate" style="color:var(--soil);font-weight:600"></div>
+      <div id="evdTime" style="color:var(--subtext)"></div>
+      <div id="evdLoc" style="color:var(--subtext)"></div>
+    </div>
+    <div id="evdDesc" style="font-size:.82rem;color:var(--subtext);line-height:1.65;background:var(--mist);border-radius:10px;padding:11px 13px;margin-bottom:16px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="shareEvent()" style="padding:11px;background:#25D366;color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer">📲 Share</button>
+      <button onclick="addToCalendar()" style="padding:11px;background:var(--saffron);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer">📅 Add to Calendar</button>
+    </div>
+  </div>
+</div>
+<style>#evDetailOverlay.show{opacity:1!important;pointer-events:all!important}#evDetailOverlay.show #evDetailBox{transform:translateY(0)!important}</style>
+
+  <!-- FESTIVAL CALENDAR -->
+  <section style="padding:40px 5%;background:var(--petal);border-top:1px solid var(--border)">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--soil);margin-bottom:6px">🎊 Odia Festival <span style="color:var(--saffron)">Food Calendar</span></h2>
+    <p style="font-size:.84rem;color:var(--subtext);margin-bottom:20px">Special foods only available during these festivals — don't miss them!</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px" id="festGrid"></div>
+  </section>
 </body>
 </html>
