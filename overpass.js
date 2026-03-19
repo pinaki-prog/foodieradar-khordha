@@ -1,47 +1,17 @@
 // ============================================================
 //  FoodieRadar Khordha — overpass.js
 //  Fetches real food places from OpenStreetMap (Overpass API)
-//
-//  KEY IMPROVEMENTS:
-//  • localStorage cache (6-hour TTL) — only hits API once per 6hr
-//  • 3 mirror servers tried in order if one rate-limits
-//  • 429 / network errors handled gracefully — falls back to seeds
+//  Three mirror servers tried in order if one rate-limits (429)
 // ============================================================
 
 const KHORDHA_BBOX = "19.90,85.50,20.55,86.00";
 
-// Mirror servers — tried in order. If one returns 429, next is used.
+// Mirror servers tried in order — if one returns 429, next is used
 const OVERPASS_MIRRORS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
   "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ];
-
-const OSM_CACHE_KEY = "fr_osm_cache";
-const OSM_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours in ms
-
-// ── CACHE HELPERS ─────────────────────────────────────────────────────────────
-
-function getOSMCache() {
-  try {
-    const raw = localStorage.getItem(OSM_CACHE_KEY);
-    if (!raw) return null;
-    const { ts, spots } = JSON.parse(raw);
-    if (Date.now() - ts > OSM_CACHE_TTL) {
-      localStorage.removeItem(OSM_CACHE_KEY);
-      return null;
-    }
-    return spots;
-  } catch (e) {
-    return null;
-  }
-}
-
-function setOSMCache(spots) {
-  try {
-    localStorage.setItem(OSM_CACHE_KEY, JSON.stringify({ ts: Date.now(), spots }));
-  } catch (e) {} // localStorage full or unavailable — skip silently
-}
 
 // ── QUERY ─────────────────────────────────────────────────────────────────────
 
@@ -63,9 +33,8 @@ async function fetchFromMirror(query) {
         signal: controller.signal,
       });
       clearTimeout(timeout);
-
       if (res.status === 429) {
-        console.info(`FoodieRadar: ${url} rate-limited, trying next mirror...`);
+        console.info(`FoodieRadar: ${url} rate-limited (429), trying next mirror...`);
         continue;
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -82,32 +51,13 @@ async function fetchFromMirror(query) {
 // ── MAIN EXPORT ───────────────────────────────────────────────────────────────
 
 async function fetchOSMSpots() {
-  // 1. Return cached data if still fresh (within 6 hours)
-  const cached = getOSMCache();
-  if (cached) {
-    console.info(`FoodieRadar: Using cached OSM data (${cached.length} spots, valid 6hr)`);
-    return cached;
-  }
-
-  // 2. Try fetching from API with mirror fallback
   try {
     const elements = await fetchFromMirror(buildCombinedFoodQuery());
-
     if (!elements) {
       console.warn("FoodieRadar: All Overpass mirrors unavailable — using Supabase/seed data");
       return [];
     }
-
-    const spots = normalizeOSMData(elements);
-
-    // 3. Cache for 6 hours so future reloads don't hit the API
-    if (spots.length > 0) {
-      setOSMCache(spots);
-      console.info(`FoodieRadar: Fetched & cached ${spots.length} OSM spots (6hr TTL)`);
-    }
-
-    return spots;
-
+    return normalizeOSMData(elements);
   } catch (err) {
     console.warn("FoodieRadar: Overpass fetch error:", err.message);
     return [];

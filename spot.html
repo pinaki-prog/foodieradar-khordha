@@ -135,19 +135,6 @@
     .btn-action.whatsapp:hover{background:#128C7E}
     .btn-action-icon{font-size:1.1rem;flex-shrink:0}
 
-    /* QUEUE */
-    .queue-section{margin-bottom:16px}
-    .queue-title{font-size:.82rem;font-weight:700;color:var(--subtext);margin-bottom:8px;
-      text-transform:uppercase;letter-spacing:.06em}
-    .queue-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-    .queue-btn{padding:10px 6px;border-radius:10px;border:1.5px solid var(--border);
-      background:var(--mist);font-size:.72rem;font-weight:700;cursor:pointer;
-      font-family:'DM Sans',sans-serif;text-align:center;transition:all .18s;color:var(--subtext)}
-    .queue-btn:hover{border-color:var(--saffron)}
-    .queue-btn.active-low{background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20}
-    .queue-btn.active-medium{background:#FFF3E0;border-color:#FFB74D;color:#E65100}
-    .queue-btn.active-high{background:#FFEBEE;border-color:#EF9A9A;color:#C62828}
-
     /* HYGIENE */
     .hygiene-display{display:flex;gap:8px;flex-wrap:wrap}
     .hygiene-pill{display:flex;align-items:center;gap:5px;padding:6px 12px;
@@ -271,47 +258,47 @@ let spotMap = null;
 // ── SEED FALLBACK ────────────────────────────────────────────────────────────
 // Enables spot detail page without Supabase or sessionStorage (direct navigation)
 const SEED_SPOTS = [
-      {id:'s1', name:'Old Town Dahibara King',      category:'Street Food',  area:'Old Town, BBSR',        rating:4.8,review_count:412,food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Dahibara','Aloodum','Gupchup'],    is_open:true, is_gem:true,  latitude:20.2383,longitude:85.8330},
-      {id:'s2', name:'Lingaraj Chhena Shop',        category:'Sweet Shop',   area:'Old Town, BBSR',        rating:4.9,review_count:289,food_type:'veg',   price_range:'₹',  avg_price:40,  tags:['Chhena Poda','Rasgulla'],          is_open:true, is_gem:true,  latitude:20.2395,longitude:85.8320},
-      {id:'s3', name:'Raghunath Odia Thali',        category:'Odia Thali',   area:'Old Town, BBSR',        rating:4.7,review_count:183,food_type:'veg',   price_range:'₹₹', avg_price:120, tags:['Dalma','Pakhala','Thali'],         is_open:true, is_gem:false, latitude:20.2375,longitude:85.8310},
-      {id:'s10',name:'Mudhi Mansa Corner',          category:'Street Food',  area:'Old Town, BBSR',        rating:4.7,review_count:189,food_type:'nonveg',price_range:'₹',  avg_price:50,  tags:['Mudhi Mansa','Mutton'],            is_open:true, is_gem:true,  latitude:20.2390,longitude:85.8315},
-      {id:'s14',name:'Abadha Bhoga Counter',        category:'Odia Thali',   area:'Old Town, BBSR',        rating:4.8,review_count:223,food_type:'veg',   price_range:'₹',  avg_price:50,  tags:['Mahaprasad','Temple Food'],        is_open:true, is_gem:true,  latitude:20.2380,longitude:85.8325},
+      {id:'s1', name:'Old Town Dahibara King',      category:'Street Food',  area:'Old Town, BBSR',        rating:4.8,review_count:412,food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Dahibara','Aloodum','Gupchup'],    is_open:true, is_gem:true,  latitude:20.2383,longitude:85.8330, description:'The most famous dahibara-aloodum stall in Bhubaneswar. Locals queue from 7am for the silky lentil dumplings in tangy tamarind sauce. Cash only. Come early — sold out by 10am.', address:'Near Lingaraj Temple Gate, Old Town', phone:'9437012345', established_year:1985, speciality:'Dahibara Aloodum', opening_hours:'07:00–10:30'},
+      {id:'s2', name:'Lingaraj Chhena Shop',        category:'Sweet Shop',   area:'Old Town, BBSR',        rating:4.9,review_count:289,food_type:'veg',   price_range:'₹',  avg_price:40,  tags:['Chhena Poda','Rasgulla'],          is_open:true, is_gem:true,  latitude:20.2395,longitude:85.8320, description:'Four generations of chhena mastery. Their Chhena Poda — caramelised cottage cheese cake — ships across India. The Rasgulla here is noticeably softer than mass-produced versions.', address:'Lingaraj Temple Road, Old Town', phone:'9437023456', established_year:1962, speciality:'Chhena Poda', opening_hours:'08:00–21:00'},
+      {id:'s3', name:'Raghunath Odia Thali',        category:'Odia Thali',   area:'Old Town, BBSR',        rating:4.7,review_count:183,food_type:'veg',   price_range:'₹₹', avg_price:120, tags:['Dalma','Pakhala','Thali'],         is_open:true, is_gem:false, latitude:20.2375,longitude:85.8310, description:'A full Odia thali served on a banana leaf with 14 items including Dalma, Pakhala, Sukhua chutney and seasonal vegetable curries. Refills are free. Lunch only.', address:'Brahmeswar Lane, Old Town', phone:'9437034567', established_year:1978, speciality:'Banana Leaf Thali', opening_hours:'11:00–15:00'},
+      {id:'s10',name:'Mudhi Mansa Corner',          category:'Street Food',  area:'Old Town, BBSR',        rating:4.7,review_count:189,food_type:'nonveg',price_range:'₹',  avg_price:50,  tags:['Mudhi Mansa','Mutton'],            is_open:true, is_gem:true,  latitude:20.2390,longitude:85.8315, description:'Mudhi Mansa — spiced puffed rice with mutton curry — is Odisha\'s iconic street snack. This corner stall has perfected it over 30 years. Eat standing. It tastes better that way.', address:'Ananta Vasudeva Temple Area, Old Town', phone:'9437067890', established_year:1993, speciality:'Mudhi Mansa', opening_hours:'17:00–22:00'},
+      {id:'s14',name:'Abadha Bhoga Counter',        category:'Odia Thali',   area:'Old Town, BBSR',        rating:4.8,review_count:223,food_type:'veg',   price_range:'₹',  avg_price:50,  tags:['Mahaprasad','Temple Food'],        is_open:true, is_gem:true,  latitude:20.2380,longitude:85.8325, description:'Mahaprasad — the sacred food of Jagannath Temple served at the Ananta Vasudeva temple nearby. Cooked without onion or garlic. Pure, simple, extraordinary flavour.', address:'Ananta Vasudeva Temple, Old Town', phone:null, established_year:1960, speciality:'Mahaprasad Thali', opening_hours:'06:00–13:00'},
       {id:'s15',name:'Tanka Torani Stall',          category:'Chai & Snacks',area:'Old Town, BBSR',        rating:4.7,review_count:134,food_type:'veg',   price_range:'₹',  avg_price:15,  tags:['Tanka Torani','Summer'],           is_open:true, is_gem:true,  latitude:20.2370,longitude:85.8318},
       {id:'s31',name:'Lingaraj Puri Sabzi',         category:'Street Food',  area:'Old Town, BBSR',        rating:4.6,review_count:145,food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Puri','Sabzi','Breakfast'],        is_open:true, is_gem:false, latitude:20.2400,longitude:85.8328},
       {id:'s32',name:'Old Town Lassi Corner',       category:'Chai & Snacks',area:'Old Town, BBSR',        rating:4.5,review_count:98, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Lassi','Chaas','Mango'],           is_open:true, is_gem:false, latitude:20.2385,longitude:85.8335},
       {id:'s4', name:'Mahesh Tiffin Centre',        category:'Tiffin Centre',area:'Saheed Nagar, BBSR',    rating:4.5,review_count:94, food_type:'veg',   price_range:'₹',  avg_price:60,  tags:['Idli','Upma','Dosa'],             is_open:true, is_gem:true,  latitude:20.3070,longitude:85.8160},
-      {id:'s20',name:'The Biryani Pot',             category:'Dhaba',        area:'Saheed Nagar, BBSR',    rating:4.4,review_count:198,food_type:'nonveg',price_range:'₹₹', avg_price:160, tags:['Biryani','Chicken','Mutton'],     is_open:true, is_gem:false, latitude:20.3080,longitude:85.8165},
+      {id:'s20',name:'The Biryani Pot',             category:'Dhaba',        area:'Saheed Nagar, BBSR',    rating:4.4,review_count:198,food_type:'nonveg',price_range:'₹₹', avg_price:160, tags:['Biryani','Chicken','Mutton'],     is_open:true, is_gem:false, latitude:20.3080,longitude:85.8165, description:'The best biryani in Saheed Nagar. Slow-cooked in a sealed deg, the mutton biryani takes 4 hours to prepare. Only 40 portions per day — call ahead to reserve.', address:'Behind Saheed Nagar Post Office', phone:'9437123456', established_year:2016, speciality:'Dum Mutton Biryani', opening_hours:'12:00–22:00'},
       {id:'s33',name:'Saheed Nagar Chaat House',    category:'Street Food',  area:'Saheed Nagar, BBSR',    rating:4.3,review_count:112,food_type:'veg',   price_range:'₹',  avg_price:35,  tags:['Gupchup','Bhelpuri','Chaat'],     is_open:true, is_gem:false, latitude:20.3060,longitude:85.8155},
-      {id:'s34',name:'Maa Kitchen Odia Thali',      category:'Odia Thali',   area:'Saheed Nagar, BBSR',    rating:4.6,review_count:167,food_type:'veg',   price_range:'₹',  avg_price:100, tags:['Dalma','Sukhua','Thali'],         is_open:true, is_gem:true,  latitude:20.3075,longitude:85.8170},
+      {id:'s34',name:'Maa Kitchen Odia Thali',      category:'Odia Thali',   area:'Saheed Nagar, BBSR',    rating:4.6,review_count:167,food_type:'veg',   price_range:'₹',  avg_price:100, tags:['Dalma','Sukhua','Thali'],         is_open:true, is_gem:true,  latitude:20.3075,longitude:85.8170, description:'A home-style Odia thali run by a family from Puri. The Sukhua (dried fish chutney) is genuinely special — a taste you cannot find in restaurants. Lunch only.', address:'Saheed Nagar Lane 4, Near Park', phone:'9437178901', established_year:2013, speciality:'Sukhua Thali', opening_hours:'12:00–15:00'},
       {id:'s35',name:'Bhai Bhai Chai Stall',        category:'Chai & Snacks',area:'Saheed Nagar, BBSR',    rating:4.2,review_count:78, food_type:'veg',   price_range:'₹',  avg_price:20,  tags:['Chai','Pakoda','Evening'],        is_open:true, is_gem:false, latitude:20.3065,longitude:85.8148},
-      {id:'s5', name:'Lakshmi Sweet House',         category:'Sweet Shop',   area:'Unit 4, BBSR',          rating:4.8,review_count:327,food_type:'veg',   price_range:'₹',  avg_price:50,  tags:['Chhena Poda','Rasgulla'],         is_open:true, is_gem:false, latitude:20.3050,longitude:85.8400},
-      {id:'s17',name:'Unit 4 Ghuguni Stall',        category:'Street Food',  area:'Unit 4, BBSR',          rating:4.4,review_count:201,food_type:'veg',   price_range:'₹',  avg_price:20,  tags:['Ghuguni','Bara','Mudhi'],         is_open:true, is_gem:true,  latitude:20.3045,longitude:85.8395},
+      {id:'s5', name:'Lakshmi Sweet House',         category:'Sweet Shop',   area:'Unit 4, BBSR',          rating:4.8,review_count:327,food_type:'veg',   price_range:'₹',  avg_price:50,  tags:['Chhena Poda','Rasgulla'],         is_open:true, is_gem:false, latitude:20.3050,longitude:85.8400, description:'Unit 4\'s go-to sweet shop since 1987. Their Chhena Poda is baked in a wood-fire oven — the caramelized crust is deeper than gas-fired versions. Also famous for seasonal Malpua.', address:'Unit 4 Market Complex', phone:'9437189012', established_year:1987, speciality:'Wood-Fire Chhena Poda', opening_hours:'08:00–21:00'},
+      {id:'s17',name:'Unit 4 Ghuguni Stall',        category:'Street Food',  area:'Unit 4, BBSR',          rating:4.4,review_count:201,food_type:'veg',   price_range:'₹',  avg_price:20,  tags:['Ghuguni','Bara','Mudhi'],         is_open:true, is_gem:true,  latitude:20.3045,longitude:85.8395, description:'Unit 4 market\'s most beloved stall. Ghuguni — yellow peas in spiced gravy — served with crispy Bara fritters. Breakfast queue forms by 7:30am.', address:'Unit 4 Daily Market, Gate 2', phone:'9437101234', established_year:2001, speciality:'Ghuguni Bara', opening_hours:'07:00–12:00'},
       {id:'s36',name:'Unit 4 Market Tiffin',        category:'Tiffin Centre',area:'Unit 4, BBSR',          rating:4.3,review_count:89, food_type:'veg',   price_range:'₹',  avg_price:55,  tags:['Puri','Chhena','Breakfast'],      is_open:true, is_gem:false, latitude:20.3055,longitude:85.8405},
       {id:'s37',name:'Santosh Dosa Centre',         category:'Tiffin Centre',area:'Unit 4, BBSR',          rating:4.5,review_count:134,food_type:'veg',   price_range:'₹',  avg_price:70,  tags:['Dosa','Idli','Vada'],             is_open:true, is_gem:false, latitude:20.3040,longitude:85.8392},
       {id:'s38',name:'Unit 4 Evening Snacks',       category:'Street Food',  area:'Unit 4, BBSR',          rating:4.3,review_count:76, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Pakoda','Samosa','Tea'],          is_open:true, is_gem:false, latitude:20.3048,longitude:85.8410},
       {id:'s6', name:'Master Canteen Chicken',      category:'Dhaba',        area:'Master Canteen, BBSR',  rating:4.4,review_count:210,food_type:'nonveg',price_range:'₹₹', avg_price:180, tags:['Chicken','Biryani','Mutton'],     is_open:true, is_gem:false, latitude:20.2980,longitude:85.8170},
-      {id:'s39',name:'Shree Ram Chaat',             category:'Street Food',  area:'Master Canteen, BBSR',  rating:4.5,review_count:321,food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Dahibara','Gupchup','Aloodum'],   is_open:true, is_gem:true,  latitude:20.2975,longitude:85.8165},
+      {id:'s39',name:'Shree Ram Chaat',             category:'Street Food',  area:'Master Canteen, BBSR',  rating:4.5,review_count:321,food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Dahibara','Gupchup','Aloodum'],   is_open:true, is_gem:true,  latitude:20.2975,longitude:85.8165, description:'Shree Ram is the undisputed champion of Master Canteen chaat. The Dahibara here uses homemade curd from Balipatna. The Gupchup shell is fried fresh every hour.', address:'Master Canteen Square, Near Old Bus Stand', phone:'9437134567', established_year:1988, speciality:'Dahibara & Gupchup', opening_hours:'10:00–21:00'},
       {id:'s40',name:'Master Canteen Sweets',       category:'Sweet Shop',   area:'Master Canteen, BBSR',  rating:4.6,review_count:187,food_type:'veg',   price_range:'₹',  avg_price:45,  tags:['Chhena Poda','Kheer','Ladoo'],    is_open:true, is_gem:false, latitude:20.2985,longitude:85.8175},
       {id:'s41',name:'Suresh Tiffin House',         category:'Tiffin Centre',area:'Master Canteen, BBSR',  rating:4.4,review_count:143,food_type:'veg',   price_range:'₹',  avg_price:65,  tags:['Tiffin','Idli','Poha'],           is_open:true, is_gem:false, latitude:20.2990,longitude:85.8180},
       {id:'s42',name:'MC Road Evening Pakoda',      category:'Chai & Snacks',area:'Master Canteen, BBSR',  rating:4.3,review_count:98, food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Pakoda','Chai','Evening'],        is_open:true, is_gem:false, latitude:20.2970,longitude:85.8160},
-      {id:'s7', name:'Pakhala Special House',       category:'Odia Thali',   area:'Nayapalli, BBSR',       rating:4.9,review_count:156,food_type:'veg',   price_range:'₹',  avg_price:60,  tags:['Pakhala','Summer','Traditional'], is_open:true, is_gem:true,  latitude:20.2980,longitude:85.8040},
+      {id:'s7', name:'Pakhala Special House',       category:'Odia Thali',   area:'Nayapalli, BBSR',       rating:4.9,review_count:156,food_type:'veg',   price_range:'₹',  avg_price:60,  tags:['Pakhala','Summer','Traditional'], is_open:true, is_gem:true,  latitude:20.2980,longitude:85.8040, description:'The best Pakhala in the city — fermented rice served cold with roasted jeera, grated coconut and fried fish. Essential summer food. The owner grows the rice in Balianta.', address:'Satyanagar Road, Nayapalli', phone:'9437045678', established_year:1999, speciality:'Pakhala with Saga Bhaja', opening_hours:'07:00–14:00'},
       {id:'s11',name:'Nayapalli Chai Adda',         category:'Chai & Snacks',area:'Nayapalli, BBSR',       rating:4.2,review_count:55, food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Chai','Samosa','Pakoda'],         is_open:true, is_gem:true,  latitude:20.2985,longitude:85.8035},
-      {id:'s43',name:'Nayapalli Mutton Curry',      category:'Dhaba',        area:'Nayapalli, BBSR',       rating:4.6,review_count:145,food_type:'nonveg',price_range:'₹₹', avg_price:170, tags:['Mutton','Curry','Nayapalli'],     is_open:true, is_gem:true,  latitude:20.2975,longitude:85.8045},
+      {id:'s43',name:'Nayapalli Mutton Curry',      category:'Dhaba',        area:'Nayapalli, BBSR',       rating:4.6,review_count:145,food_type:'nonveg',price_range:'₹₹', avg_price:170, tags:['Mutton','Curry','Nayapalli'],     is_open:true, is_gem:true,  latitude:20.2975,longitude:85.8045, description:'Nayapalli\'s most respected mutton curry. The gravy is slow-reduced for 3 hours with whole spices. Served with roti or rice. Sunday special: Mutton Kasha.', address:'Satyanagar Market, Nayapalli', phone:'9437167890', established_year:2009, speciality:'Mutton Kasha', opening_hours:'11:00–21:00'},
       {id:'s44',name:'Tulsi Sweets Nayapalli',      category:'Sweet Shop',   area:'Nayapalli, BBSR',       rating:4.4,review_count:122,food_type:'veg',   price_range:'₹',  avg_price:40,  tags:['Rasgulla','Gulab Jamun','Sweets'],is_open:true, is_gem:false, latitude:20.2990,longitude:85.8030},
       {id:'s45',name:'Satyanarayan Street Food',    category:'Street Food',  area:'Nayapalli, BBSR',       rating:4.3,review_count:89, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Gupchup','Chaat','Bhelpuri'],     is_open:true, is_gem:false, latitude:20.2970,longitude:85.8050},
       {id:'s46',name:'Nayapalli Organic Kitchen',   category:'Organic Store',area:'Nayapalli, BBSR',       rating:4.2,review_count:34, food_type:'veg',   price_range:'₹₹₹',avg_price:180, tags:['Organic','Millets','Healthy'],    is_open:true, is_gem:false, latitude:20.2965,longitude:85.8038},
-      {id:'s12',name:'KIIT Road Maggi Stall',       category:'Street Food',  area:'Patia, BBSR',           rating:4.2,review_count:234,food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Maggi','Egg','Late Night'],       is_open:true, is_gem:true,  latitude:20.3524,longitude:85.8172},
-      {id:'s13',name:'Student Adda Chai',           category:'Chai & Snacks',area:'Patia, BBSR',           rating:4.3,review_count:456,food_type:'veg',   price_range:'₹',  avg_price:12,  tags:['Chai','24hr','Student','Late Night'],is_open:true,is_gem:true, latitude:20.3530,longitude:85.8178},
+      {id:'s12',name:'KIIT Road Maggi Stall',       category:'Street Food',  area:'Patia, BBSR',           rating:4.2,review_count:234,food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Maggi','Egg','Late Night'],       is_open:true, is_gem:true,  latitude:20.3524,longitude:85.8172, description:'Open until 3am, this Maggi stall feeds generations of KIIT and ITER students. The egg-cheese Maggi with extra masala is legendary. Delivery via WhatsApp.', address:'KIIT Square, Patia', phone:'9437078901', established_year:2008, speciality:'Egg Cheese Maggi', opening_hours:'18:00–03:00'},
+      {id:'s13',name:'Student Adda Chai',           category:'Chai & Snacks',area:'Patia, BBSR',           rating:4.3,review_count:456,food_type:'veg',   price_range:'₹',  avg_price:12,  tags:['Chai','24hr','Student','Late Night'],is_open:true,is_gem:true, latitude:20.3530,longitude:85.8178, description:'The 24-hour student chai institution of Patia. 12 varieties of chai including Masala, Kadak, Ginger, and the famous Lemon Honey. Pakodas always fresh.', address:'Patia Chowk, Near KIIT', phone:'9437089012', established_year:2011, speciality:'Masala Kadak Chai', opening_hours:'00:00–24:00'},
       {id:'s19',name:'Green Bowl Organic',          category:'Organic Store',area:'Patia, BBSR',           rating:4.3,review_count:42, food_type:'veg',   price_range:'₹₹₹',avg_price:200, tags:['Organic','Millets','Healthy'],    is_open:true, is_gem:false, latitude:20.3518,longitude:85.8165},
-      {id:'s47',name:'Patia Fish Curry Corner',     category:'Dhaba',        area:'Patia, BBSR',           rating:4.5,review_count:178,food_type:'nonveg',price_range:'₹₹', avg_price:150, tags:['Fish','Rohu','Prawns','Seafood'],  is_open:true, is_gem:true,  latitude:20.3535,longitude:85.8180},
+      {id:'s47',name:'Patia Fish Curry Corner',     category:'Dhaba',        area:'Patia, BBSR',           rating:4.5,review_count:178,food_type:'nonveg',price_range:'₹₹', avg_price:150, tags:['Fish','Rohu','Prawns','Seafood'],  is_open:true, is_gem:true,  latitude:20.3535,longitude:85.8180, description:'Fresh rohu, pabda and prawn curry cooked to order. The fish arrives from Chilika Lake daily at 6am. The mustard-based gravy is Odia cooking at its most authentic.', address:'Patia Market Lane, Near IIIT', phone:'9437156789', established_year:2014, speciality:'Rohu Mustard Curry', opening_hours:'11:00–15:00,18:00–22:00'},
       {id:'s48',name:'Techie Tiffin Patia',         category:'Tiffin Centre',area:'Patia, BBSR',           rating:4.4,review_count:201,food_type:'veg',   price_range:'₹',  avg_price:80,  tags:['Tiffin','Healthy','Lunch'],       is_open:true, is_gem:false, latitude:20.3520,longitude:85.8170},
-      {id:'s9', name:'Jatni Chhena Gaja Shop',      category:'Sweet Shop',   area:'Jatni',                 rating:4.7,review_count:88, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Chhena Gaja','Traditional'],      is_open:true, is_gem:true,  latitude:20.1680,longitude:85.7060},
-      {id:'s18',name:'Jatni Chaat Corner',          category:'Street Food',  area:'Jatni',                 rating:4.6,review_count:61, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Gupchup','Chaat','Dahibara'],     is_open:true, is_gem:true,  latitude:20.1690,longitude:85.7065},
+      {id:'s9', name:'Jatni Chhena Gaja Shop',      category:'Sweet Shop',   area:'Jatni',                 rating:4.7,review_count:88, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Chhena Gaja','Traditional'],      is_open:true, is_gem:true,  latitude:20.1680,longitude:85.7060, description:'Jatni is famous for Chhena Gaja and this shop is the original. The diamond-shaped cottage cheese sweet soaked in sugar syrup has been made the same way since 1958.', address:'Main Road, Jatni Market', phone:'9437056789', established_year:1958, speciality:'Chhena Gaja', opening_hours:'07:00–21:00'},
+      {id:'s18',name:'Jatni Chaat Corner',          category:'Street Food',  area:'Jatni',                 rating:4.6,review_count:61, food_type:'veg',   price_range:'₹',  avg_price:30,  tags:['Gupchup','Chaat','Dahibara'],     is_open:true, is_gem:true,  latitude:20.1690,longitude:85.7065, description:'Jatni\'s answer to BBSR chaat culture. The Gupchup here uses a slightly thicker shell than city versions and the tamarind water is tangier. Very popular with school students.', address:'Jatni Station Road', phone:'9437112345', established_year:2005, speciality:'Gupchup & Dahibara', opening_hours:'15:00–21:00'},
       {id:'s49',name:'Jatni Odia Thali House',      category:'Odia Thali',   area:'Jatni',                 rating:4.5,review_count:134,food_type:'veg',   price_range:'₹',  avg_price:90,  tags:['Dalma','Thali','Pakhala'],        is_open:true, is_gem:false, latitude:20.1685,longitude:85.7055},
       {id:'s50',name:'Jatni Chai Tapri',            category:'Chai & Snacks',area:'Jatni',                 rating:4.3,review_count:56, food_type:'veg',   price_range:'₹',  avg_price:15,  tags:['Chai','Pakoda','Evening'],        is_open:true, is_gem:false, latitude:20.1675,longitude:85.7070},
-      {id:'s51',name:'Jatni Mutton Stall',          category:'Street Food',  area:'Jatni',                 rating:4.6,review_count:112,food_type:'nonveg',price_range:'₹',  avg_price:60,  tags:['Mutton','Kheeri','Street'],       is_open:true, is_gem:true,  latitude:20.1695,longitude:85.7058},
-      {id:'s8', name:'Mati Handi Mutton Point',     category:'Dhaba',        area:'Khordha Outskirts',     rating:4.8,review_count:67, food_type:'nonveg',price_range:'₹₹', avg_price:200, tags:['Mati Handi','Mutton','Clay Pot'], is_open:true, is_gem:true,  latitude:20.1820,longitude:85.6250},
-      {id:'s16',name:'Kanak Durga Sweets',          category:'Sweet Shop',   area:'Rasulgarh, BBSR',       rating:4.5,review_count:234,food_type:'veg',   price_range:'₹',  avg_price:45,  tags:['Rasgulla','Chhena Poda','Pantua'],is_open:true, is_gem:true,  latitude:20.2862,longitude:85.8561},
+      {id:'s51',name:'Jatni Mutton Stall',          category:'Street Food',  area:'Jatni',                 rating:4.6,review_count:112,food_type:'nonveg',price_range:'₹',  avg_price:60,  tags:['Mutton','Kheeri','Street'],       is_open:true, is_gem:true,  latitude:20.1695,longitude:85.7058, description:'Jatni\'s famous late-night mutton stall. The kheeri (brain curry) is for adventurous eaters only. The regular mutton pieces are exceptional value — ₹60 for a generous serve.', address:'Jatni Bypass Road Junction', phone:'9437190123', established_year:2007, speciality:'Mutton Kheeri', opening_hours:'19:00–02:00'},
+      {id:'s8', name:'Mati Handi Mutton Point',     category:'Dhaba',        area:'Khordha Outskirts',     rating:4.8,review_count:67, food_type:'nonveg',price_range:'₹₹', avg_price:200, tags:['Mati Handi','Mutton','Clay Pot'], is_open:true, is_gem:true,  latitude:20.1820,longitude:85.6250, description:'A roadside dhaba that makes mutton in an actual clay pot (mati handi) buried in coal embers for 6 hours. No gas. No shortcuts. Worth the drive to the outskirts.', address:'NH16 Bypass, Near Khordha Town', phone:'9437145678', established_year:2003, speciality:'Mati Handi Mutton', opening_hours:'12:00–22:00'},
+      {id:'s16',name:'Kanak Durga Sweets',          category:'Sweet Shop',   area:'Rasulgarh, BBSR',       rating:4.5,review_count:234,food_type:'veg',   price_range:'₹',  avg_price:45,  tags:['Rasgulla','Chhena Poda','Pantua'],is_open:true, is_gem:true,  latitude:20.2862,longitude:85.8561, description:'The finest Rasgulla and Chhena Poda in Rasulgarh. Milk sourced daily from Balianta dairies. Their Ledikeni and Pantua are lesser-known but exceptional.', address:'Rasulgarh Square, Near Mancheswar', phone:'9437090123', established_year:1974, speciality:'Rasgulla & Pantua', opening_hours:'08:00–21:00'},
     ];
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -324,8 +311,15 @@ async function init() {
   try {
     // Try Supabase first
     if (!FR_CONFIG.SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
-      const { data } = await db.from('spots').select('*').eq('id', id).single();
-      if (data) { renderSpot(data); return; }
+      // Only query Supabase if id looks like a UUID (seed IDs like 's12' cause 400 errors)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    if (isUUID) {
+      var dbResult = await db.from('spots').select('*').eq('id', id).single();
+      if (dbResult.data && !dbResult.error) {
+        try { renderSpot(dbResult.data); return; }
+        catch(re) { console.warn('renderSpot failed on DB data:', re.message); }
+      }
+    }
     }
   } catch(e) {}
 
@@ -353,6 +347,18 @@ async function init() {
 
 // ── RENDER SPOT ───────────────────────────────────────────────────────────────
 async function renderSpot(spot) {
+  // Normalize: safe for Supabase rows (may have nulls/strings) and seed objects
+  var rawTags = spot.tags;
+  var safeTags = Array.isArray(rawTags) ? rawTags
+    : (rawTags ? String(rawTags).replace(/[{}"]/g,'').split(',').map(function(t){return t.trim();}).filter(Boolean) : []);
+  spot = Object.assign({}, spot, {
+    tags:        safeTags,
+    food_type:   spot.food_type  || 'both',
+    category:    spot.category   || 'Eatery',
+    area:        spot.area       || 'Khordha',
+    price_range: spot.price_range || '₹',
+    is_gem:      !!spot.is_gem,
+  });
   currentSpot = spot;
 
   // Update document title + meta
@@ -431,7 +437,13 @@ async function renderSpot(spot) {
         ${spot.description ? `
         <div class="section-card">
           <div class="section-title">📖 About <span>${esc(spot.name)}</span></div>
-          <p style="font-size:.88rem;color:var(--subtext);line-height:1.65">${esc(spot.description)}</p>
+          <p style="font-size:.88rem;color:var(--subtext);line-height:1.65;margin-bottom:${spot.speciality||spot.established_year?'14px':'0'}">${esc(spot.description)}</p>
+          ${spot.speciality ? `
+          <div style="display:inline-flex;align-items:center;gap:8px;background:var(--petal);border:1.5px solid var(--border);border-radius:50px;padding:6px 16px;margin-bottom:8px">
+            <span style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--subtext)">Signature</span>
+            <span style="font-weight:700;color:var(--clay);font-size:.86rem">🍛 ${esc(spot.speciality)}</span>
+          </div>` : ''}
+          ${spot.established_year ? `<p style="font-size:.74rem;color:var(--subtext);margin-top:6px">🗓 Est. ${spot.established_year} · ${new Date().getFullYear() - spot.established_year} years in Khordha</p>` : ''}
         </div>` : ''}
 
         <!-- TAGS / KNOWN FOR -->
@@ -449,59 +461,6 @@ async function renderSpot(spot) {
           ${spot.opening_hours
             ? `<p style="font-size:.84rem;color:var(--subtext)">${esc(spot.opening_hours)}</p>`
             : buildHoursGrid(spot.category, dayName)}
-        </div>
-
-        <!-- HYGIENE REPORT -->
-        <div class="section-card">
-          <div class="section-title">🧼 Hygiene Report</div>
-          ${hygiene ? `
-            <div class="hygiene-display" style="margin-bottom:12px">
-              <div class="hygiene-pill ${hygiene.gloves}">
-                ${hygiene.gloves==='yes'?'✅':hygiene.gloves==='no'?'❌':'🤷'} Gloves / Tongs
-              </div>
-              <div class="hygiene-pill ${hygiene.water}">
-                ${hygiene.water==='yes'?'✅':hygiene.water==='no'?'❌':'🤷'} Clean Water
-              </div>
-              <div class="hygiene-pill ${hygiene.bin}">
-                ${hygiene.bin==='yes'?'✅':hygiene.bin==='no'?'❌':'🤷'} Waste Bin
-              </div>
-            </div>
-            <p style="font-size:.74rem;color:var(--subtext)">Community reported · <a href="#" onclick="clearHygiene('${spot.id}');return false" style="color:var(--saffron)">Update report</a></p>
-          ` : `
-            <p style="font-size:.84rem;color:var(--subtext);margin-bottom:14px">No hygiene report yet. Be the first to report!</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-              <div>
-                <div style="font-size:.76rem;font-weight:700;margin-bottom:6px">Gloves/Tongs?</div>
-                <div style="display:flex;gap:4px">
-                  <button class="queue-btn" onclick="setHygieneQ('gloves','yes',this)">✅</button>
-                  <button class="queue-btn" onclick="setHygieneQ('gloves','no',this)">❌</button>
-                  <button class="queue-btn" onclick="setHygieneQ('gloves','na',this)">🤷</button>
-                </div>
-              </div>
-              <div>
-                <div style="font-size:.76rem;font-weight:700;margin-bottom:6px">Clean Water?</div>
-                <div style="display:flex;gap:4px">
-                  <button class="queue-btn" onclick="setHygieneQ('water','yes',this)">✅</button>
-                  <button class="queue-btn" onclick="setHygieneQ('water','no',this)">❌</button>
-                  <button class="queue-btn" onclick="setHygieneQ('water','na',this)">🤷</button>
-                </div>
-              </div>
-              <div>
-                <div style="font-size:.76rem;font-weight:700;margin-bottom:6px">Waste Bin?</div>
-                <div style="display:flex;gap:4px">
-                  <button class="queue-btn" onclick="setHygieneQ('bin','yes',this)">✅</button>
-                  <button class="queue-btn" onclick="setHygieneQ('bin','no',this)">❌</button>
-                  <button class="queue-btn" onclick="setHygieneQ('bin','na',this)">🤷</button>
-                </div>
-              </div>
-            </div>
-            <button onclick="submitHygieneInline('${spot.id}')"
-              style="margin-top:12px;padding:8px 20px;background:var(--saffron);color:#fff;
-              border:none;border-radius:8px;font-family:'DM Sans',sans-serif;
-              font-size:.82rem;font-weight:700;cursor:pointer">
-              Submit Hygiene Report
-            </button>
-          `}
         </div>
 
         <!-- REVIEWS -->
@@ -576,15 +535,6 @@ async function renderSpot(spot) {
         <!-- QUEUE STATUS -->
         <div class="action-card">
           <div class="queue-title">⏳ Current Queue Status</div>
-          <div class="queue-btns">
-            <button class="queue-btn ${getQueue(spot.id)==='low'?'active-low':''}"
-              onclick="reportQueue('${spot.id}','low')">🟢<br>No Queue</button>
-            <button class="queue-btn ${getQueue(spot.id)==='medium'?'active-medium':''}"
-              onclick="reportQueue('${spot.id}','medium')">🟡<br>Medium</button>
-            <button class="queue-btn ${getQueue(spot.id)==='high'?'active-high':''}"
-              onclick="reportQueue('${spot.id}','high')">🔴<br>Long</button>
-          </div>
-          ${getQueue(spot.id) ? `<p style="font-size:.72rem;color:var(--subtext);margin-top:8px;text-align:center">⏱ ${queueExpiryLabel(spot.id)}</p>` : ''}
         </div>
 
         <!-- SPOT INFO -->
@@ -703,68 +653,23 @@ function initSpotMap(spot) {
 }
 
 // ── QUEUE ─────────────────────────────────────────────────────────────────────
-function getQueue(spotId) {
-  try {
-    const data = LS.get('fr_queue_' + spotId);
-    if (!data) return null;
-    const { status, ts } = data;
-    if ((Date.now() - ts) > 7200000) { LS.remove('fr_queue_' + spotId); return null; }
-    return status;
-  } catch { return null; }
-}
-function queueExpiryLabel(spotId) {
-  try {
-    const data = LS.get('fr_queue_' + spotId);
-    if (!data) return '';
-    const minsLeft = Math.max(0, Math.floor((7200000 - (Date.now() - data.ts)) / 60000));
-    if (minsLeft <= 0) return 'Expiring soon';
-    if (minsLeft < 60) return 'Expires in ' + minsLeft + ' min';
-    return 'Expires in ' + Math.floor(minsLeft/60) + 'h ' + (minsLeft%60) + 'min';
-  } catch { return 'Expires in ~2 hours'; }
-}
-
-function reportQueue(spotId, status) {
-  LS.set('fr_queue_' + spotId, {status, ts: Date.now()});
-  const labels = {low:'🟢 No queue reported',medium:'🟡 Queue reported',high:'🔴 Long queue reported'};
-  showToast(labels[status] + ' — visible on homepage for 2 hours');
-  // Refresh queue buttons
-  document.querySelectorAll('.queue-btn').forEach(b => {
-    b.classList.remove('active-low','active-medium','active-high');
-  });
-  const btns = document.querySelectorAll('.queue-btn');
-  const map = {low:0,medium:1,high:2};
-  if (btns[map[status]]) btns[map[status]].classList.add('active-' + status);
-}
-
-// ── HYGIENE ───────────────────────────────────────────────────────────────────
-let _hygieneAnswers = {};
 function getHygiene(spotId) {
   try { return LS.get('fr_hygiene_' + spotId); }
   catch { return null; }
-}
-function setHygieneQ(key, val, btn) {
-  _hygieneAnswers[key] = val;
-  // Highlight button row
-  const parent = btn.parentElement;
-  parent.querySelectorAll('.queue-btn').forEach(b => b.classList.remove('active-low','active-medium'));
-  btn.classList.add(val === 'yes' ? 'active-low' : val === 'no' ? 'active-high' : 'active-medium');
-}
-function submitHygieneInline(spotId) {
-  if (Object.keys(_hygieneAnswers).length < 3) { showToast('Please answer all 3 questions'); return; }
-  LS.set('fr_hygiene_' + spotId, _hygieneAnswers);
-  showToast('🧼 Hygiene report saved! Refreshing...');
-  setTimeout(() => location.reload(), 1200);
-}
-function clearHygiene(spotId) {
-  LS.remove('fr_hygiene_' + spotId);
-  _hygieneAnswers = {};
-  location.reload();
-}
+};
+
 
 // ── REVIEWS ───────────────────────────────────────────────────────────────────
 async function loadReviews(spotId) {
   const list = document.getElementById('reviewsList');
   const badge = document.getElementById('reviewCountBadge');
+  // Seed IDs (like 's12') are not UUIDs — skip Supabase to avoid 400 errors
+  const isRealUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(spotId);
+  if (!isRealUUID) {
+    if (list) list.innerHTML = '<p style="color:var(--subtext);font-size:.84rem;padding:8px 0">No reviews yet — be the first to leave one below!</p>';
+    if (badge) badge.textContent = '0 reviews';
+    return;
+  }
   try {
     const { data } = await db.from('reviews')
       .select('*').eq('spot_id', spotId)
@@ -804,6 +709,8 @@ function setRating(n) {
 }
 
 async function submitReviewInline(spotId) {
+  const _isRealId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(spotId);
+  if (!_isRealId) { showToast('Reviews available once this spot is verified in our database!'); return; }
   if (!reviewRating) { showToast('Please select a star rating'); return; }
   const comment = document.getElementById('rfComment').value.trim();
   if (comment.length < 5) { showToast('Please write at least 5 characters'); return; }

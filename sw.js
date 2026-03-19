@@ -1,7 +1,7 @@
-// FoodieRadar Khordha — Service Worker v1.0
-// Caches app shell for offline use; network-first for API/map tiles
+// FoodieRadar Khordha — Service Worker v1.1
+// Safe caching: individual fetches with error handling — never crashes on 404
 
-const CACHE = 'fr-khordha-v1';
+const CACHE = 'fr-khordha-v2';
 const SHELL = [
   '/',
   '/index.html',
@@ -17,31 +17,35 @@ const SHELL = [
   '/config.js',
   '/smart-mode.js',
   '/overpass.js',
-  '/favicon.svg',
-  '/manifest.json',
 ];
 
-// Install — cache app shell
+// Install — cache each file individually, skip any that 404
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(cache =>
+      Promise.all(
+        SHELL.map(url =>
+          fetch(url)
+            .then(res => { if (res.ok) cache.put(url, res); })
+            .catch(() => {}) // silently skip files that don't exist
+        )
+      )
+    ).then(() => self.skipWaiting())
   );
 });
 
-// Activate — delete old caches
+// Activate — remove old caches
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch — cache-first for app shell, network-first for everything else
+// Fetch — cache-first for our files, network-first for everything else
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-
-  // Skip non-GET, cross-origin API calls (Supabase, OSM tiles)
   if (e.request.method !== 'GET') return;
   if (url.hostname.includes('supabase.co')) return;
   if (url.hostname.includes('openstreetmap.org')) return;
@@ -51,22 +55,17 @@ self.addEventListener('fetch', e => {
   if (url.hostname.includes('mail.ru')) return;
   if (url.hostname.includes('fonts.googleapis') || url.hostname.includes('fonts.gstatic')) return;
 
-  // Cache-first for our own files
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(res => {
-        // Cache successful same-origin responses
         if (res.ok && url.origin === self.location.origin) {
-          const clone = res.clone();
-          caches.open(CACHE).then(cache => cache.put(e.request, clone));
+          const resClone = res.clone(); // clone BEFORE returning original
+          caches.open(CACHE).then(c => c.put(e.request, resClone));
         }
         return res;
       }).catch(() => {
-        // Offline fallback for navigation requests
-        if (e.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
+        if (e.request.mode === 'navigate') return caches.match('/index.html');
       });
     })
   );

@@ -617,6 +617,21 @@ function showToast(msg) {
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
+
+// Auto-refresh passport when user returns from another tab (e.g. after marking visited)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    const p = loadPassport();
+    if (p) showPassport(p);
+  }
+});
+// Also refresh when storage changes (cross-tab update)
+window.addEventListener('storage', (e) => {
+  if (e.key === 'fr_passport') {
+    const p = loadPassport();
+    if (p) showPassport(p);
+  }
+});
 const passport = loadPassport();
 if (passport) showPassport(passport);
 </script>
