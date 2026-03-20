@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://foodieradar-khordha.vercel.app/index.html</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://foodieradar-khordha.vercel.app/events.html</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://foodieradar-khordha.vercel.app/haat-festival.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://foodieradar-khordha.vercel.app/food-trails.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://foodieradar-khordha.vercel.app/food-dictionary.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://foodieradar-khordha.vercel.app/tiffin.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://foodieradar-khordha.vercel.app/cook-off.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://foodieradar-khordha.vercel.app/thali-week.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://foodieradar-khordha.vercel.app/passport.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://foodieradar-khordha.vercel.app/cuttack.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://foodieradar-khordha.vercel.app/puri.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+</urlset>

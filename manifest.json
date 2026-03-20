@@ -1,37 +1,43 @@
 {
   "name": "FoodieRadar Khordha",
   "short_name": "FoodieRadar",
-  "description": "Community-powered street food discovery for Khordha, Odisha",
-  "start_url": "/",
+  "description": "Discover the best local food spots, haats and events across Khordha district, Odisha.",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#FDF6EC",
   "theme_color": "#E8670A",
   "orientation": "portrait-primary",
+  "lang": "en",
+  "categories": ["food", "lifestyle", "travel"],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E8670A'/><text y='.9em' font-size='80' x='10'>🍛</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231C0F06'/><text y='70' x='50' text-anchor='middle' font-size='60'>🍛</text></svg>",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["food", "lifestyle", "local"],
-  "lang": "en-IN",
-  "dir": "ltr",
+  "screenshots": [],
   "shortcuts": [
     {
-      "name": "Midnight Radar",
-      "short_name": "Night",
-      "description": "Find food open after 10 PM",
-      "url": "/?mode=midnight",
-      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>🌙</text></svg>", "sizes": "any" }]
+      "name": "Food Spots",
+      "url": "/index.html#spots",
+      "description": "Browse all food spots"
     },
     {
-      "name": "Food Trails",
-      "short_name": "Trails",
-      "description": "Curated food walking routes",
-      "url": "/food-trails.html",
-      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>🗺️</text></svg>", "sizes": "any" }]
+      "name": "Events",
+      "url": "/events.html",
+      "description": "Upcoming food events"
+    },
+    {
+      "name": "Haat Tracker",
+      "url": "/haat-festival.html",
+      "description": "Weekly haat schedule"
+    },
+    {
+      "name": "My Passport",
+      "url": "/passport.html",
+      "description": "My FoodiePassport"
     }
   ]
 }

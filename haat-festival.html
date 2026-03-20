@@ -303,7 +303,9 @@
       <span></span><span></span><span></span>
     </button>
   </div>
-</nav>
+
+    <div style="display:flex;gap:6px;margin-left:auto"><a href="cuttack.html" style="color:rgba(255,255,255,.6);font-size:.75rem;padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.2);text-decoration:none">Cuttack</a><a href="puri.html" style="color:rgba(255,255,255,.6);font-size:.75rem;padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.2);text-decoration:none;margin-left:6px">Puri</a></div>
+  </nav>
 <div class="nav-drawer" id="navDrawer">
   <a href="index.html" onclick="closeDrawer()">🗺️ Explore Spots</a>
   <a href="events.html">🎪 Food Events</a>
@@ -664,6 +666,58 @@
     const text = encodeURIComponent('📅 Remind me: ' + name + ' at ' + area + '\n\nFoodieRadar Haat Tracker → https://foodieradar-khordha.vercel.app/haat-festival.html');
     setTimeout(() => window.open('https://wa.me/?text=' + text, '_blank'), 800);
   }
+
+  // ── HAAT COUNTDOWN TIMERS ────────────────────────────────────────────────
+  const HAAT_SCHEDULE = [
+    { name: 'Balipatna Haat',    day: 5, time: '06:00' }, // Friday
+    { name: 'Jatni Haat',        day: 4, time: '05:00' }, // Thursday
+    { name: 'Khordha Haat',      day: 3, time: '06:00' }, // Wednesday
+    { name: 'Bhubaneswar Ekamra Haat', day: 6, time: '07:00' }, // Saturday
+    { name: 'Tangi Haat',        day: 1, time: '05:30' }, // Monday
+    { name: 'Pipili Haat',       day: 2, time: '05:00' }, // Tuesday
+  ];
+
+  function getDaysUntilHaat(dayOfWeek) {
+    const now = new Date();
+    const today = now.getDay(); // 0=Sunday
+    let diff = dayOfWeek - today;
+    if (diff < 0) diff += 7;
+    if (diff === 0) {
+      // Check if it already happened today (after 2pm = done)
+      if (now.getHours() >= 14) diff = 7;
+    }
+    return diff;
+  }
+
+  function renderHaatCountdowns() {
+    const container = document.getElementById('haatCountdowns');
+    if (!container) return;
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const fullDays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    container.innerHTML = HAAT_SCHEDULE.map(h => {
+      const daysLeft = getDaysUntilHaat(h.day);
+      const isToday = daysLeft === 0;
+      const label = isToday ? 'TODAY' : (daysLeft === 1 ? 'TOMORROW' : 'in ' + daysLeft + ' days');
+      const color = isToday ? '#2E7D32' : (daysLeft === 1 ? '#E65100' : 'var(--subtext)');
+      return '<div style="background:var(--cream);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center">' +
+        '<div>' +
+          '<div style="font-weight:700;color:var(--soil);font-size:.9rem">' + h.name + '</div>' +
+          '<div style="font-size:.74rem;color:var(--subtext);margin-top:2px">Every ' + fullDays[h.day] + ' · ' + h.time + '</div>' +
+        '</div>' +
+        '<span style="font-weight:800;font-size:.78rem;color:' + color + ';background:' + (isToday ? '#E8F5E9' : 'var(--mist)') + ';padding:4px 10px;border-radius:20px">' + label + '</span>' +
+        '</div>';
+    }).join('');
+  }
+  renderHaatCountdowns();
+  // Refresh every minute
+  setInterval(renderHaatCountdowns, 60000);
 </script>
+
+  <!-- HAAT COUNTDOWN SECTION -->
+  <section style="padding:40px 5%;background:var(--cream)">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--soil);margin-bottom:6px">📅 Weekly Haat <span style="color:var(--saffron)">Schedule</span></h2>
+    <p style="font-size:.84rem;color:var(--subtext);margin-bottom:20px">Know exactly when each haat happens — never miss one again</p>
+    <div id="haatCountdowns" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
+  </section>
 </body>
 </html>

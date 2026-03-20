@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>You're offline — FoodieRadar Khordha</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+  <style>
+    body{font-family:'DM Sans',sans-serif;background:#1C0F06;color:#FDF6EC;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+    h1{font-family:'Playfair Display',serif;font-size:2rem;margin-bottom:12px}
+    h1 em{color:#E8670A;font-style:normal}
+    p{color:rgba(255,255,255,.6);max-width:380px;margin:0 auto 28px;line-height:1.7}
+    .emoji{font-size:4rem;margin-bottom:20px;display:block}
+    .btn{display:inline-block;padding:13px 32px;background:#E8670A;color:#fff;border-radius:50px;text-decoration:none;font-weight:700;border:none;cursor:pointer;font-family:DM Sans,sans-serif;font-size:.95rem}
+    .tip{margin-top:24px;font-size:.8rem;color:rgba(255,255,255,.4);max-width:320px;margin-left:auto;margin-right:auto}
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600&display=swap');
+  </style>
+</head>
+<body>
+  <div>
+    <span class="emoji">📡</span>
+    <h1>You're <em>offline</em></h1>
+    <p>No internet connection right now. Your saved spots and passport are still available — just reconnect to discover new food.</p>
+    <button class="btn" onclick="window.location.reload()">Try again</button>
+    <p class="tip">Tip: install FoodieRadar to your home screen for the best offline experience. Most spot details are cached automatically.</p>
+  </div>
+</body>
+</html>

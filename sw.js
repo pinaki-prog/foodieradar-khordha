@@ -17,6 +17,12 @@ const SHELL = [
   '/config.js',
   '/smart-mode.js',
   '/overpass.js',
+  '/cuttack.html',
+  '/puri.html',
+  '/push-sw.js',
+  '/manifest.json',
+  '/favicon.svg',
+  '/offline.html',
 ];
 
 // Install — cache each file individually, skip any that 404
@@ -65,7 +71,7 @@ self.addEventListener('fetch', e => {
         }
         return res;
       }).catch(() => {
-        if (e.request.mode === 'navigate') return caches.match('/index.html');
+        if (e.request.mode === 'navigate') return caches.match('/offline.html') || caches.match('/index.html');
       });
     })
   );

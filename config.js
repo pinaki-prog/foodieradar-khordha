@@ -21,7 +21,7 @@ const FR_CONFIG = {
   // ── SITE INFO ─────────────────────────────────────────────
   SITE_NAME:   "FoodieRadar Khordha",
   SITE_REGION: "Khordha District, Odisha",
-  SITE_URL:    "https://foodieradar.vercel.app",
+  SITE_URL:    "https://foodieradar-khordha.vercel.app/",
 };
 
 // ── SUPABASE CLIENT ───────────────────────────────────────

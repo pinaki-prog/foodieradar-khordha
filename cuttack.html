@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta property="og:type"        content="website"/>
+  <meta property="og:title"       content="FoodieRadar Cuttack — Best Local Food in Silver City"/>
+  <meta property="og:description" content="Discover Cuttack dahibara, Chhena Jhili, Rasabali and more — community food guide to the Silver City."/>
+  <meta name="twitter:card"       content="summary_large_image"/>
+  <meta name="theme-color"        content="#E8670A"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="description" content="Discover the best food spots in Cuttack — community-powered food guide."/>
+  <title>FoodieRadar Cuttack — Discover Local Food</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--saffron:#E8670A;--soil:#1C0F06;--cream:#FDF6EC;--card-bg:#FFFDF7;--border:#E8D5C0;--subtext:#6B4C35;--mist:#F5EDE0;--petal:#FFF0E6;--leaf:#2D6A2D;--turmeric:#F5A623;--clay:#C04A1B;}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"DM Sans",sans-serif;background:var(--cream);color:var(--soil)}
+    .hero{background:linear-gradient(135deg,var(--soil) 0%,#3D1A06 100%);padding:60px 5%;min-height:300px;display:flex;flex-direction:column;justify-content:center}
+    .hero-title{font-family:"Playfair Display",serif;font-size:clamp(2rem,5vw,3.5rem);color:#fff;margin-bottom:12px;line-height:1.2}
+    .hero-title em{color:var(--saffron);font-style:italic}
+    .hero-subtitle{color:rgba(255,255,255,.7);font-size:1rem;max-width:500px;line-height:1.7;margin-bottom:24px}
+    .hero-tagline{color:var(--saffron);font-weight:600;margin-bottom:16px;font-size:.9rem}
+    .nav{background:var(--soil);padding:12px 5%;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .nav-logo{color:var(--saffron);font-weight:700;font-size:1.1rem;text-decoration:none;display:flex;align-items:center;gap:8px}
+    .nav-links{display:flex;gap:16px}
+    .nav-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;transition:color .2s}
+    .nav-links a:hover{color:#fff}
+    .spots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;padding:32px 5%}
+    .spot-card{background:var(--card-bg);border:1.5px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s}
+    .spot-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.12)}
+    .card-img{height:160px;display:flex;align-items:center;justify-content:center;font-size:3rem;background:linear-gradient(135deg,var(--saffron),var(--clay))}
+    .card-body{padding:16px}
+    .card-name{font-weight:700;font-size:1rem;color:var(--soil);margin-bottom:6px}
+    .card-meta{font-size:.78rem;color:var(--subtext);margin-bottom:8px}
+    .card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+    .tag{background:var(--mist);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:.7rem;color:var(--subtext);font-weight:600}
+    .card-footer{display:flex;justify-content:space-between;align-items:center;font-size:.78rem}
+    .rating{color:var(--turmeric);font-weight:700}
+    .price{color:var(--clay);font-weight:700}
+    .section-header{padding:32px 5% 16px;display:flex;justify-content:space-between;align-items:center}
+    .section-title{font-family:"Playfair Display",serif;font-size:1.8rem;font-weight:700}
+    .section-title span{color:var(--saffron)}
+    .filter-bar{padding:0 5% 16px;display:flex;gap:10px;flex-wrap:wrap}
+    .chip{padding:8px 18px;border-radius:50px;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:.82rem;font-weight:600;color:var(--subtext);transition:all .18s}
+    .chip.active{background:var(--saffron);border-color:var(--saffron);color:#fff}
+    .back-link{color:var(--saffron);text-decoration:none;font-size:.85rem;font-weight:600}
+    .footer{background:var(--soil);color:rgba(255,255,255,.6);text-align:center;padding:24px;font-size:.82rem;margin-top:40px}
+    @media(max-width:600px){.spots-grid{grid-template-columns:1fr;padding:20px 4%}}
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="index.html">🍛 FoodieRadar</a>
+  <div class="nav-links">
+    <a href="index.html">Khordha</a>
+    <a href="cuttack.html" style="color:#fff">Cuttack</a>
+    <a href="puri.html" style="color:rgba(255,255,255,.7)">Puri</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-tagline"> କଟକର ସ୍ୱାଦ ଖୋଜ</div>
+  <h1 class="hero-title">Discover <em>Silver City</em><br>Cuttack Food</h1>
+  <p class="hero-subtitle">From Cuttack's legendary dahibara to the birthplace of Chhena Jhili — discover the Silver City's food heritage.</p>
+</section>
+
+<div class="section-header">
+  <h2 class="section-title">Best <span>Spots</span></h2>
+  <span id="spotCount" style="font-size:.84rem;color:var(--subtext)"></span>
+</div>
+
+<div class="filter-bar" id="filterBar">
+  <button class="chip active" onclick="filterSpots('all',this)">All</button>
+  <button class="chip" onclick="filterSpots('Street Food',this)">🍢 Street Food</button>
+  <button class="chip" onclick="filterSpots('Sweet Shop',this)">🍮 Sweets</button>
+  <button class="chip" onclick="filterSpots('Odia Thali',this)">🍛 Thali</button>
+  <button class="chip" onclick="filterSpots('Dhaba',this)">🍖 Dhaba</button>
+</div>
+
+<div class="spots-grid" id="spotsGrid"></div>
+
+<div class="footer">
+  FoodieRadar Cuttack · Community-powered food guide · <a href="index.html" style="color:var(--saffron)">Explore Khordha →</a>
+</div>
+
+<script src="config.js"></script>
+<script>
+const CITY_SPOTS = [
+  {
+    "id": "s72",
+    "name": "Cuttack Old Town Dahi Bara",
+    "category": "Street Food",
+    "area": "Cuttack Old Town",
+    "rating": 4.9,
+    "review_count": 512,
+    "food_type": "veg",
+    "price_range": "₹",
+    "avg_price": 20,
+    "tags": [
+      "Dahibara",
+      "Aloodum",
+      "Cuttack"
+    ],
+    "is_open": true,
+    "is_gem": true,
+    "latitude": 20.4625,
+    "longitude": 85.883,
+    "description": "Cuttack dahibara uses smaller, denser dumplings with thinner curd. Lines of 20 people by 7am. The original since 1972.",
+    "speciality": "Cuttack Dahibara",
+    "established_year": 1972
+  },
+  {
+    "id": "s73",
+    "name": "Cuttack Chandi Bazaar Sweets",
+    "category": "Sweet Shop",
+    "area": "Cuttack",
+    "rating": 4.8,
+    "review_count": 334,
+    "food_type": "veg",
+    "price_range": "₹",
+    "avg_price": 50,
+    "tags": [
+      "Chhena Jhili",
+      "Ledikeni"
+    ],
+    "is_open": true,
+    "is_gem": true,
+    "latitude": 20.4544,
+    "longitude": 85.878,
+    "description": "Cuttack is the home of Chhena Jhili. The original paneer dumpling fried then soaked in syrup since 1958.",
+    "speciality": "Chhena Jhili",
+    "established_year": 1958
+  },
+  {
+    "id": "s78",
+    "name": "Salepur Rasabali Gadi",
+    "category": "Sweet Shop",
+    "area": "Salepur, Cuttack",
+    "rating": 5.0,
+    "review_count": 678,
+    "food_type": "veg",
+    "price_range": "₹",
+    "avg_price": 30,
+    "tags": [
+      "Rasabali",
+      "GI Tag",
+      "Original"
+    ],
+    "is_open": true,
+    "is_gem": true,
+    "latitude": 20.474,
+    "longitude": 85.932,
+    "description": "GI-tagged Rasabali. The original since 1920 — fried chhena patties in reduced milk with cardamom.",
+    "speciality": "Salepur Rasabali",
+    "established_year": 1920
+  },
+  {
+    "id": "s82",
+    "name": "Niali Chhena Poda Village",
+    "category": "Sweet Shop",
+    "area": "Niali, Cuttack",
+    "rating": 4.9,
+    "review_count": 89,
+    "food_type": "veg",
+    "price_range": "₹",
+    "avg_price": 45,
+    "tags": [
+      "Chhena Poda",
+      "Village",
+      "Original"
+    ],
+    "is_open": true,
+    "is_gem": true,
+    "latitude": 20.409,
+    "longitude": 85.995,
+    "description": "The claimed birthplace of Chhena Poda. Extraordinary version since 1950.",
+    "speciality": "Original Chhena Poda",
+    "established_year": 1950
+  },
+  {
+    "id": "cx1",
+    "name": "Cuttack Barabati Stadium Chaat",
+    "category": "Street Food",
+    "area": "Barabati, Cuttack",
+    "rating": 4.5,
+    "review_count": 234,
+    "food_type": "veg",
+    "price_range": "₹",
+    "avg_price": 25,
+    "tags": [
+      "Gupchup",
+      "Chaat",
+      "Stadium"
+    ],
+    "is_open": true,
+    "is_gem": false,
+    "latitude": 20.4686,
+    "longitude": 85.8855,
+    "description": "The legendary chaat stalls outside Barabati Cricket Stadium. Match days are extraordinary.",
+    "speciality": "Cricket Ground Gupchup"
+  },
+  {
+    "id": "cx2",
+    "name": "Cuttack Silver City Biryani",
+    "category": "Dhaba",
+    "area": "Cuttack",
+    "rating": 4.6,
+    "review_count": 289,
+    "food_type": "nonveg",
+    "price_range": "₹₹",
+    "avg_price": 160,
+    "tags": [
+      "Biryani",
+      "Mutton",
+      "Cuttack"
+    ],
+    "is_open": true,
+    "is_gem": true,
+    "latitude": 20.4625,
+    "longitude": 85.879,
+    "description": "Cuttack biryani is distinct from BBSR — heavier on kewra water and star anise. The mutton biryani here is considered the city standard.",
+    "speciality": "Cuttack Dum Biryani"
+  },
+  {
+    "id": "cx3",
+    "name": "Mahanadi River Hilsa Stall",
+    "category": "Street Food",
+    "area": "Cuttack Ghat",
+    "rating": 4.8,
+    "review_count": 167,
+    "food_type": "nonveg",
+    "price_range": "₹₹",
+    "avg_price": 200,
+    "tags": [
+      "Hilsa",
+      "River Fresh",
+      "Seasonal"
+    ],
+    "is_open": true,
+    "is_gem": true,
+    "latitude": 20.465,
+    "longitude": 85.89,
+    "description": "Hilsa season on the Mahanadi. The river-fresh ilish prepared with mustard paste. Seasonal July-October only.",
+    "speciality": "Mahanadi Hilsa Mustard"
+  },
+  {
+    "id": "cx4",
+    "name": "Cuttack Dosa Hut",
+    "category": "Tiffin Centre",
+    "area": "Badambadi, Cuttack",
+    "rating": 4.3,
+    "review_count": 145,
+    "food_type": "veg",
+    "price_range": "₹",
+    "avg_price": 45,
+    "tags": [
+      "Dosa",
+      "Idli",
+      "South Indian"
+    ],
+    "is_open": true,
+    "is_gem": false,
+    "latitude": 20.459,
+    "longitude": 85.882,
+    "description": "Reliable South Indian tiffin in a city where Odia breakfast dominates. The set dosa with coconut chutney is consistently good.",
+    "speciality": "Set Dosa"
+  },
+  {
+    "id": "cx5",
+    "name": "Cuttack Kheer Mohan Shop",
+    "category": "Sweet Shop",
+    "area": "Cuttack",
+    "rating": 4.7,
+    "review_count": 123,
+    "food_type": "veg",
+    "price_range": "₹",
+    "avg_price": 40,
+    "tags": [
+      "Kheer Mohan",
+      "Milk Sweet",
+      "Cuttack"
+    ],
+    "is_open": true,
+    "is_gem": true,
+    "latitude": 20.458,
+    "longitude": 85.876,
+    "description": "Kheer Mohan — egg-shaped cottage cheese dumplings soaked in sugar syrup with cardamom. A Cuttack specialty almost unknown in BBSR.",
+    "speciality": "Kheer Mohan",
+    "established_year": 1965
+  }
+];
+
+const catEmoji = {'Odia Thali':'🍛','Tiffin Centre':'🥞','Street Food':'🍢','Dhaba':'🍖','Sweet Shop':'🍮','Chai & Snacks':'☕','Organic Store':'🥗','Eatery':'🍴'};
+const catBg = {'Odia Thali':'linear-gradient(135deg,#E8670A,#C04A1B)','Street Food':'linear-gradient(135deg,#2E7D32,#1B5E20)','Sweet Shop':'linear-gradient(135deg,#F5A623,#E8670A)','Dhaba':'linear-gradient(135deg,#795548,#4E342E)','Chai & Snacks':'linear-gradient(135deg,#795548,#5D4037)','Tiffin Centre':'linear-gradient(135deg,#F57F17,#E65100)'};
+
+let _all = CITY_SPOTS;
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function renderCards(spots){
+  const grid = document.getElementById('spotsGrid');
+  document.getElementById('spotCount').textContent = spots.length + ' spots';
+  if(!spots.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--subtext)">No spots found in this category yet.</div>';return;}
+  grid.innerHTML = spots.map(s=>`
+    <div class="spot-card" onclick="window.location='spot.html?id=${s.id}'">
+      <div class="card-img" style="background:${catBg[s.category]||catBg['Dhaba']}">${catEmoji[s.category]||'🍴'}</div>
+      <div class="card-body">
+        <div class="card-name">${esc(s.name)}</div>
+        <div class="card-meta">${catEmoji[s.category]||'🍴'} ${s.category} · 📍 ${esc(s.area)}${s.rating?' · ⭐ '+s.rating:''}</div>
+        <div class="card-tags">${(s.tags||[]).slice(0,3).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+        ${s.description?`<p style="font-size:.74rem;color:var(--subtext);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(s.description)}</p>`:''}
+        <div class="card-footer" style="margin-top:8px">
+          <span class="rating">${s.rating?'⭐ '+s.rating+' ('+s.review_count+')':'No ratings yet'}</span>
+          <span class="price">${s.price_range||'₹'} avg</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function filterSpots(cat, btn){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards(cat==='all'?_all:_all.filter(s=>s.category===cat));
+}
+
+renderCards(_all);
+</script>
+</body>
+</html>
