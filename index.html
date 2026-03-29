@@ -13,6 +13,10 @@
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="FoodieRadar — Discover Real Food in Khordha, Odisha"/>
   <meta name="twitter:description" content="Community-powered street food discovery for Khordha district. Find authentic dhabas, tiffin centres, haats and hidden gems."/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="FoodieRadar"/>
+  <link rel="apple-touch-icon" href="favicon.svg"/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#E8670A"/>
   <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
@@ -639,10 +643,6 @@
     .smart-btn.rain-on{background:#0D47A1;border-color:#0D47A1;color:#fff}
     .smart-btn.midnight-on{background:#1A237E;border-color:#1A237E;color:#fff}
     .smart-btn.pakhala-on{background:#1B5E20;border-color:#1B5E20;color:#fff}
-    .spot-hygiene-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
-    .hygiene-tick{font-size:.68rem;padding:2px 8px;border-radius:20px;border:1px solid var(--border);color:var(--subtext);background:var(--mist)}
-    .hygiene-tick.yes{background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20}
-    .hygiene-tick.no{background:#FFEBEE;border-color:#FFCDD2;color:#C62828}
     .flash-section{background:linear-gradient(135deg,#1A0005,#3D0012);padding:40px 5%}
     .flash-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff;margin-bottom:4px}
     .flash-title em{color:#FF5252;font-style:normal}
@@ -662,13 +662,6 @@
     .f-inp.full{grid-column:1/-1}
     .btn-flash-post{margin-top:12px;padding:10px 24px;background:#FF5252;color:#fff;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer;transition:background .2s}
     .btn-flash-post:hover{background:#D32F2F}
-    .hygiene-modal-body{padding:4px 0}
-    .hygiene-q{margin-bottom:16px}
-    .hygiene-q-label{font-size:.88rem;font-weight:600;color:var(--soil);margin-bottom:8px}
-    .hygiene-opts{display:flex;gap:8px}
-    .hygiene-opt{padding:8px 16px;border-radius:8px;border:1.5px solid var(--border);background:var(--mist);font-size:.82rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s;font-weight:500}
-    .hygiene-opt.selected{border-color:var(--leaf);background:#E8F5E9;color:var(--leaf)}
-    .hygiene-opt.selected-no{border-color:#C62828;background:#FFEBEE;color:#C62828}
   </style>
 
   <script>
@@ -1663,51 +1656,6 @@
     showSeasonalBanner();
     setInterval(renderFlashBoard, 120000);
   
-    // ── ODIA LANGUAGE TOGGLE ──────────────────────────────────────────────────
-    const ODIA_TRANSLATIONS = {
-      '.hero-title':   { en: 'Discover the <em>real&nbsp;taste</em><br>of Khordha', or: 'ଖୋର୍ଦ୍ଧାର <em>ପ୍ରକୃତ ସ୍ୱାଦ</em><br>ଆବିଷ୍କାର କରନ୍ତୁ' },
-      '.hero-subtitle':{ en: null, or: null }, // skip - too complex
-      '#exploreBtn':   { en: '🔍 Explore Spots', or: '🔍 ଖାଦ୍ୟ ସ୍ଥାନ ଖୋଜନ୍ତୁ' },
-      '#openMapBtn':   { en: '📍 Open Radar Map', or: '📍 ମ୍ୟାପ ଖୋଲନ୍ତୁ' },
-      '.spots-section-title': { en: 'Food <span>Spots</span>', or: 'ଖାଦ୍ୟ <span>ସ୍ଥାନ</span>' },
-      '.map-section-title':   { en: 'Radar <span>Map</span>',  or: 'ଲାଇଭ <span>ମ୍ୟାପ</span>' },
-      '.events-section-title':{ en: 'Upcoming <span>Events</span>', or: 'ଆସନ୍ତା <span>ଅନୁଷ୍ଠାନ</span>' },
-    };
-    let _lang = localStorage.getItem('fr_lang') || 'en';
-    function toggleLang() {
-      _lang = _lang === 'en' ? 'or' : 'en';
-      localStorage.setItem('fr_lang', _lang);
-      applyLang();
-    }
-    function applyLang() {
-      const btn = document.getElementById('langToggle');
-      if (btn) { btn.textContent = _lang === 'en' ? 'ଓ' : 'E'; btn.title = _lang === 'en' ? 'Switch to Odia' : 'Switch to English'; }
-      // Hero tagline
-      const tagline = document.querySelector('.hero-tagline');
-      if (tagline) tagline.textContent = _lang === 'or' ? 'ଖୋର୍ଦ୍ଧାର ସ୍ୱାଦ ଖୋଜ' : 'ଖୋର୍ଦ୍ଧାର ସ୍ୱାଦ ଖୋଜ';
-      // Stat labels
-      const statLabels = document.querySelectorAll('.stat-label');
-      const orLabels = ['ଖାଦ୍ୟ ସ୍ଥାନ','ଅଞ୍ଚଳ','ଅନୁଷ୍ଠାନ','ହାଟ ଟ୍ରାକ'];
-      const enLabels = ['Food Spots','Street Zones','Events This Month','Haats Tracked'];
-      statLabels.forEach((el, i) => { if(enLabels[i] || orLabels[i]) el.textContent = _lang === 'or' ? (orLabels[i]||el.textContent) : (enLabels[i]||el.textContent); });
-      // Filter chips
-      const chipMap = {'All':'ସବୁ','Odia Thali':'ଓଡ଼ିଆ ଥାଳି','Street Food':'ଖଣ୍ଡ ଖାଦ୍ୟ','Tiffin Centre':'ଟିଫିନ','Sweet Shop':'ମିଠା ଦୋକାନ','Dhaba':'ଧାବା','Chai & Snacks':'ଚା ଓ ଜଳଖିଆ','Organic Store':'ଜୈବ ଖାଦ୍ୟ'};
-      document.querySelectorAll('.chip').forEach(c => {
-        const key = c.dataset.en || c.textContent.trim();
-        c.dataset.en = c.dataset.en || key;
-        c.textContent = _lang === 'or' ? (chipMap[key] || key) : key;
-      });
-      // Sort buttons
-      const sortMap = {'⭐ Top Rated':'⭐ ସର୍ବୋଚ୍ଚ ମୂଲ୍ୟାଙ୍କ','₹ Cheapest':'₹ ସସ୍ତା','💬 Most Reviewed':'💬 ଅଧିକ ସମୀକ୍ଷା','✨ Hidden Gems':'✨ ଲୁକ୍କାୟିତ'};
-      document.querySelectorAll('[id^="sort-"]').forEach(b => {
-        const key = b.dataset.en || b.textContent.trim();
-        b.dataset.en = b.dataset.en || key;
-        b.textContent = _lang === 'or' ? (sortMap[key]||key) : key;
-      });
-    }
-    // Apply on load
-    document.addEventListener('DOMContentLoaded', () => { if(_lang === 'or') applyLang(); });
-
     // ── TODAY'S SPECIALS BOARD ────────────────────────────────────────────────
     async function loadTodaysSpecials() {
       try {
@@ -1911,23 +1859,6 @@
       }, { timeout: 8000 });
     }
 </script>
-        <div class="hygiene-q">
-          <div class="hygiene-q-label">💧 Clean water / filtered water used?</div>
-          <div class="hygiene-opts">
-            <button class="hygiene-opt" id="hq2-yes" onclick="selectHygiene('hq2','yes')">✅ Yes</button>
-            <button class="hygiene-opt" id="hq2-no"  onclick="selectHygiene('hq2','no')">❌ No</button>
-            <button class="hygiene-opt" id="hq2-na"  onclick="selectHygiene('hq2','na')">🤷 Not sure</button>
-          </div>
-        </div>
-        <div class="hygiene-q">
-          <div class="hygiene-q-label">🗑️ Waste bin / garbage disposal present?</div>
-          <div class="hygiene-opts">
-            <button class="hygiene-opt" id="hq3-yes" onclick="selectHygiene('hq3','yes')">✅ Yes</button>
-            <button class="hygiene-opt" id="hq3-no"  onclick="selectHygiene('hq3','no')">❌ No</button>
-            <button class="hygiene-opt" id="hq3-na"  onclick="selectHygiene('hq3','na')">🤷 Not sure</button>
-          </div>
-        </div>
-        <button class="btn-primary" style="width:100%;margin-top:8px" onclick="submitHygiene()">Submit Hygiene Report</button>
       </div>
     </div>
   </div>
@@ -1960,10 +1891,6 @@
     </div>
   </div>
 </div>
-    <!-- ODIA LANGUAGE TOGGLE -->
-    <button id="langToggle" onclick="toggleLang()" title="Switch to Odia" style="position:fixed;bottom:80px;right:20px;z-index:900;width:48px;height:48px;border-radius:50%;background:var(--soil);color:#fff;border:none;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 16px rgba(28,15,6,.35);font-family:'DM Sans',sans-serif;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .2s" aria-label="Toggle Odia language">
-      ଓ
-    </button>
     <!-- PUSH NOTIFICATION BELL -->
     <button id="notifyBtn" onclick="toggleNotifications()" title="Get event alerts" style="position:fixed;bottom:136px;right:20px;z-index:900;width:48px;height:48px;border-radius:50%;background:var(--card-bg);border:2px solid var(--border);font-size:1.2rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.12);transition:all .2s;display:flex;align-items:center;justify-content:center" aria-label="Toggle notifications">
       🔔
