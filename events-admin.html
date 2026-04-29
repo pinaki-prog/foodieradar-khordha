@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Add Event — FoodieRadar Admin</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml"/>
-  <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'DM Sans',sans-serif;background:#1C0F06;color:#FDF6EC;min-height:100vh;padding:32px 5%}
@@ -102,8 +102,6 @@
   </div>
 
   <script>
-    const db = supabase.createClient(FR_CONFIG.SUPABASE_URL, FR_CONFIG.SUPABASE_ANON_KEY);
-
     // Set min date to today
     document.getElementById('evDate').min = new Date().toISOString().split('T')[0];
 

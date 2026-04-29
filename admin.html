@@ -10,6 +10,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FoodieRadar Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Load central config FIRST -->
   <script src="config.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
@@ -360,7 +361,7 @@
     }
   }
 
-  // LOAD DATA 
+  // ── LOAD DATA ──────────────────────────────────────────────────────────────
   async function loadAllData() {
     await Promise.all([loadSpots(), loadTiffins()]);
   }
@@ -399,7 +400,7 @@
     renderTiffins();
   }
 
-  // RENDER SPOTS 
+  // ── RENDER SPOTS ───────────────────────────────────────────────────────────
   function updateCounts() {
     const p = allSpots.filter(s => s.status === 'pending').length;
     const a = allSpots.filter(s => s.status === 'approved').length;
@@ -497,7 +498,7 @@
       </div>`;
   }
 
-  // RENDER TIFFINS 
+  // ── RENDER TIFFINS ─────────────────────────────────────────────────────────
   function renderTiffins() {
     const c = document.getElementById('tiffinListContainer');
     document.getElementById('tiffinPendingCount').textContent =
@@ -526,7 +527,7 @@
     </div>`;
   }
 
-  // SPOT ACTIONS 
+  // ── SPOT ACTIONS ───────────────────────────────────────────────────────────
   async function setSpotStatus(id, status) {
     // Disable all buttons on this card during update
     document.querySelectorAll(`[onclick*="${id}"]`).forEach(b => { b.disabled = true; b.style.opacity='.5'; });
@@ -549,7 +550,7 @@
     showToast('✓ Updated!');
   }
 
-  // TIFFIN ACTIONS 
+  // ── TIFFIN ACTIONS ─────────────────────────────────────────────────────────
   async function approveTiffin(id) {
     const { error } = await db.from('tiffin_listings').update({ status:'approved' }).eq('id', id);
     if (error) { showToast('❌ Failed'); return; }
@@ -566,7 +567,7 @@
     showToast('❌ Tiffin listing rejected.');
   }
 
-  // UTILS
+  // ── UTILS ──────────────────────────────────────────────────────────────────
   function switchTab(tab, btn) {
     currentTab = tab;
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -590,8 +591,37 @@
     setTimeout(() => t.classList.remove('show'), 4000);
   }
 
-  // INIT
+  // ── INIT ───────────────────────────────────────────────────────────────────
   checkSession();
+
+  // ── ADMIN AUTH ──────────────────────────────────────────────────────────────
+  const ADMIN_PASS = 'fr_admin_2024'; // Change this to your password
+
+  function checkAdminPass() {
+    const input = document.getElementById('adminPassInput').value;
+    if (input === ADMIN_PASS) {
+      document.getElementById('authGate').style.display = 'none';
+      localStorage.setItem('fr_admin_auth', 'true');
+      checkSession();
+    } else {
+      document.getElementById('authError').style.display = 'block';
+      document.getElementById('adminPassInput').value = '';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var inp = document.getElementById('adminPassInput');
+    if (inp) {
+      inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') checkAdminPass();
+      });
+    }
+    // Auto-bypass if already authenticated
+    if (localStorage.getItem('fr_admin_auth') === 'true') {
+      var gate = document.getElementById('authGate');
+      if (gate) gate.style.display = 'none';
+    }
+  });
 </script>
 
 <!-- ADMIN AUTH GATE -->
