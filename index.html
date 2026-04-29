@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="canonical" href="https://foodieradar-khordha.vercel.app/"/>
-    <!-- SEO + Social Sharing -->
+   
   <meta name="description" content="Community-powered street food discovery for Khordha district. Find authentic dhabas, tiffin centres, haats and hidden gems."/>
   <meta property="og:title" content="FoodieRadar — Discover Real Food in Khordha, Odisha"/>
   <meta property="og:description" content="Community-powered street food discovery for Khordha district. Find authentic dhabas, tiffin centres, haats and hidden gems."/>
@@ -278,10 +278,7 @@
     }
   }
   </script>
-  <!-- Google Analytics (free) — replace G-XXXXXXXX with your measurement ID from analytics.google.com -->
-  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXX"></script>
-  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXXX');</script> -->
-</head>
+  </head>
 <body>
 <a href="#explore" style="position:absolute;left:-9999px;top:4px;z-index:9999;padding:8px 16px;background:var(--saffron);color:#fff;border-radius:8px;font-weight:700;font-size:.88rem;text-decoration:none" class="skip-link" onfocus="this.style.left='4px'" onblur="this.style.left='-9999px'">Skip to main content</a>
 
@@ -762,12 +759,16 @@
 
     // SEED_EVENTS: future-dated, filtered at runtime so past ones never show
     const _RAW_SEED_EVENTS = [
-      {event_date:'2026-04-01',event_type:'Pop-Up',       name:'Street Food Pop-Up Night',    location:'Saheed Nagar, BBSR',      is_free:true},
-      {event_date:'2026-04-05',event_type:'Workshop',     name:'Traditional Odia Cooking Class',location:'Old Town Cultural Centre',is_free:false},
-      {event_date:'2026-04-14',event_type:'Festival',     name:'Pana Sankranti Food Trail',   location:'Old Town, BBSR',          is_free:true},
-      {event_date:'2026-04-20',event_type:'Food Festival',name:'Jatni Chhena Gaja Utsav',     location:'Jatni Town Square',       is_free:true},
-      {event_date:'2026-05-03',event_type:'Cook-Off',     name:'Khordha Biryani Battle',       location:'Master Canteen, BBSR',    is_free:true},
-      {event_date:'2026-05-10',event_type:'Pop-Up',       name:'KIIT Campus Street Food Night',location:'KIIT Square, Patia',      is_free:true},
+      {event_date:'2026-05-01',event_type:'Weekly Haat',  name:'Balipatna Farmers Market',     location:'Balipatna, Khordha',      is_free:true},
+      {event_date:'2026-05-08',event_type:'Pop-Up',       name:'Street Food Pop-Up Night',     location:'Saheed Nagar, BBSR',      is_free:true},
+      {event_date:'2026-05-15',event_type:'Cook-Off',     name:'Khordha Biryani Battle',       location:'Master Canteen, BBSR',    is_free:true},
+      {event_date:'2026-05-22',event_type:'Food Festival',name:'Jatni Chhena Gaja Utsav',      location:'Jatni Town Square',       is_free:true},
+      {event_date:'2026-06-01',event_type:'Festival',     name:'Raja Sankranti Food Festival', location:'Old Town, BBSR',          is_free:true},
+      {event_date:'2026-06-10',event_type:'Workshop',     name:'Traditional Odia Cooking Class',location:'Old Town Cultural Centre',is_free:false},
+      {event_date:'2026-06-21',event_type:'Pop-Up',       name:'Monsoon Street Food Night',    location:'Saheed Nagar, BBSR',      is_free:true},
+      {event_date:'2026-07-05',event_type:'Cook-Off',     name:'Best Dalma in Khordha',        location:'Unit 4 Community Hall',   is_free:true},
+      {event_date:'2026-07-15',event_type:'Weekly Haat',  name:'Ekamra Haat Monthly Special',  location:'Ekamra Haat, BBSR',       is_free:true},
+      {event_date:'2026-08-01',event_type:'Festival',     name:'Nuakhai Food Trail',           location:'Khordha Town',            is_free:true},
     ];
     // Filter past events at runtime — no more hardcoded stale dates
     const _todaySeed = new Date().toISOString().split('T')[0];
@@ -806,7 +807,7 @@
     let liveSpots  = [...SEED_SPOTS];
     let activeFilter = 'all';
 
-    // ── LOAD FROM SUPABASE ──────────────────────────────────────────────────────
+    // LOAD FROM SUPABASE
     async function loadLiveData() {
       try {
         const { data: spots } = await db
@@ -894,7 +895,7 @@
       return map[cat] || 'linear-gradient(135deg,#E8670A,#C04A1B)';
     }
 
-    // ── RENDER SPOTS ───────────────────────────────────────────────────────────
+    // RENDER SPOTS
     function renderSpots(data) {
       const page = data.slice(0, _displayedCount);
       const loadMoreWrap = document.getElementById('loadMoreWrap');
@@ -1001,7 +1002,7 @@
       observeFadeUps();
     }
 
-    // ── RENDER ZONES — ✅ FIX 1: live counts from liveSpots ───────────────────
+    // RENDER ZONES — FIX 1: live counts from liveSpots 
     function renderZones() {
       const zoneAreaMap = {
         'Master Canteen Area': 'Master Canteen',
@@ -1190,14 +1191,7 @@
     function escHtml(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function escAttr(s)  { return String(s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
 
-
-
-
-
-
     let _queueSpotId = null;
-
-
 
     function renderFlashBoard() {
       const sales = SmartMode.getFlashSales();
@@ -1465,7 +1459,7 @@
     }
 
 
-    // ── SORT & PAGINATION ─────────────────────────────────────────────────────
+    // SORT & PAGINATION 
     let activeSortBy = 'top';
     const SPOTS_PER_PAGE = 12;
     let _displayedCount = SPOTS_PER_PAGE;
@@ -1502,7 +1496,7 @@
     }
 
 
-  // ── BACK TO TOP ──────────────────────────────────────────────────────────────
+  // BACK TO TOP 
   (function() {
     const btn = document.getElementById('backToTop');
     if (!btn) return;
@@ -1511,14 +1505,14 @@
     }, { passive: true });
   })();
 
-  // ── PWA SERVICE WORKER ────────────────────────────────────────────────────────
+  // PWA SERVICE WORKER
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     });
   }
 
-    // ── SPOT OF THE DAY ───────────────────────────────────────────────────────
+    //SPOT OF THE DAY
     function initSpotOfDay() {
       // Only use seed spots (not OSM spots which have no detail page)
       const seedOnly = liveSpots.filter(s => s.id && !s.id.startsWith('osm-'));
@@ -1540,7 +1534,7 @@
       if (id) window.location.href = 'spot.html?id=' + id;
     }
 
-    // ── SEARCH AUTOCOMPLETE ────────────────────────────────────────────────────
+    // SEARCH AUTOCOMPLETE
     let _acIndex = -1;
     function buildAutocomplete(q) {
       const list = document.getElementById('acList');
@@ -1571,7 +1565,7 @@
       if (!e.target.closest('.autocomplete-wrap')) document.getElementById('acList').style.display = 'none';
     });
 
-    // ── ONBOARDING TOUR ───────────────────────────────────────────────────────
+    // ONBOARDING TOUR 
     const ONBOARD_STEPS = [
       { icon:'🔍', title:'Search any food', desc:'Type a dish, area, or category — like "pakhala", "Saheed Nagar", or "sweet shop".' },
       { icon:'📍', title:'Click a Zone', desc:'Scroll to Street Food Zones and tap any card to instantly filter spots in that area.' },
@@ -1611,7 +1605,7 @@
       localStorage.setItem('fr_onboarded', '1');
     }
 
-    // ── SEASONAL FOOD ALERT ────────────────────────────────────────────────────
+    // SEASONAL FOOD ALERT
     function showSeasonalBanner() {
       const m = new Date().getMonth() + 1; // 1-12
       const seasons = {
@@ -1656,7 +1650,7 @@
     showSeasonalBanner();
     setInterval(renderFlashBoard, 120000);
   
-    // ── TODAY'S SPECIALS BOARD ────────────────────────────────────────────────
+    // TODAY'S SPECIALS BOARD 
     async function loadTodaysSpecials() {
       try {
         if (FR_CONFIG.SUPABASE_URL.includes('YOUR_PROJECT_ID')) return;
@@ -1685,7 +1679,7 @@
       } catch(e) { /* supabase not ready */ }
     }
 
-    // ── PUSH NOTIFICATIONS ────────────────────────────────────────────────────
+    // PUSH NOTIFICATIONS 
     async function initPushNotifications() {
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
       const btn = document.getElementById('notifyBtn');
@@ -1745,7 +1739,7 @@
     initPushNotifications();
     scheduleEventAlerts();
 
-    // ── SUPABASE REALTIME ─────────────────────────────────────────────────────
+    // SUPABASE REALTIME
     // Live updates: when admin approves a new spot, it appears instantly on the page
     function initRealtimeUpdates() {
       if (FR_CONFIG.SUPABASE_URL.includes('YOUR_PROJECT_ID')) return;
@@ -1772,7 +1766,7 @@
       } catch(e) { /* realtime not available */ }
     }
 
-    // ── SUPABASE FULL-TEXT SEARCH (augments client-side search for large DBs) ──
+    // SUPABASE FULL-TEXT SEARCH
     let _ftsTimeout = null;
     async function supabaseFullTextSearch(query) {
       if (!query || query.length < 3) return;
@@ -1795,7 +1789,7 @@
       } catch(e) { /* graceful */ }
     }
 
-    // ── PWA INSTALL PROMPT ────────────────────────────────────────────────────
+    // PWA INSTALL PROMPT
     let _pwaPrompt = null;
     window.addEventListener('beforeinstallprompt', e => {
       e.preventDefault();
@@ -1831,7 +1825,7 @@
       });
     }
 
-    // ── NEAR ME SORT (GPS distance) ──────────────────────────────────────────
+    // NEAR ME SORT (GPS distance) 
     function sortByNearMe() {
       if (!navigator.geolocation) { showToast('Location not supported in this browser'); return; }
       showToast('📍 Getting your location...');

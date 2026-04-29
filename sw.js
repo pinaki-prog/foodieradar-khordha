@@ -1,4 +1,3 @@
-// FoodieRadar Khordha — Service Worker v1.1
 // Safe caching: individual fetches with error handling — never crashes on 404
 
 const CACHE = 'fr-khordha-v2';

@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Spot Details — FoodieRadar Khordha</title>
 
-  <!-- SEO — updated dynamically by JS -->
   <meta name="description" content="Food spot details on FoodieRadar Khordha"/>
   <meta property="og:type"        content="article"/>
   <meta property="og:title"       id="ogTitle"       content="FoodieRadar Khordha"/>
@@ -259,12 +258,12 @@
 <div id="toast"></div>
 
 <script>
-// ── STATE ─────────────────────────────────────────────────────────────────────
+// STATE 
 let currentSpot = null;
 let reviewRating = 0;
 let spotMap = null;
 
-// ── SEED FALLBACK ────────────────────────────────────────────────────────────
+// SEED FALLBACK 
 // Enables spot detail page without Supabase or sessionStorage (direct navigation)
 const SEED_SPOTS = [
       {id:'s1', name:'Old Town Dahibara King',      category:'Street Food',  area:'Old Town, BBSR',        rating:4.8,review_count:412,food_type:'veg',   price_range:'₹',  avg_price:25,  tags:['Dahibara','Aloodum','Gupchup'],    is_open:true, is_gem:true,  latitude:20.2383,longitude:85.8330, description:'The most famous dahibara-aloodum stall in Bhubaneswar. Locals queue from 7am for the silky lentil dumplings in tangy tamarind sauce. Cash only. Come early — sold out by 10am.', address:'Near Lingaraj Temple Gate, Old Town', phone:'9437012345', established_year:1985, speciality:'Dahibara Aloodum', opening_hours:'07:00–10:30'},
@@ -361,7 +360,7 @@ const SEED_SPOTS = [
       {id:'s101',name:'Paradip Fresh Catch Stall',    category:'Street Food',   area:'Paradip, Jagatsinghpur', rating:4.9,review_count:89, food_type:'nonveg',price_range:'\u20b9',  avg_price:120, tags:['Crab','Lobster','Port Fresh'], is_open:true,is_gem:true, latitude:20.3090,longitude:86.6100, description:'Fresh off the boats at Paradip Port every morning. Crab, lobster, hilsa - masala crab with a coastal spice blend you will not find inland.', address:'Paradip Fish Landing Centre', phone:null, speciality:'Port-Fresh Masala Crab', opening_hours:'07:00-14:00'}
         ];
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
+// INIT 
 async function init() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
@@ -371,7 +370,7 @@ async function init() {
   try {
     // Try Supabase first
     if (!FR_CONFIG.SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
-      // Only query Supabase if id looks like a UUID (seed IDs like 's12' cause 400 errors)
+      
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
     if (isUUID) {
       var dbResult = await db.from('spots').select('*').eq('id', id).single();
@@ -405,7 +404,7 @@ async function init() {
   showNotFound();
 }
 
-// ── RENDER SPOT ───────────────────────────────────────────────────────────────
+// RENDER SPOT 
 async function renderSpot(spot) {
   // Normalize: safe for Supabase rows (may have nulls/strings) and seed objects
   var rawTags = spot.tags;
@@ -664,7 +663,7 @@ async function renderSpot(spot) {
   loadReviews(spot.id);
 }
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
+// HELPERS 
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -695,7 +694,7 @@ function buildHoursGrid(category, today) {
     </div>`).join('') + `</div><p style="font-size:.72rem;color:var(--subtext);margin-top:8px">* Estimated hours — verify before visiting</p>`;
 }
 
-// ── MAP ───────────────────────────────────────────────────────────────────────
+// MAP
 function initSpotMap(spot) {
   if (spotMap) { spotMap.remove(); spotMap = null; }
   const el = document.getElementById('spotMap');
@@ -715,14 +714,14 @@ function initSpotMap(spot) {
     .bindPopup(`<strong>${spot.name}</strong>`).openPopup();
 }
 
-// ── QUEUE ─────────────────────────────────────────────────────────────────────
+// QUEUE
 function getHygiene(spotId) {
   try { return LS.get('fr_hygiene_' + spotId); }
   catch { return null; }
 };
 
 
-// ── REVIEWS ───────────────────────────────────────────────────────────────────
+// REVIEWS 
 async function loadReviews(spotId) {
   const list = document.getElementById('reviewsList');
   const badge = document.getElementById('reviewCountBadge');
@@ -804,7 +803,7 @@ async function submitReviewInline(spotId) {
   }
 }
 
-// ── PASSPORT ──────────────────────────────────────────────────────────────────
+// PASSPORT
 function saveToPassport() {
   if (!currentSpot) return;
   const passport = LS.get('fr_passport');
@@ -827,7 +826,7 @@ function saveToPassport() {
   showToast('📍 Saved to Passport! +' + (currentSpot.is_gem ? 20 : 10) + ' XP');
 }
 
-// ── SHARE ─────────────────────────────────────────────────────────────────────
+// SHARE
 function shareOnWhatsApp() {
   if (!currentSpot) return;
   const url  = encodeURIComponent(window.location.href);
@@ -835,7 +834,7 @@ function shareOnWhatsApp() {
   window.open(`https://wa.me/?text=${text}${url}`, '_blank');
 }
 
-// ── SUGGEST EDIT ──────────────────────────────────────────────────────────────
+// SUGGEST EDIT
 function copyAddress(addr, name) {
   const text = name + ', ' + addr;
   navigator.clipboard.writeText(text).then(() => showToast('📋 Address copied!')).catch(() => {
@@ -858,7 +857,7 @@ function suggestEdit() {
   window.open('https://wa.me/919437000000?text=' + msg, '_blank');
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────────────────
+// TOAST
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -870,7 +869,7 @@ function showNotFound() {
   document.getElementById('notFound').style.display = 'block';
 }
 
-// ── START ─────────────────────────────────────────────────────────────────────
+// START 
 init();
 
 

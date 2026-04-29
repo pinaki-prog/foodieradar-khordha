@@ -1,15 +1,10 @@
-// ============================================================
-//  FoodieRadar Khordha — smart-mode.js
+
 //  Handles: Weather mode, Time mode, Pakhala season,
 //           Student budget mode, Queue expiry, Flash sale expiry
-//  Loaded after config.js on every page that needs it
-// ============================================================
-
-// LS is defined in config.js (loaded before this file on every page)
 
 const SmartMode = (() => {
 
-  // ── CONSTANTS ──────────────────────────────────────────────
+  //  CONSTANTS 
   // Bhubaneswar coordinates for weather
   const BBSR_LAT = 20.2961;
   const BBSR_LNG = 85.8245;
@@ -26,11 +21,11 @@ const SmartMode = (() => {
   const PAKHALA_START_MONTH = 2; // 0-indexed
   const PAKHALA_END_MONTH   = 6;
 
-  // ── STATE ──────────────────────────────────────────────────
+  //  STATE 
   let _weather   = null; // cached weather response
   let _callbacks = [];   // subscribers
 
-  // ── INTERNAL: fetch weather once per session ───────────────
+  //  INTERNAL: fetch weather once per session 
   async function _fetchWeather() {
     if (_weather !== null) return _weather;
     try {
@@ -48,7 +43,7 @@ const SmartMode = (() => {
     return _weather;
   }
 
-  // ── TIME HELPERS ───────────────────────────────────────────
+  //  TIME HELPERS 
   function currentHour() {
     return new Date().getHours();
   }
@@ -73,7 +68,7 @@ const SmartMode = (() => {
     return h >= 11 && h < 15;
   }
 
-  // ── SEASON HELPERS ─────────────────────────────────────────
+  //  SEASON HELPERS 
   function isPakhalaSeason() {
     const m = new Date().getMonth();
     return m >= PAKHALA_START_MONTH && m <= PAKHALA_END_MONTH;
@@ -87,7 +82,7 @@ const SmartMode = (() => {
     return 'winter';
   }
 
-  // ── STUDENT MODE ───────────────────────────────────────────
+  // STUDENT MODE
   // Persisted in localStorage so it survives navigation
   function isStudentMode() {
     return LS.getRaw('fr_student_mode') === '1';
@@ -100,7 +95,7 @@ const SmartMode = (() => {
     setStudentMode(!isStudentMode());
   }
 
-  // ── ACTIVE MODES: returns array of active mode objects ─────
+  //  ACTIVE MODES: returns array of active mode objects
   async function getActiveModes() {
     const weather = await _fetchWeather();
     const modes   = [];
@@ -148,7 +143,7 @@ const SmartMode = (() => {
     return modes;
   }
 
-  // ── SMART BANNER ───────────────────────────────────────────
+  //  SMART BANNER 
   // Injects a dismissable banner into containerId
   async function renderBanner(containerId) {
     const el = document.getElementById(containerId);
@@ -185,7 +180,7 @@ const SmartMode = (() => {
     if (el) el.innerHTML = '';
   }
 
-  // ── QUEUE STATUS ───────────────────────────────────────────
+  // QUEUE STATUS 
   // Stored in localStorage, auto-expires after 2 hours
   function getQueueStatus(spotId) {
     try {
@@ -217,7 +212,7 @@ const SmartMode = (() => {
       ${m.emoji} ${m.label}</span>`;
   }
 
-  // ── FLASH SALES ────────────────────────────────────────────
+  // FLASH SALES 
   // Stored in localStorage, auto-expires after 3 hours
   const FLASH_KEY = 'fr_flash_sales';
 
@@ -253,11 +248,11 @@ const SmartMode = (() => {
     return Math.max(0, 180 - Math.floor((Date.now() - ts) / 60000));
   }
 
-  // ── SUBSCRIBER NOTIFY ──────────────────────────────────────
+  // SUBSCRIBER NOTIFY
   function subscribe(fn) { _callbacks.push(fn); }
   function _notify()     { _callbacks.forEach(fn => fn()); }
 
-  // ── PUBLIC API ─────────────────────────────────────────────
+  // PUBLIC API 
   return {
     getActiveModes,
     renderBanner,

@@ -11,7 +11,7 @@ function shareDish(name, odia, where) {
   <script src="smart-mode.js"></script>
   <meta charset="UTF-8"/>
   <link rel="canonical" href="https://foodieradar-khordha.vercel.app/food-dictionary.html"/>
-    <!-- SEO + Social Sharing -->
+  
   <meta name="description" content="Your complete guide to 35+ Odia dishes. Learn what Dahibara, Pakhala, Chhena Poda and Dalma are before you visit Bhubaneswar."/>
   <meta property="og:title" content="Odia Food Dictionary — FoodieRadar Khordha"/>
   <meta property="og:description" content="Your complete guide to 35+ Odia dishes. Learn what Dahibara, Pakhala, Chhena Poda and Dalma are before you visit Bhubaneswar."/>
@@ -120,7 +120,7 @@ function shareDish(name, odia, where) {
       .dict-grid{grid-template-columns:1fr}
     }
   
-    /* ── NAV ─────────────────────────────────────────────────────────────────── */
+    /* NAV */
     nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.96);
       -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
       border-bottom:1px solid var(--border);padding:0 5%;
@@ -231,7 +231,7 @@ function shareDish(name, odia, where) {
 
 <script>
 const DISHES = [
-  // ── RICE & MAIN ──────────────────────────────────────────────────────────
+  // RICE & MAIN 
   { name:'Pakhala Bhata',     odia:'ପଖାଳ ଭାତ',   emoji:'🍚', cat:'rice',
     desc:'Fermented watered rice — the soul of Odia summers. Served cold with fried fish, saga bhaja, badi chura, and aloo bharta. Eaten for breakfast during Raja season.',
     tags:['veg','seasonal'], season:'March–July',
@@ -261,7 +261,7 @@ const DISHES = [
     tags:['veg','seasonal'],
     where:'Served with pakhala at home-style restaurants' },
 
-  // ── STREET FOOD ───────────────────────────────────────────────────────────
+  // STREET FOOD 
   { name:'Dahibara Aloodum',  odia:'ଦହିବରା ଆଳୁଦମ', emoji:'🤍', cat:'street',
     desc:'THE street food of Bhubaneswar. Soft lentil fritters (baras) soaked in spiced yoghurt, topped with potato curry, tamarind chutney, and sev. Eaten at breakfast and evening.',
     tags:['veg'],
@@ -287,7 +287,7 @@ const DISHES = [
     tags:['veg'],
     where:'Odia Thali restaurants, tiffin centres' },
 
-  // ── SWEETS ───────────────────────────────────────────────────────────────
+  // SWEETS
   { name:'Chhena Poda',       odia:'ଛେନା ପୋଡ଼',  emoji:'🟫', cat:'sweet',
     desc:'Burnt cottage cheese cake — caramelised, smoky, and crumbly. Called the "burnt cheesecake of Odisha." Originated in Nayagarh. An absolute must-try.',
     tags:['veg','sweet'],
@@ -313,7 +313,7 @@ const DISHES = [
     tags:['veg','sweet'],
     where:'Temple prasad, sweet shops' },
 
-  // ── SNACKS ───────────────────────────────────────────────────────────────
+  // SNACKS
   { name:'Chakuli Pitha',     odia:'ଚକୁଳି ପିଠା',emoji:'🫓', cat:'snack',
     desc:'Thin, crispy rice and black gram crepes. Odia version of dosa but softer and more sour. Eaten with coconut chutney or ghuguni for breakfast.',
     tags:['veg'],
@@ -335,7 +335,7 @@ const DISHES = [
     tags:['veg'],
     where:'Tiffin centres across Khordha, especially Saheed Nagar' },
 
-  // ── FESTIVAL ─────────────────────────────────────────────────────────────
+  // FESTIVAL
   { name:'Abadha (Mahaprasad)',odia:'ଅବଧ',        emoji:'🙏', cat:'festival',
     desc:'The sacred cooked offering of Lord Jagannath — rice, dalma, khiri, and vegetable dishes cooked in the Puri temple kitchen. Considered the purest food in Odisha.',
     tags:['veg','seasonal'], season:'Available daily at Puri; locally at Rath Yatra',
@@ -357,7 +357,7 @@ const DISHES = [
     tags:['veg','seasonal'], season:'Nuakhai (September)',
     where:'Western Odisha families in Bhubaneswar; cultural events' },
 
-  // ── DRINKS ───────────────────────────────────────────────────────────────
+  // DRINKS 
   { name:'Chai (Odia style)', odia:'ଚା',           emoji:'☕', cat:'drink',
     desc:'Strong, milky tea brewed with ginger and sometimes cardamom. Served in small glasses. The social glue of every Odia neighbourhood. ₹5–₹15.',
     tags:['veg'],

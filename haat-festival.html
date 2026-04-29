@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <link rel="canonical" href="https://foodieradar-khordha.vercel.app/haat-festival.html"/>
-    <!-- SEO + Social Sharing -->
+  
   <meta name="description" content="Track weekly haats and festival food zones in Khordha. Find local organic markets and temple food during Raja, Rath Yatra and more."/>
   <meta property="og:title" content="Haats & Festival Food — FoodieRadar Khordha"/>
   <meta property="og:description" content="Track weekly haats and festival food zones in Khordha. Find local organic markets and temple food during Raja, Rath Yatra and more."/>
@@ -35,11 +35,7 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--soil)}
 
-    
-    
-    
-    
-    
+   
 
     /* PAGE TABS */
     .page-tabs{
@@ -59,7 +55,7 @@
     .panel{display:none}
     .panel.active{display:block}
 
-    /* ─── HAAT TRACKER ─────────────────────────────────────────── */
+    /* HAAT TRACKER */
     .haat-hero{
       background:linear-gradient(145deg,#004D40,#00695C);
       padding:48px 5% 40px;position:relative;overflow:hidden;
@@ -143,7 +139,7 @@
       color:var(--subtext);font-size:.9rem;
     }
 
-    /* ─── FESTIVAL ZONES ────────────────────────────────────────── */
+    /* FESTIVAL ZONES */
     .fest-hero{
       background:linear-gradient(145deg,#4A0012,#7B0022);
       padding:48px 5% 40px;position:relative;overflow:hidden;
@@ -234,7 +230,7 @@
       .day-btn{padding:12px 12px;font-size:.76rem}
     }
   
-    /* ── NAV ─────────────────────────────────────────────────────────────────── */
+    /* NAV */
     nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.96);
       -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
       border-bottom:1px solid var(--border);padding:0 5%;
@@ -381,7 +377,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── HAAT DATA ────────────────────────────────────────────────────────────────
+  // HAAT DATA 
   const HAATS = [
     {name:'Balipatna Farmers Haat',  area:'Balipatna',      days:[5],     // Friday
      time:'6am–1pm', lat:20.264, lng:85.820,
@@ -414,7 +410,7 @@
      sells:['Vegetables','Rice','Fish','Household Items'],seasonal:[]},
   ];
 
-  // ── FESTIVAL DATA ─────────────────────────────────────────────────────────────
+  // FESTIVAL DATA 
   const FESTIVALS = {
     raja: {
       name:'Raja Festival',odia:'ରଜ ମହୋତ୍ସବ',
@@ -486,7 +482,7 @@
     }
   };
 
-  // ── STATE ─────────────────────────────────────────────────────────────────────
+  // STATE
   const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const DAYS_S = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   let selectedDay  = new Date().getDay();
@@ -494,7 +490,7 @@
   let festMap      = null;
   let festMarkers  = [];
 
-  // ── PANEL SWITCH ──────────────────────────────────────────────────────────────
+  // PANEL SWITCH
   function switchPanel(id, btn) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.page-tab').forEach(b => b.classList.remove('active'));
@@ -503,7 +499,7 @@
     if (id === 'fest' && !festMap) initFestMap();
   }
 
-  // ── HAAT TRACKER ──────────────────────────────────────────────────────────────
+  // HAAT TRACKER
   function buildDayStrip() {
     const today = new Date().getDay();
     const strip = document.getElementById('dayStrip');
@@ -577,7 +573,7 @@
     ).join('');
   }
 
-  // ── FESTIVAL ZONES ────────────────────────────────────────────────────────────
+  // FESTIVAL ZONES
   function selectFest(id, btn) {
     selectedFest = id;
     document.querySelectorAll('.fest-chip').forEach(c => c.classList.remove('active'));
@@ -654,7 +650,7 @@
     setTimeout(() => t.classList.remove('show'), 4000);
   }
 
-  // ── INIT ──────────────────────────────────────────────────────────────────────
+  // INIT
   buildDayStrip();
   renderHaats();
 
@@ -668,7 +664,7 @@
     setTimeout(() => window.open('https://wa.me/?text=' + text, '_blank'), 800);
   }
 
-  // ── HAAT COUNTDOWN TIMERS ────────────────────────────────────────────────
+  // HAAT COUNTDOWN TIMERS 
   const HAAT_SCHEDULE = [
     { name: 'Balipatna Haat',    day: 5, time: '06:00' }, // Friday
     { name: 'Jatni Haat',        day: 4, time: '05:00' }, // Thursday

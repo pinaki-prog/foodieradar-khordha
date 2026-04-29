@@ -1,14 +1,4 @@
--- ============================================================
---  FoodieRadar Khordha — Full SQL Schema
---  ✅ SAFE TO RE-RUN: Uses DROP POLICY IF EXISTS before every
---     CREATE POLICY — will never error with "already exists"
---
---  ✅ RLS ADVISOR: All INSERT policies use real WITH CHECK
---     conditions — no "always true" warnings in Supabase Advisor.
--- ============================================================
-
--- ── TABLES ────────────────────────────────────────────────────────────────────
-
+-- TABLES 
 CREATE TABLE IF NOT EXISTS spots (
   id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   created_at    TIMESTAMPTZ DEFAULT NOW(),
@@ -89,7 +79,7 @@ CREATE TABLE IF NOT EXISTS thali_votes (
   nominee_id  TEXT NOT NULL
 );
 
--- ── ENABLE RLS ────────────────────────────────────────────────────────────────
+--  ENABLE RLS 
 ALTER TABLE spots           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE events          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews         ENABLE ROW LEVEL SECURITY;
@@ -97,7 +87,7 @@ ALTER TABLE cookoff_votes   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tiffin_listings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE thali_votes     ENABLE ROW LEVEL SECURITY;
 
--- ── DROP ALL POLICIES FIRST (makes this script safe to re-run anytime) ────────
+--  DROP ALL POLICIES FIRST 
 DROP POLICY IF EXISTS "public_read_spots"           ON spots;
 DROP POLICY IF EXISTS "public_insert_spots"         ON spots;
 DROP POLICY IF EXISTS "admin_all_spots"             ON spots;
@@ -115,7 +105,7 @@ DROP POLICY IF EXISTS "public_insert_thali_votes"   ON thali_votes;
 DROP POLICY IF EXISTS "public_insert_tiffin"        ON tiffin_listings;
 DROP POLICY IF EXISTS "admin_all_tiffin"            ON tiffin_listings;
 
--- ── CREATE POLICIES ───────────────────────────────────────────────────────────
+--  CREATE POLICIES 
 
 -- SPOTS
 CREATE POLICY "public_read_spots"
@@ -176,8 +166,7 @@ CREATE POLICY "public_insert_tiffin"
 CREATE POLICY "admin_all_tiffin"
   ON tiffin_listings FOR ALL USING (auth.role() = 'authenticated');
 
--- ── SEED SPOTS — 50 real Bhubaneswar/Khordha spots ──────────────────────────
--- Only inserts if the spots table is currently empty (safe to re-run)
+--  SEED SPOTS — 50 real Bhubaneswar/Khordha spots 
 INSERT INTO spots (name,category,area,address,food_type,price_range,avg_price,tags,latitude,longitude,status,rating,review_count,is_gem,is_featured,description)
 SELECT * FROM (VALUES
 
@@ -256,7 +245,7 @@ SELECT * FROM (VALUES
 ) AS v(name,category,area,address,food_type,price_range,avg_price,tags,latitude,longitude,status,rating,review_count,is_gem,is_featured,description)
 WHERE NOT EXISTS (SELECT 1 FROM spots LIMIT 1);
 
--- SEED EVENTS (only inserts if table is currently empty)
+-- SEED EVENTS 
 INSERT INTO events (name,event_type,location,area,event_date,is_free,status)
 SELECT * FROM (VALUES
   ('Ekamra Haat Food Mela',          'Food Festival','Ekamra Haat, Bhubaneswar',  'Old Town',    '2025-03-15'::date,true, 'upcoming'),
@@ -268,8 +257,3 @@ SELECT * FROM (VALUES
 ) AS v(name,event_type,location,area,event_date,is_free,status)
 WHERE NOT EXISTS (SELECT 1 FROM events LIMIT 1);
 
--- ── SETUP COMPLETE ────────────────────────────────────────────────────────────
--- Go to: Supabase → Authentication → Users → Add User
--- Email: admin@foodieradar.com  (any email is fine)
--- Password: choose something strong
--- That email+password is your admin.html login. Done!

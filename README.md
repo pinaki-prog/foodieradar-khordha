@@ -39,9 +39,7 @@ Built by a local, for locals.
 | Database | [Supabase](https://supabase.com) (PostgreSQL, free tier) |
 | Map | [Leaflet.js](https://leafletjs.com) + OpenStreetMap |
 | Live spots | OpenStreetMap Overpass API |
-| Image uploads | [Cloudinary](https://cloudinary.com) (free tier) |
 | Hosting | [Vercel](https://vercel.com) (free tier) |
-| Weather | Open-Meteo (free, no key needed) |
 
 ---
 
@@ -60,7 +58,7 @@ FoodieRadar Khordha/
 ├── tiffin.html         # Home tiffin listings
 ├── thali-week.html     # Weekly thali voting
 ├── admin.html          # Admin panel (Supabase Auth protected)
-├── config.js           # ⚠️ Keys go here — see Setup
+├── config.js           #  Keys go here 
 ├── smart-mode.js       # Weather, time, and season detection
 ├── overpass.js         # OpenStreetMap live data fetcher
 ├── schema.sql          # Database schema + 50 seed spots

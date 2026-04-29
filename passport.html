@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="canonical" href="https://foodieradar-khordha.vercel.app/passport.html"/>
-    <!-- SEO + Social Sharing -->
+    
   <meta name="description" content="Track your food adventures across Khordha. Earn XP, collect badges and become a Street Food Legend."/>
   <meta property="og:title" content="FoodiePassport — FoodieRadar Khordha"/>
   <meta property="og:description" content="Track your food adventures across Khordha. Earn XP, collect badges and become a Street Food Legend."/>
@@ -37,12 +37,6 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--soil);min-height:100vh}
 
-    /* NAV */
-    
-    
-    
-    
-    
 
     /* SETUP SCREEN */
     .setup-screen{
@@ -199,7 +193,7 @@
       .passport-header{flex-direction:column;align-items:flex-start}
     }
   
-    /* ── NAV ─────────────────────────────────────────────────────────────────── */
+    /* NAV */
     nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.96);
       -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
       border-bottom:1px solid var(--border);padding:0 5%;
@@ -346,7 +340,7 @@
 </div>
 
 <script>
-// ── BADGE DEFINITIONS ─────────────────────────────────────────────────────────
+// BADGE DEFINITIONS 
 const BADGES = [
   { id:'first_bite',   icon:'🍽️', name:'First Bite',      desc:'Visit your first spot',              xpNeeded:1,   type:'visits' },
   { id:'street_king',  icon:'🍢', name:'Street King',     desc:'Visit 5 street food stalls',         xpNeeded:5,   type:'street' },
@@ -360,7 +354,7 @@ const BADGES = [
   { id:'budget_king',  icon:'💰', name:'Budget King',     desc:'Visit 5 budget (₹) spots',           xpNeeded:5,   type:'budget' },
 ];
 
-// ── LEVELS ────────────────────────────────────────────────────────────────────
+// LEVELS 
 const LEVELS = [
   { min:0,   max:50,  icon:'🌱', name:'Food Newcomer' },
   { min:50,  max:150, icon:'🍴', name:'Street Wanderer' },
@@ -370,9 +364,8 @@ const LEVELS = [
   { min:800, max:Infinity, icon:'🏆', name:'Khordha Food Legend' },
 ];
 
-// ── PASSPORT STATE ─────────────────────────────────────────────────────────────
+// PASSPORT STATE 
 function loadPassport() {
-  // LS.get already JSON.parses — do NOT call JSON.parse again
   return LS.get('fr_passport', null);
 }
 
@@ -397,7 +390,7 @@ function createPassport() {
   showPassport(passport);
 }
 
-// ── RENDER PASSPORT ────────────────────────────────────────────────────────────
+// RENDER PASSPORT
 function showPassport(p) {
   document.getElementById('setupScreen').style.display  = 'none';
   document.getElementById('passportMain').style.display = 'block';
@@ -441,7 +434,7 @@ function showPassport(p) {
 }
 
 
-// ── STREAK ─────────────────────────────────────────────────────────────────────
+// STREAK 
 function calcStreak(visited) {
   if (!visited || visited.length === 0) return 0;
   const days = [...new Set(visited.map(v => v.date ? v.date.split('T')[0] : null).filter(Boolean))].sort().reverse();
@@ -459,7 +452,7 @@ function calcStreak(visited) {
   }
   return streak;
 }
-// ── BADGES ─────────────────────────────────────────────────────────────────────
+// BADGES
 function checkAndAwardBadges(p) {
   const v = p.visited;
   const streetVisits = v.filter(s => s.category === 'Street Food').length;
@@ -506,7 +499,7 @@ function renderBadges(p) {
   }).join('');
 }
 
-// ── VISITED SPOTS ──────────────────────────────────────────────────────────────
+// VISITED SPOTS 
 function renderVisited(p) {
   const el = document.getElementById('visitedList');
   if (p.visited.length === 0) {
@@ -531,7 +524,7 @@ function renderVisited(p) {
   }).join('');
 }
 
-// ── MARK VISITED (called from index.html spot cards) ──────────────────────────
+// MARK VISITED (called from index.html spot cards) 
 function markVisited(spotId, spotName, category, area, isGem, priceRange) {
   const p = loadPassport();
   if (!p) { window.location.href = 'passport.html'; return; }
@@ -569,7 +562,7 @@ function launchConfetti() {
   document.head.appendChild(style);
   setTimeout(() => { container.remove(); style.remove(); }, 4000);
 }
-// ── SHARE ─────────────────────────────────────────────────────────────────────
+// SHARE
 function sharePassport() {
   const p = loadPassport();
   if (!p) return;
@@ -578,7 +571,7 @@ function sharePassport() {
   window.open('https://wa.me/?text=' + text, '_blank');
 }
 
-// ── RESET ─────────────────────────────────────────────────────────────────────
+// RESET 
 function resetPassport() {
   // Show inline confirmation instead of browser confirm()
   const link = document.querySelector('.reset-link');
@@ -599,7 +592,7 @@ function resetPassport() {
   }
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────────────────
+// TOAST 
 function showToast(msg) {
   // Use existing toast element if present, otherwise create
   let t = document.getElementById('passportToast') || document.getElementById('toast');
@@ -615,7 +608,7 @@ function showToast(msg) {
   t._hideTimer = setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(20px)'; }, 3500);
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
+// INIT
 
 // Auto-refresh passport when user returns from another tab (e.g. after marking visited)
 document.addEventListener('visibilitychange', () => {

@@ -1,8 +1,6 @@
-// ============================================================
-//  FoodieRadar Khordha — overpass.js
 //  Fetches real food places from OpenStreetMap (Overpass API)
 //  Three mirror servers tried in order if one rate-limits (429)
-// ============================================================
+
 
 const KHORDHA_BBOX = "19.90,85.50,20.55,86.00";
 
@@ -13,13 +11,13 @@ const OVERPASS_MIRRORS = [
   "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ];
 
-// ── QUERY ─────────────────────────────────────────────────────────────────────
+// QUERY 
 
 function buildCombinedFoodQuery() {
   return `[out:json][timeout:30];(node["amenity"="restaurant"](${KHORDHA_BBOX});node["amenity"="fast_food"](${KHORDHA_BBOX});node["amenity"="cafe"](${KHORDHA_BBOX});node["amenity"="food_court"](${KHORDHA_BBOX});node["amenity"="street_vendor"](${KHORDHA_BBOX});node["shop"="bakery"](${KHORDHA_BBOX});node["shop"="confectionery"](${KHORDHA_BBOX});node["shop"="organic"](${KHORDHA_BBOX});way["amenity"="restaurant"](${KHORDHA_BBOX});way["amenity"="fast_food"](${KHORDHA_BBOX});way["amenity"="cafe"](${KHORDHA_BBOX}););out center tags;`;
 }
 
-// ── FETCH WITH MIRROR FALLBACK ─────────────────────────────────────────────────
+// FETCH WITH MIRROR FALLBACK
 
 async function fetchFromMirror(query) {
   for (const url of OVERPASS_MIRRORS) {
@@ -48,7 +46,7 @@ async function fetchFromMirror(query) {
   return null; // all mirrors failed
 }
 
-// ── MAIN EXPORT ───────────────────────────────────────────────────────────────
+// MAIN EXPORT
 
 async function fetchOSMSpots() {
   try {
@@ -64,7 +62,7 @@ async function fetchOSMSpots() {
   }
 }
 
-// ── NORMALIZE OSM DATA ────────────────────────────────────────────────────────
+// NORMALIZE OSM DATA 
 
 function normalizeOSMData(elements) {
   return elements

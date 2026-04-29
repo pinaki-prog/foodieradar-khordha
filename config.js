@@ -1,38 +1,24 @@
-// ============================================================
-//  FoodieRadar Khordha — config.js
-//  ⚠ THE ONLY FILE YOU EDIT — all keys live here
-//  ──────────────────────────────────────────────────────────
-//  Steps:
-//  1. Go to supabase.com → your project → Settings → API
-//     Copy "Project URL" and "anon public" key below
-//  2. Go to cloudinary.com → Dashboard → copy cloud name
-//     (optional — only needed for photo reviews)
-// ============================================================
+
+//   All keys live here
+
 
 const FR_CONFIG = {
-  // ── SUPABASE ──────────────────────────────────────────────
+  // SUPABASE
   SUPABASE_URL:  "https://evcbzxlbqdmoxqidrgef.supabase.co",
   SUPABASE_ANON: "sb_publishable_PttmGADsMmOkWukKaliNQw_9Shg_o7o",
 
-  // ── CLOUDINARY (optional — for photo uploads) ─────────────
-  CLOUDINARY_CLOUD:  "YOUR_CLOUDINARY_NAME",
-  CLOUDINARY_PRESET: "foodieradar_unsigned",
-
-  // ── SITE INFO ─────────────────────────────────────────────
+  // SITE INFO
   SITE_NAME:   "FoodieRadar Khordha",
   SITE_REGION: "Khordha District, Odisha",
   SITE_URL:    "https://foodieradar-khordha.vercel.app/",
 };
 
-// ── SUPABASE CLIENT ───────────────────────────────────────
+//  SUPABASE CLIENT 
 const { createClient } = supabase;
 const db = createClient(FR_CONFIG.SUPABASE_URL, FR_CONFIG.SUPABASE_ANON);
 
-// ── CLOUDINARY GLOBALS (used by reviews.js) ───────────────
-const CLOUDINARY_CLOUD  = FR_CONFIG.CLOUDINARY_CLOUD;
-const CLOUDINARY_PRESET = FR_CONFIG.CLOUDINARY_PRESET;
 
-// ── DEV HELPER ────────────────────────────────────────────
+// DEV HELPER 
 // Open browser console to see config status
 console.log(
   `%cFoodieRadar Config Loaded`,
@@ -42,7 +28,7 @@ if (FR_CONFIG.SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
   console.warn('⚠ Supabase URL not set in config.js — using seed data only');
 }
 
-// ── SAFE localStorage — single source of truth for all files ─────────────────
+// SAFE localStorage — single source of truth for all files 
 const LS = {
   // get raw string (or fallback)
   getRaw(key, fallback = null) {

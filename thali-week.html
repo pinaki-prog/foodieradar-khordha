@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8"/>
   <link rel="canonical" href="https://foodieradar-khordha.vercel.app/thali-week.html"/>
-    <!-- SEO + Social Sharing -->
   <meta name="description" content="Community voted best Odia Thali in Khordha this week. Nominate and vote for your favourite."/>
   <meta property="og:title" content="Thali of the Week — FoodieRadar Khordha"/>
   <meta property="og:description" content="Community voted best Odia Thali in Khordha this week. Nominate and vote for your favourite."/>
@@ -20,7 +19,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Odia Thali of the Week — FoodieRadar Khordha</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Central config — db client already initialised here -->
   <script src="config.js"></script>
   <script src="smart-mode.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=DM+Sans:wght@300;400;500;600;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet"/>
@@ -33,13 +31,6 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--soil);min-height:100vh}
-
-    /* NAV */
-    
-    
-    
-    
-    
 
     /* HERO — deep terracotta with mandala pattern */
     .thali-hero{
@@ -293,7 +284,7 @@
       .nominate-grid{grid-template-columns:1fr}
     }
   
-    /* ── NAV ─────────────────────────────────────────────────────────────────── */
+    /* NAV */
     nav{position:sticky;top:0;z-index:999;background:rgba(253,246,236,.96);
       -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
       border-bottom:1px solid var(--border);padding:0 5%;
@@ -390,7 +381,6 @@
   <div class="winner-wrap" id="winnerWrap">
     <div class="winner-crown">🏆 &nbsp; This Week's Winner &nbsp; 🏆</div>
     <div class="winner-body" id="winnerBody">
-      <!-- Rendered by JS -->
     </div>
   </div>
 
@@ -476,7 +466,7 @@
   function getMyThaliVote() { return LS.get(VOTE_KEY); }
   function setMyThaliVote(id) { LS.set(VOTE_KEY, id); }
 
-  // Seed data (replace with Supabase query)
+  // Seed data 
   const nominees = [
     {id:'t1', name:'Raghunath Odia Thali', area:'Old Town, BBSR', emoji:'🍲',
      specialty:'7-item thali with fresh dalma, pakhala, saga, machha besara & chhena poda',
