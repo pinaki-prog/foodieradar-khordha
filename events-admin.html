@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Add Event — FoodieRadar Admin</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:#1C0F06;color:#FDF6EC;min-height:100vh;padding:32px 5%}
+    h1{color:#E8670A;font-size:1.5rem;margin-bottom:8px}
+    p{color:rgba(255,255,255,.6);font-size:.85rem;margin-bottom:28px}
+    .form{background:#231208;border-radius:16px;padding:28px;max-width:640px}
+    label{display:block;font-size:.8rem;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+    input,select,textarea{width:100%;padding:10px 14px;background:#1C0F06;border:1.5px solid #3D2415;border-radius:10px;color:#FDF6EC;font-family:'DM Sans',sans-serif;font-size:.9rem;margin-bottom:18px;outline:none}
+    input:focus,select:focus,textarea:focus{border-color:#E8670A}
+    select option{background:#1C0F06}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    button{padding:13px 28px;background:#E8670A;color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;width:100%}
+    button:hover{background:#C04A1B}
+    #msg{margin-top:16px;padding:12px 16px;border-radius:10px;font-size:.88rem;display:none}
+    #msg.ok{background:#1B5E20;color:#A5D6A7}
+    #msg.err{background:#B71C1C;color:#FFCDD2}
+    .back{display:inline-block;margin-bottom:24px;color:#E8670A;text-decoration:none;font-size:.85rem}
+    .events-list{max-width:640px;margin-top:32px}
+    .ev-item{background:#231208;border:1px solid #3D2415;border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+    .ev-name{font-weight:700;font-size:.9rem}
+    .ev-meta{font-size:.75rem;color:rgba(255,255,255,.5);margin-top:3px}
+    .del-btn{background:#B71C1C;color:#fff;border:none;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.75rem}
+  </style>
+</head>
+<body>
+  <a class="back" href="admin.html">← Back to Admin</a>
+  <h1>📅 Add / Manage Events</h1>
+  <p>Events added here appear on the Events page immediately. Past events are hidden automatically.</p>
+
+  <div class="form">
+    <label>Event Name *</label>
+    <input type="text" id="evName" placeholder="e.g. Khordha Street Food Pop-Up"/>
+
+    <div class="row">
+      <div>
+        <label>Event Type *</label>
+        <select id="evType">
+          <option>Food Festival</option>
+          <option>Cook-Off</option>
+          <option>Pop-Up</option>
+          <option>Workshop</option>
+          <option>Weekly Haat</option>
+          <option>Festival</option>
+        </select>
+      </div>
+      <div>
+        <label>Date *</label>
+        <input type="date" id="evDate"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Start Time</label>
+        <input type="time" id="evStart"/>
+      </div>
+      <div>
+        <label>End Time</label>
+        <input type="time" id="evEnd"/>
+      </div>
+    </div>
+
+    <label>Location / Venue *</label>
+    <input type="text" id="evLocation" placeholder="e.g. Saheed Nagar Park"/>
+
+    <label>Area</label>
+    <input type="text" id="evArea" placeholder="e.g. Saheed Nagar, BBSR"/>
+
+    <label>Description</label>
+    <textarea id="evDesc" rows="3" placeholder="What's happening, who should come, what to expect..."></textarea>
+
+    <div class="row">
+      <div>
+        <label>Free Entry?</label>
+        <select id="evFree">
+          <option value="true">Yes — Free</option>
+          <option value="false">No — Paid</option>
+        </select>
+      </div>
+      <div>
+        <label>Price (₹) if paid</label>
+        <input type="number" id="evPrice" placeholder="Leave blank if free"/>
+      </div>
+    </div>
+
+    <button onclick="submitEvent()">➕ Add Event</button>
+    <div id="msg"></div>
+  </div>
+
+  <div class="events-list">
+    <h2 style="margin:24px 0 12px;font-size:1.1rem">Upcoming Events in DB</h2>
+    <div id="evList"><div style="color:rgba(255,255,255,.4);font-size:.85rem">Loading...</div></div>
+  </div>
+
+  <script>
+    const db = supabase.createClient(FR_CONFIG.SUPABASE_URL, FR_CONFIG.SUPABASE_ANON_KEY);
+
+    // Set min date to today
+    document.getElementById('evDate').min = new Date().toISOString().split('T')[0];
+
+    async function submitEvent() {
+      const name     = document.getElementById('evName').value.trim();
+      const type     = document.getElementById('evType').value;
+      const date     = document.getElementById('evDate').value;
+      const location = document.getElementById('evLocation').value.trim();
+      const msg      = document.getElementById('msg');
+
+      if (!name || !date || !location) {
+        msg.textContent = 'Please fill in Name, Date and Location.';
+        msg.className = 'err'; msg.style.display = 'block'; return;
+      }
+
+      const payload = {
+        name,
+        event_type:  type,
+        event_date:  date,
+        start_time:  document.getElementById('evStart').value || null,
+        end_time:    document.getElementById('evEnd').value   || null,
+        location,
+        area:        document.getElementById('evArea').value.trim() || null,
+        description: document.getElementById('evDesc').value.trim() || null,
+        is_free:     document.getElementById('evFree').value === 'true',
+        price:       document.getElementById('evPrice').value ? parseInt(document.getElementById('evPrice').value) : null,
+        status:      'upcoming',
+      };
+
+      const { error } = await db.from('events').insert([payload]);
+      if (error) {
+        msg.textContent = 'Error: ' + error.message;
+        msg.className = 'err';
+      } else {
+        msg.textContent = '✅ Event added! It will appear on the Events page immediately.';
+        msg.className = 'ok';
+        // Reset form
+        ['evName','evDate','evStart','evEnd','evLocation','evArea','evDesc','evPrice']
+          .forEach(id => document.getElementById(id).value = '');
+        loadEvents();
+      }
+      msg.style.display = 'block';
+    }
+
+    async function loadEvents() {
+      const list = document.getElementById('evList');
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await db.from('events').select('*')
+        .gte('event_date', today).order('event_date').limit(20);
+      if (!data || !data.length) {
+        list.innerHTML = '<div style="color:rgba(255,255,255,.4);font-size:.85rem">No upcoming events in database yet.</div>';
+        return;
+      }
+      list.innerHTML = data.map(e => `
+        <div class="ev-item">
+          <div>
+            <div class="ev-name">${e.name}</div>
+            <div class="ev-meta">${e.event_type} · ${e.event_date} · ${e.location}</div>
+          </div>
+          <button class="del-btn" onclick="deleteEvent('${e.id}')">Delete</button>
+        </div>`).join('');
+    }
+
+    async function deleteEvent(id) {
+      if (!confirm('Delete this event?')) return;
+      await db.from('events').delete().eq('id', id);
+      loadEvents();
+    }
+
+    loadEvents();
+  </script>
+</body>
+</html>
